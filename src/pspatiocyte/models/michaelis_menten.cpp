@@ -1,6 +1,6 @@
-#include "world.hpp"
-#include "species.hpp"
-#include "reaction.hpp"
+#include "World.hpp"
+#include "Species.hpp"
+#include "Reaction.hpp"
 
 int main(int argc, char *argv[]) {
   const int nx(64); // lattice dimensions
