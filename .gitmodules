@@ -1,0 +1,3 @@
+[submodule "src/visocyte"]
+	path = src/visocyte
+	url = git@github.com:/satya-arjunan/visocyte
