@@ -62,4 +62,9 @@ foreach(model_src ${APP_SOURCES})
       $<INSTALL_INTERFACE:include>
       ${MPI_CXX_INCLUDE_PATH}
       ${Boost_INCLUDE_DIRS})
+    set_target_properties(${model_name}
+      PROPERTIES
+      ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib"
+      LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib"
+      RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/models/${model_name}")
 endforeach(model_src ${APP_SOURCES})
