@@ -1,2 +1,2 @@
 add_subdirectory(pspatiocyte)
-add_subdirectory(visocyte)
+#add_subdirectory(visocyte)
