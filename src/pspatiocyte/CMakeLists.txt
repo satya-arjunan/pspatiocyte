@@ -48,23 +48,24 @@ install(EXPORT ${PROJECT_NAME}Config DESTINATION share/${PROJECT_NAME}/cmake)
 
 export(TARGETS ${PROJECT_NAME} FILE ${PROJECT_NAME}Config.cmake)
 
-file(GLOB APP_SOURCES models/*.cpp)
-foreach(model_src ${APP_SOURCES})
-    get_filename_component(model_name ${model_src} NAME_WE)
-    add_executable(${model_name} ${model_src})
-    target_link_libraries(${model_name} PRIVATE 
-      ${PROJECT_NAME}
-      ${MPI_CXX_LIBRARIES}
-      ${MPI_CXX_LINK_FLAGS}
-      ${Boost_LIBRARIES})
-    target_include_directories(${model_name} PUBLIC
-      $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-      $<INSTALL_INTERFACE:include>
-      ${MPI_CXX_INCLUDE_PATH}
-      ${Boost_INCLUDE_DIRS})
-    set_target_properties(${model_name}
-      PROPERTIES
-      ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib"
-      LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib"
-      RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/models/${model_name}")
-endforeach(model_src ${APP_SOURCES})
+file(GLOB MODEL_DIRS models/*)
+foreach(model_dir ${MODEL_DIRS})
+  get_filename_component(model_name ${model_dir} NAME_WE)
+  set(model_src ${model_dir}/${model_name}.cpp)
+  add_executable(${model_name} ${model_src})
+  target_link_libraries(${model_name} PRIVATE 
+    ${PROJECT_NAME}
+    ${MPI_CXX_LIBRARIES}
+    ${MPI_CXX_LINK_FLAGS}
+    ${Boost_LIBRARIES})
+  target_include_directories(${model_name} PUBLIC
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+    $<INSTALL_INTERFACE:include>
+    ${MPI_CXX_INCLUDE_PATH}
+    ${Boost_INCLUDE_DIRS})
+  set_target_properties(${model_name}
+    PROPERTIES
+    ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib"
+    LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib"
+    RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/models/${model_name}")
+endforeach(model_dir ${MODEL_DIRS})
