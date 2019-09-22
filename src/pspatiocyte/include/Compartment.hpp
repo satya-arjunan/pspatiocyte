@@ -118,9 +118,10 @@ public:
 
   void findMaxProbability(Species &s);
 
-  void calculateCollisionTime(Species &s);  //
+  void calculateCollisionTime(Species &s, ParallelEnvironment &pe);
 
-  double executeDirectMethodReaction(Lattice &g, ParallelEnvironment &pe, double current_time);
+  double executeDirectMethodReaction(Lattice &g, ParallelEnvironment &pe,
+                                     double current_time);
 
   void walk(std::vector<Species*>& species_list,
             Lattice &g, ParallelEnvironment &pe);

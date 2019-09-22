@@ -9,9 +9,8 @@ int main(int argc, char *argv[]) {
   const bool verbose(true);
   const double duration(10); // s
   const double volume(909e-18); // m^3
-  const double rv(pow(volume/((nz*2.0)*(ny*sqrt(3.0))*
-                              (nx*sqrt(8.0/3.0))), 1.0/3.0)); // voxel radius
-  std::cout << "voxel radius:" << rv << std::endl;
+  const double rv(pow(volume/(((nz-2)*2.0)*((ny-2)*sqrt(3.0))*
+                              ((nx-2)*sqrt(8.0/3.0))), 1.0/3.0)); //voxel radius
   const int num_E(9090);
   const int num_S(90910);
   const int num_ES(0);
@@ -27,7 +26,7 @@ int main(int argc, char *argv[]) {
   Species P("P", D, num_P, world);
 
   const double keff(0.01e-18); //effective or macroscopic rate
-  const double kd(4*M_PI*2*rv*2*1e-12);
+  const double kd(4*M_PI*2*rv*2*D);
   const double ka((keff*kd)/(kd-keff)); //intrinsic rate, used by Spatiocyte
   const double kr(1); //reverse rate
   const double kcat(1); //production rate

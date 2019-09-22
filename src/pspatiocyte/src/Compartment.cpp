@@ -17,7 +17,7 @@ void Compartment::initialize(Lattice &g, ParallelEnvironment &pe,
   Ny_ = pe.getjspan();    // 0 and Ny+1 serve as ghost cells
   Nz_ = pe.getkspan();    // 0 and Nz+1 serve as ghost cells 
   const int NE = MPI::PROC_NULL;  // no neighbor
-  const double r = g.getradius();
+  const double rv = g.getradius();
   const double SQR2 = 1.414213562;
 
   //set all invalid ids:
@@ -97,11 +97,15 @@ void Compartment::initialize(Lattice &g, ParallelEnvironment &pe,
         if(g.getVoxel(lc).species_id == vacant_id_)
             voxelVector_.push_back(lc);
     }
-    numberOfVoxel_ = voxelVector_.size();
-    local_volume_ = numberOfVoxel_*4.0*SQR2*r*r*r;
+    numberOfVoxel_ = voxelVector_.size(); // = (Nx_-2)*(Ny_-2)*(Nz_-2)
+    local_volume_ = numberOfVoxel_*4.0*SQR2*rv*rv*rv;
     volume_ = local_volume_;
     const MPI::Cartcomm cart = pe.getcart();
     cart.Allreduce(MPI::IN_PLACE, &volume_, 1, MPI::DOUBLE, MPI::SUM);
+    if (!pe.getrank()) {
+      std::cout << "voxel radius:" << rv << std::endl;
+      std::cout << "actual total volume:" << volume_ << std::endl;
+    }
   }
 
   mid_span_.x = Nx_/2 + Nx_%2;
@@ -895,7 +899,7 @@ unsigned Compartment::remove_molecule_from_molecules(Lattice& g,
 }
 
 
-void Compartment::calculateCollisionTime(Species& s) {
+void Compartment::calculateCollisionTime(Species& s, ParallelEnvironment& pe) {
   s.calcCollisionTime();
   const unsigned id0(s.getID());
   for (unsigned i(0); i < is_reactive_[id0].size(); ++i) {
@@ -904,13 +908,15 @@ void Compartment::calculateCollisionTime(Species& s) {
       Reaction& reaction(*influenced_reactions_[reaction_id]);
       double probability(reaction.getProbability()*s.get_walk_probability());
       reaction_probabilities_[id0][i] = probability;
-      std::cout << "reaction:" << reaction.getName() << std::endl;
-      std::cout << "\tspecies:" << s.getName() << std::endl;
-      std::cout << "\tp:" << probability << std::endl;
-      std::cout << "\twalk probability:" << s.get_walk_probability() <<
-        std::endl;
-      std::cout << "\twalk interval:" << s.getDt() <<
-        std::endl;
+      if (!pe.getrank()) {
+        std::cout << "reaction:" << reaction.getName() << std::endl;
+        std::cout << "\tspecies:" << s.getName() << std::endl;
+        std::cout << "\tp:" << probability << std::endl;
+        std::cout << "\twalk probability:" << s.get_walk_probability() <<
+          std::endl;
+        std::cout << "\twalk interval:" << s.getDt() <<
+          std::endl;
+      }
     }
   }
 }

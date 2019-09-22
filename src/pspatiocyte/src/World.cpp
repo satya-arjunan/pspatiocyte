@@ -75,7 +75,7 @@ void World::initialize() {
   }
 
   for (unsigned i(0); i < reactants.size(); ++i) {
-    compartment_.calculateCollisionTime(*reactants[i]);
+    compartment_.calculateCollisionTime(*reactants[i], parallel_environment_);
   }
 
   for (unsigned i(0); i < species_list_.size(); ++i) {
@@ -128,14 +128,14 @@ void World::run(const double log_interval, const double end_time,
       //compartment_.outputCoordinates(prev_time);
       compartment_.outputNumbers(prev_time);
       if(!parallel_environment_.getrank() && verbose) {
-        std::cout << "n:" << n << " t:" << scheduler_.getTime() << std::endl;
+        std::cout << "logged t:" << scheduler_.getTime() << std::endl;
       }
       ++n;
     }
   }
   const double last_time(scheduler_.getTime());
   if(!parallel_environment_.getrank() && verbose) {
-    std::cout << "n:" << n << " t:" << last_time << std::endl;
+    std::cout << "logged t:" << last_time << std::endl;
   }
   //compartment_.outputCoordinates(last_time);
   compartment_.outputNumbers(last_time);

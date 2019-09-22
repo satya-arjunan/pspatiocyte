@@ -31,12 +31,19 @@ void ParallelEnvironment::partition( const int &Nitem, const int &Nsect,
    }
    cart.Allreduce( MPI::IN_PLACE, &error, 1, MPI::BOOL, MPI::LOR );
    
-   if( error )
-   {
-       std::cout << "ERROR: odd number lattice will behave illegally. Exiting." << endl;
-       fout << "ERROR: odd number lattice will behave illegally. Exiting." << endl;
-       MPI::Finalize();
-       exit(0);
+   if(error) {
+     if (!rank) {
+       std::cout << "ERROR: at least one of the specified lattice dimensions" <<
+         " results in an odd number after dividing the voxels to" <<
+         " subprocesses. This will caused undefined behaviour. Exiting." <<
+         std::endl;  
+     }
+     fout << "ERROR: at least one of the specified lattice dimensions" <<
+       " results in an odd number after dividing the voxels to" <<
+       " subprocesses. This will caused undefined behaviour. Exiting." <<
+       std::endl;  
+     MPI::Finalize();
+     exit(0);
    }
 
    if( rank!=0 ) return;
