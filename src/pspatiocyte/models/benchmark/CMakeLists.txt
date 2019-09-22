@@ -1,3 +1,5 @@
 add_subdirectory(pspatiocyte)
 add_subdirectory(spatiocyte)
 add_subdirectory(smoldyn)
+add_subdirectory(readdy)
+add_subdirectory(readdy_serial)
