@@ -14,7 +14,7 @@ for i in threads:
   for j in range(1, iterations+1):
     print("running pSpatiocyte with", i, "thread(s), iteration", j, "of",
         iterations)
-    result = subprocess.run(['mpirun', '-np', str(i), 'pspatiocyte'],
+    result = subprocess.run(['mpirun', '-np', str(i), 'pspatiocyte_small_dt'],
         stdout=subprocess.PIPE)
     time = time + float(result.stdout.decode('utf-8').split('\n')[-2])
     print("elapsed time:", time/j)

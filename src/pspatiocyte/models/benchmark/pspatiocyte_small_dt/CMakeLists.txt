@@ -1,5 +1,5 @@
 
-set(model_name pspatiocyte)
+set(model_name pspatiocyte_small_dt)
 set(copy_files
   run.py
   elapsed_time.txt

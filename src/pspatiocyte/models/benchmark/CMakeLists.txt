@@ -16,6 +16,7 @@ foreach(copy_file ${copy_files})
 endforeach(copy_file ${copy_file})
 
 add_subdirectory(pspatiocyte)
+add_subdirectory(pspatiocyte_small_dt)
 add_subdirectory(spatiocyte)
 add_subdirectory(smoldyn)
 add_subdirectory(readdy)

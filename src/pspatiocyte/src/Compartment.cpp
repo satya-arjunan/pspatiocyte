@@ -98,12 +98,15 @@ void Compartment::initialize(Lattice &g, ParallelEnvironment &pe,
             voxelVector_.push_back(lc);
     }
     numberOfVoxel_ = voxelVector_.size(); // = (Nx_-2)*(Ny_-2)*(Nz_-2)
+    unsigned total_voxels(numberOfVoxel_);
     local_volume_ = numberOfVoxel_*4.0*SQR2*rv*rv*rv;
     volume_ = local_volume_;
     const MPI::Cartcomm cart = pe.getcart();
     cart.Allreduce(MPI::IN_PLACE, &volume_, 1, MPI::DOUBLE, MPI::SUM);
+    cart.Allreduce(MPI::IN_PLACE, &total_voxels, 1, MPI::INT, MPI::SUM);
     if (!pe.getrank()) {
       std::cout << "voxel radius:" << rv << std::endl;
+      std::cout << "total voxels:" << total_voxels << std::endl;
       std::cout << "actual total volume:" << volume_ << std::endl;
     }
   }
