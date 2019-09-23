@@ -39,7 +39,7 @@ def autolabel(sim, rects, xpos='center'):
     xytext=(-16,-3)
     if (sim == 'pspatiocyte' or sim == 'pspatiocyte_small_dt'):
       xytext=(10, -3)
-    elif (sim == 'spatiocyte' or sim == 'spatiocyte_small_dt'): 
+    elif (sim == 'spatiocyte'): 
       xytext=(14, -3)
     ax.annotate('{}'.format(width),
         xy=(width, rect.get_y() + rect.get_height()/ 4),
