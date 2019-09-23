@@ -35,12 +35,12 @@ void ParallelEnvironment::partition( const int &Nitem, const int &Nsect,
      if (!rank) {
        std::cout << "ERROR: at least one of the specified lattice dimensions" <<
          " results in an odd number after dividing the voxels to" <<
-         " subprocesses. This will caused undefined behaviour. Exiting." <<
+         " subprocesses. This will cause undefined behaviour. Exiting." <<
          std::endl;  
      }
      fout << "ERROR: at least one of the specified lattice dimensions" <<
        " results in an odd number after dividing the voxels to" <<
-       " subprocesses. This will caused undefined behaviour. Exiting." <<
+       " subprocesses. This will cause undefined behaviour. Exiting." <<
        std::endl;  
      MPI::Finalize();
      exit(0);

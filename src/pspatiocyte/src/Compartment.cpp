@@ -1259,8 +1259,8 @@ void Compartment::outputCoordinates(const double current_time) {
 }
 
 
-void Compartment::outputNumbersHeader() {
-  fout3 << setprecision(15) << "#time(sec)";
+void Compartment::outputNumbersHeader(ParallelEnvironment& pe) {
+  fout3 << setprecision(15) << "Time " << pe.getsize();
   for (unsigned i(0); i < output_number_species_.size(); ++i) {
     Species& s(output_number_species_[i]);
     fout3 << "," << s.getName();

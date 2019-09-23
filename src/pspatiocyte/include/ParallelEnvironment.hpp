@@ -40,7 +40,8 @@ class ParallelEnvironment
 {
 public:
     ParallelEnvironment(int argc, char* argv[], const int &Nx,
-                        const int &Ny, const int &Nz)
+                        const int &Ny, const int &Nz,
+                        const std::string dirname)
     {
         Nx_ = Nx;
         Ny_ = Ny;
@@ -81,16 +82,16 @@ public:
 
         // prepare parallel files
         char fname[80], fname2[80], fname3[80];
-        boost::filesystem::create_directory("output");
+        boost::filesystem::create_directory(dirname);
 
 //        sprintf( fname, "xout%06d", rank );   // bug fix for RICC
-        sprintf( fname, "./output/%06d", rank );
+        sprintf( fname, "./%s/%06d", dirname.c_str(), rank );
         fout.open( fname );
 
-        sprintf( fname2, "./output/coordinates_%06d", rank );
+        sprintf( fname2, "./%s/coordinates_%06d", dirname.c_str(), rank );
         fout2.open( fname2 );
 
-        sprintf( fname3, "./output/timecourses_%06d", rank );
+        sprintf( fname3, "./%s/timecourses_%06d", dirname.c_str(), rank );
         fout3.open( fname3 );
 
 

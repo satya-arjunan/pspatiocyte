@@ -154,7 +154,7 @@ public:
   void addNumberSpecies(Species& species);
   void outputCoordinatesHeader(Lattice& lattice, ParallelEnvironment& pe);
   void outputCoordinates(const double current_time);
-  void outputNumbersHeader();
+  void outputNumbersHeader(ParallelEnvironment& pe);
   void outputNumbers(const double current_time);
 
   void react(Lattice& g, Species& s, const unsigned tarID, Voxel& src_voxel,

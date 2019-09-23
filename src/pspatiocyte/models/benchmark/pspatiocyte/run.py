@@ -8,8 +8,6 @@ iterations = 3
 times = []
 
 for i in threads:
-  subprocess.run(['rm', '-rf', 'output'])
-  subprocess.run(['mkdir', 'output'])
   time = 0.
   for j in range(1, iterations+1):
     print("running pSpatiocyte with", i, "thread(s), iteration", j, "of",
@@ -20,7 +18,7 @@ for i in threads:
     print("elapsed time:", time/j)
   times.append(time/iterations)
 
-subprocess.run(['python3', '../../../scripts/gather_timecourse.py', '8'])
+subprocess.run(['python3', '../../../scripts/gather_timecourse.py'])
 
 rows = zip(threads, times)
 with open("elapsed_time.txt", "w+") as f:

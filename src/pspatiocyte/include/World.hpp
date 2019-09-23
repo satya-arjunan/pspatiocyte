@@ -15,7 +15,8 @@ using namespace std;
 class World {
 public:
   World(int argc, char* argv[], const unsigned Nx, const int Ny,
-        const unsigned Nz, const double rv);
+        const unsigned Nz, const double rv,
+        const std::string dirname="output");
   ~World() {} 
   int add_species(Species* newspec); 
   int add_independent_reaction(Reaction* reaction); 

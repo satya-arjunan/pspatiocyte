@@ -3,21 +3,29 @@
 #include "Reaction.hpp"
 
 int main( int argc, char *argv[] ) {
-  const int nx(220); // lattice dimensions
-  const int ny(220);
-  const int nz(220);
-  const double rv(0.0255215);
-  const double D(0.06);
+  std::string dirname("output");
+  double D(0.06);
+  double ratio(0.11103363181676379); //ratios[2]
+
+  if (argc >= 2) {
+    dirname = argv[1];
+  }
+  if (argc >= 3) {
+    D = atof(argv[2]);
+  }
+  if (argc >= 4) {
+    ratio = atof(argv[3]);
+  }
+
+  const double molecule_radius(0.0025);
+  const int nx(476); // lattice dimensions for volume = 10
+  const int ny(476);
+  const int nz(476);
+  const double rv(1.0208582*molecule_radius); // see Chew et al. PRE 2018.
   const double volume(rv*rv*rv*(nx-2)*(ny-2)*(nz-2)*2.0*sqrt(3.0)*
                       sqrt(8.0/3.0));
-
-  /*
-  const double rv(pow(volume/(((nz-2)*2.0)*((ny-2)*sqrt(3.0))*
-                              ((nx-2)*sqrt(8.0/3.0))), 1.0/3.0)); //voxel radius
-                              */
-
   const bool verbose(true);
-  const double duration(20); // s
+  const double duration(400); // s
   const double ka1(0.04483455086786913);
   const double kd1(1.35);
   const double kcat1(1.5);
@@ -26,7 +34,6 @@ int main( int argc, char *argv[] ) {
   const double kcat2(15.0);
   const double trel(1e-6);
   const double k7(log(2.)/trel);
-  const double ratio(1.3688745095370807); //ratios[6]
   const int NKT(120*volume); // total K
   const int NPP(rint(60*volume/(ratio+1)));
   const int NKK(60*volume-NPP);
@@ -34,7 +41,7 @@ int main( int argc, char *argv[] ) {
   const int nlogs(100);
   const double log_interval(duration/nlogs);
 
-  World world(argc, argv, nx, ny, nz, rv);
+  World world(argc, argv, nx, ny, nz, rv, dirname);
 
   Species KK("KK", D, NKK, world);
   Species Kpp("Kpp", D, 0, world);
