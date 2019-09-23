@@ -13,7 +13,7 @@ for i in range(len(tableau20)):
     r, g, b = tableau20[i]    
     tableau20[i] = (r / 255., g / 255., b / 255.)  
 
-colors = [1, 0, 4, 8, 2, 3]
+colors = [1, 0, 8, 4, 2, 3]
 skips = [1, 1, 0, 0, 1, 0]
 sims = ['pspatiocyte', 'pspatiocyte_small_dt', 'spatiocyte', 'smoldyn', 'readdy', 'readdy_serial']
 labels = ['pSpatiocyte (0.5 ms)', 'pSpatiocyte (0.2 ms)', 'Spatiocyte (0.5 ms)', 'Smoldyn (1 ms)', 'Parallel ReaDDy (1 ms)', 'Serial ReaDDy (1 ms)']
@@ -29,16 +29,22 @@ r = [[6,10,14,18],
 
 labelFontSize = 14
 legendFontSize = 13
-lineFontSize = 12
+lineFontSize = 13
 
 def autolabel(sim, rects, xpos='center'):
   ha = {'center': 'center', 'right': 'left', 'left': 'right'}
   offset = {'center': 0, 'right': 1, 'left': -1} 
   for i, rect in enumerate(rects):
     width = rect.get_width()
-    xytext=(-16,-3)
+    if (width >= 1000):
+      xytext=(-19,-3)
+    elif(width >= 100):
+      xytext=(-15,-3)
     if (sim == 'pspatiocyte' or sim == 'pspatiocyte_small_dt'):
-      xytext=(10, -3)
+      if(width >= 100):
+        xytext=(14, -3)
+      else:
+        xytext=(12, -3)
     elif (sim == 'spatiocyte'): 
       xytext=(14, -3)
     ax.annotate('{}'.format(width),
