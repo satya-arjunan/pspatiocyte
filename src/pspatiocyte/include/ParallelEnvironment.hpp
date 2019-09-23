@@ -3,6 +3,7 @@
 
 #include <mpi.h>
 #include <iomanip>
+#include <boost/filesystem.hpp>
 #include "Common.hpp"
 using namespace std;
 
@@ -80,6 +81,7 @@ public:
 
         // prepare parallel files
         char fname[80], fname2[80], fname3[80];
+        boost::filesystem::create_directory("output");
 
 //        sprintf( fname, "xout%06d", rank );   // bug fix for RICC
         sprintf( fname, "./output/%06d", rank );

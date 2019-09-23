@@ -16,7 +16,7 @@ add_library(${PROJECT_NAME} SHARED
   src/World.cpp)
 
 find_package(MPI REQUIRED)
-find_package(Boost COMPONENTS random REQUIRED)
+find_package(Boost COMPONENTS random filesystem REQUIRED)
 
 target_compile_options(${PROJECT_NAME} PRIVATE
   -O3 -mtune=native 

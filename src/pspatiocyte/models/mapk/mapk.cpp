@@ -8,7 +8,14 @@ int main( int argc, char *argv[] ) {
   const int nz(220);
   const double rv(0.0255215);
   const double D(0.06);
-  const double volume(rv*rv*rv*nx*ny*nz*2.0*sqrt(3.0)*sqrt(8.0/3.0));
+  const double volume(rv*rv*rv*(nx-2)*(ny-2)*(nz-2)*2.0*sqrt(3.0)*
+                      sqrt(8.0/3.0));
+
+  /*
+  const double rv(pow(volume/(((nz-2)*2.0)*((ny-2)*sqrt(3.0))*
+                              ((nx-2)*sqrt(8.0/3.0))), 1.0/3.0)); //voxel radius
+                              */
+
   const bool verbose(true);
   const double duration(20); // s
   const double ka1(0.04483455086786913);
@@ -24,7 +31,6 @@ int main( int argc, char *argv[] ) {
   const int NPP(rint(60*volume/(ratio+1)));
   const int NKK(60*volume-NPP);
   const double dt(rv*rv*2/(D*3)); // s (diffusion interval)
-  std::cout << "dt:" << dt << "rv:" << rv << "volume:" << volume << std::endl;
   const int nlogs(100);
   const double log_interval(duration/nlogs);
 
