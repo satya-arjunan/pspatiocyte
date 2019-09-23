@@ -13,8 +13,8 @@ from collections import OrderedDict
 matplotlib.rcParams["mathtext.fontset"] = "stix"
 rc('font',**{'family':'sans-serif','sans-serif':['Helvetica']})
 rc('text', usetex=True)
-rc('text.latex', preamble=r'\usepackage{amsmath}')
-rc('text.latex', preamble=r'\usepackage[helvet]{sfmath}')
+matplotlib.rcParams['text.latex.preamble'] = [r'\usepackage{amsmath}',
+    r'\usepackage[helvet]{sfmath}']
 
 labelFontSize = 23
 legendFontSize = 18
@@ -113,6 +113,8 @@ annotate('P', xy=(9, 23),  xycoords='data', xytext=(-27, 12), textcoords='offset
 
 annotate('S', xy=(9, 64),  xycoords='data', xytext=(-27, 12), textcoords='offset points', color='k', size=lineFontSize)
 
+
+annotate(r'E + S $\overset{k_1}{\underset{k_2}\rightleftharpoons}$ ES $\overset{k_3}{\rightarrow}$ E + P', xy=(6, 85),  xycoords='data', xytext=(-29, 0), textcoords='offset points', color='k', size=lineFontSize)
 
 ax = gca()
 handles, labels = ax.get_legend_handles_labels()
