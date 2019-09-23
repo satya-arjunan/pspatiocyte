@@ -13,18 +13,19 @@ for i in range(len(tableau20)):
     r, g, b = tableau20[i]    
     tableau20[i] = (r / 255., g / 255., b / 255.)  
 
-colors = [1, 0, 8, 4, 2, 3]
-skips = [1, 1, 0, 0, 1, 0]
-sims = ['pspatiocyte', 'pspatiocyte_small_dt', 'spatiocyte', 'smoldyn', 'readdy', 'readdy_serial']
-labels = ['pSpatiocyte (0.5 ms)', 'pSpatiocyte (0.2 ms)', 'Spatiocyte', 'Smoldyn', 'Parallel ReaDDy', 'Serial ReaDDy']
+colors = [1, 0, 5, 4, 8, 2, 3]
+skips = [1, 1, 0, 0, 0, 1, 0]
+sims = ['pspatiocyte', 'pspatiocyte_small_dt', 'spatiocyte', 'spatiocyte_small_dt', 'smoldyn', 'readdy', 'readdy_serial']
+labels = ['pSpatiocyte (0.5 ms)', 'pSpatiocyte (0.2 ms)', 'Spatiocyte (0.5 ms)', 'Spatiocyte (0.2 ms)', 'Smoldyn (1 ms)', 'Parallel ReaDDy (1 ms)', 'Serial ReaDDy (1 ms)']
 data = []
 height = 1.0  # the height of the bars
 
-r = [[6,10,14,18],
-     [5,9,13,17],
+r = [[7,11,15,19],
+     [6,10,14,18],
+     [5],
      [4],
      [3],
-     [2,8,12,16],
+     [2,9,13,17],
      [1]]
 
 labelFontSize = 14
@@ -39,7 +40,7 @@ def autolabel(sim, rects, xpos='center'):
     xytext=(-16,-3)
     if (sim == 'pspatiocyte' or sim == 'pspatiocyte_small_dt'):
       xytext=(10, -3)
-    elif (sim == 'spatiocyte'): 
+    elif (sim == 'spatiocyte' or sim == 'spatiocyte_small_dt'): 
       xytext=(14, -3)
     ax.annotate('{}'.format(width),
         xy=(width, rect.get_y() + rect.get_height()/ 4),
@@ -67,7 +68,7 @@ ax.set_xlabel('Run time, $T$ (s)', size=labelFontSize)
 ax.set_ylabel('CPU cores (threads)', size=labelFontSize)
 ax.tick_params(axis='both', which='major', labelsize=lineFontSize)
 ax.tick_params(axis='both', which='minor', labelsize=lineFontSize)
-ax.set_yticks([3, 7.5, 10.5, 13.5], )
+ax.set_yticks([4, 10, 14, 18], )
 ax.set_yticklabels(('1', '2', '4', '8'))
 ax.set_xlim(0,2200)
 fig.tight_layout()

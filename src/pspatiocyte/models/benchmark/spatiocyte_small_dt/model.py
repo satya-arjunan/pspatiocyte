@@ -2,9 +2,9 @@ import time
 import math
 import numpy as np
 
-nx = 62
-ny = 62
-nz = 62
+nx = 94
+ny = 94
+nz = 94
 D = 10e-12 # m^2/s
 volume = 909e-18 # m^3
 rv = math.pow(volume/((nz*2.0)*(ny*math.sqrt(3.0))*(nx*math.sqrt(8.0/3.0))),
