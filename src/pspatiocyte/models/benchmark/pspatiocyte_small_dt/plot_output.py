@@ -52,7 +52,7 @@ linestyles = OrderedDict(
 #fileNames = ['spatiocyte/output.txt', 'pspatiocyte/output.txt', 'smoldyn/output.txt', 'readdy/output.txt', 'readdy_serial/output.txt']
 #fileNames = ['spatiocyte/output.txt', 'pspatiocyte_fix/output.txt', 'smoldyn/output.txt', 'readdy/output.txt', 'readdy_serial/output.txt']
 fileNames = ['output.txt']
-legendTitles = ['Spatiocyte ($\Delta t=0.48\ \mathrm{ms}, T=166\ \mathrm{s}$)','pSpatiocyte (8 cores) ($\Delta t=0.51\ \mathrm{ms},\ T=11\ \mathrm{s}$)','Smoldyn ($\Delta t=1\ \mathrm{ms},\ T=455\ \mathrm{s}$)','Parallel ReaDDy (8 cores) ($\Delta t=1\ \mathrm{ms}, T=549\ \mathrm{s}$)','Serial ReaDDy ($\Delta t=1\ \mathrm{ms}, T=2237\ \mathrm{s}$)']
+legendTitles = ['Spatiocyte ($\Delta t=0.48\ \mathrm{ms}, T=166\ \mathrm{s}$)','pSpatiocyte (8 cores) ($\Delta t=0.22\ \mathrm{ms},\ T=22\ \mathrm{s}$)','Smoldyn ($\Delta t=1\ \mathrm{ms},\ T=455\ \mathrm{s}$)','Parallel ReaDDy (8 cores) ($\Delta t=1\ \mathrm{ms}, T=549\ \mathrm{s}$)','Serial ReaDDy ($\Delta t=1\ \mathrm{ms}, T=2237\ \mathrm{s}$)']
 speciesList = ['E','S','ES','P']
 lines = ['-','-','-','-','-','-','-']
 opacity = [1, 1, 1, 1, 1]
