@@ -7,14 +7,14 @@ def main():
   outputdir = ''
   if (len(sys.argv) >= 2):
     dirname = sys.argv[1]
-    outputdir = dirname
+    outputdir = dirname + os.sep
   print("Gathering timecourse data from directory:",dirname)
   inputf = dirname + os.sep + "timecourses_%06d"%(0) 
   f = open(inputf, 'r')
   header = f.readline().strip()
   nproc = int(header.split(',')[0].split(' ')[1])
   result = np.loadtxt(inputf, delimiter=',', skiprows=1)
-  ofname = outputdir + os.sep + "output.txt"
+  ofname = outputdir + "output.txt"
   # repeat
   for i in range(1, nproc):
     inputf  = dirname + os.sep + "timecourses_%06d"%(i)

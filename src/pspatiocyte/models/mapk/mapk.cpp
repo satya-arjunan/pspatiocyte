@@ -48,10 +48,10 @@ int main( int argc, char *argv[] ) {
   Species PP("PP", D, NPP, world);
   Species K("K", D, NKT, world);
   Species Kp("Kp", D, 0, world);
-  Species K_KK("K_KK", D, 0, world);
-  Species Kp_KK("Kp_KK", D, 0, world);
-  Species Kpp_PP("Kpp_PP", D, 0, world);
-  Species Kp_PP("Kp_PP", D, 0, world);
+  Species K_KK("K_KK", D, 0, world); //KK-K in Takahashi et al. PNAS 2010
+  Species Kp_KK("Kp_KK", D, 0, world); //KK-Kp
+  Species Kpp_PP("Kpp_PP", D, 0, world); //P-Kpp
+  Species Kp_PP("Kp_PP", D, 0, world); //P-Kp
   Species KKa("KKa", D, 0, world);
   Species PPa("PPa", D, 0, world);
 

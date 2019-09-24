@@ -4,7 +4,7 @@ import subprocess
 import csv
 import numpy as np
 
-ratios = np.logspace(-1.5,1.5,6)
+ratios = np.logspace(-1.5,1.5,12)
 Ds = [0.06, 4.0]
 data = []
 
@@ -18,6 +18,7 @@ for D in Ds:
       str(ratio)], stdout=subprocess.PIPE)
     time = float(result.stdout.decode('utf-8').split('\n')[-2])
     data.append([D, ratio, time])
+    print('\telapsed time:',time)
 
 with open("elapsed_time.txt", "w+") as f:
   writer = csv.writer(f)
