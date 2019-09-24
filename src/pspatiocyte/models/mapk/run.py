@@ -13,7 +13,6 @@ for D in Ds:
     print("running pSpatiocyte MAPK model with diffusion coefficient, D:", D,
         "ratio:", ratio)
     ratio_str = '{:.4f}'.format(ratio)
-    print(ratio_str)
     dirname = 'D_'+str(D)+'__ratio_'+ratio_str
     result = subprocess.run(['mpirun', '-np', '8', 'mapk', dirname, str(D),
       str(ratio)], stdout=subprocess.PIPE)

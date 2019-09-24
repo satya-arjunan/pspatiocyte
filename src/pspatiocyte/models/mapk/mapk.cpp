@@ -25,7 +25,7 @@ int main( int argc, char *argv[] ) {
   const double volume(rv*rv*rv*(nx-2)*(ny-2)*(nz-2)*2.0*sqrt(3.0)*
                       sqrt(8.0/3.0));
   const bool verbose(true);
-  const double duration(400); // s
+  const double duration(300); // s
   const double ka1(0.04483455086786913);
   const double kd1(1.35);
   const double kcat1(1.5);
@@ -38,7 +38,7 @@ int main( int argc, char *argv[] ) {
   const int NPP(rint(60*volume/(ratio+1)));
   const int NKK(60*volume-NPP);
   const double dt(rv*rv*2/(D*3)); // s (diffusion interval)
-  const int nlogs(100);
+  const int nlogs(duration*2);
   const double log_interval(duration/nlogs);
 
   World world(argc, argv, nx, ny, nz, rv, dirname);

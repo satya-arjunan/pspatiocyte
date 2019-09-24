@@ -29,7 +29,7 @@ r = [[6,10,14,18],
 
 labelFontSize = 14
 legendFontSize = 13
-lineFontSize = 13
+lineFontSize = 12
 
 def autolabel(sim, rects, xpos='center'):
   ha = {'center': 'center', 'right': 'left', 'left': 'right'}
