@@ -15,12 +15,12 @@ matplotlib.rcParams['text.latex.preamble'] = [r'\usepackage{amsmath}',
     r'\usepackage{arev}', r'\usepackage{siunitx}',
     r'\sisetup{math-micro={\usefont{T1}{phv}{m}{n}\text{µ}}}']
 
-labelFontSize = 23
-legendFontSize = 18
-lineFontSize = 23
+labelFontSize = 15
+legendFontSize = 13
+lineFontSize = 15
 
 matplotlib.rcParams.update({'font.size': labelFontSize})
-matplotlib.rcParams['figure.figsize'] = 9.1,7
+#matplotlib.rcParams['figure.figsize'] = 9.1,7
 
 path, file = os.path.split(os.path.abspath(__file__))
 path = path+os.sep
@@ -76,7 +76,7 @@ for f in range(len(fileNames)):
       label = legendTitles[i].replace('_','\_')
       colormaps[legendTitles[i]] = colors[i-1]
       plot(data[0], data[i]/volume, ls=lines[0], color=tableau20[colors[i-1]],
-          label=label, linewidth=3)
+          label=label, linewidth=2.5)
 
 molecule_radius = 0.0025
 ka1, kd1, kcat1 = 0.04483455086786913, 1.35, 1.5
@@ -180,16 +180,11 @@ for t in leg.get_texts():
 xticks(size=labelFontSize)
 yticks(size=labelFontSize)
 
-ax.yaxis.set_ticks_position('both')
-ax.xaxis.set_ticks_position('both')
-ax.tick_params(axis='both',which='both',direction='in',length=10,width=2)
-ax.tick_params(axis='both',which='major',length=10,width=2)
-for axis in ['top','bottom','left','right']:
-     ax.spines[axis].set_linewidth(2)
-
-xlabel('Time, $t$',size=labelFontSize)
-ylabel("Concentration")
-xlim(0,300)
+ax.tick_params(axis='both', which='major', labelsize=lineFontSize)
+ax.tick_params(axis='both', which='minor', labelsize=lineFontSize)
+xlabel('Time, $t$ (s)',size=labelFontSize)
+ylabel("Concentration (\#\si{\micro}m$^-3$)",size=labelFontSize)
+xlim(0,100)
 tight_layout(pad=0)
 savefig('reaction.pdf', format='pdf', dpi=600)#, bbox_inches='tight')
 show()
