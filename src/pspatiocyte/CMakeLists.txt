@@ -49,7 +49,8 @@ install(EXPORT ${PROJECT_NAME}Config DESTINATION share/${PROJECT_NAME}/cmake)
 export(TARGETS ${PROJECT_NAME} FILE ${PROJECT_NAME}Config.cmake)
 
 set(script_files
-  gather_timecourse.py)
+  gather_timecourse.py
+  gather_coordinates.py)
 
 foreach(script_file ${script_files})
   add_custom_command(
@@ -61,3 +62,4 @@ endforeach()
 
 add_subdirectory(models/benchmark)
 add_subdirectory(models/mapk)
+add_subdirectory(models/trajectory)

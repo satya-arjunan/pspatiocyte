@@ -8,16 +8,18 @@ ofstream fout, fout2, fout3;
 //distribute molecules thrown in for each process
 World::World(int argc, char* argv[], const unsigned Nx,
              const int Ny, const unsigned Nz, const double rv,
-             const std::string dirname):
+             const std::string dirname,
+             const bool is_output_coords):
   invalid_species_("Invalid", 0, 0, *this),
   vacant_species_("Vacant", 0, 0, *this),
   ghost_id_(-1),
   parallel_environment_(argc, argv, Nx, Ny, Nz, dirname),
   lattice_("SchisMatrix", rv, parallel_environment_, invalid_species_.getID(),
                vacant_species_.getID(), ghost_id_),
-  compartment_("Cell", VOLUME, rand(), parallel_environment_.getsize(),
-               parallel_environment_.getrank(), invalid_species_.getID(),
-               vacant_species_.getID(), ghost_id_) {
+  compartment_("Cell", VOLUME, rand()*parallel_environment_.getrank(),
+               parallel_environment_.getsize(), parallel_environment_.getrank(),
+               invalid_species_.getID(), vacant_species_.getID(), ghost_id_,
+               is_output_coords) {
   }
 
 int DistributeMolecule(int Total, int Nproc, int rank) {
@@ -126,7 +128,7 @@ void World::run(const double log_interval, const double end_time,
     scheduler_.step(parallel_environment_);
     if(scheduler_.getTime()-prev_time > log_interval) {
       prev_time = scheduler_.getTime(); 
-      //compartment_.outputCoordinates(prev_time);
+      compartment_.outputCoordinates(prev_time);
       compartment_.outputNumbers(prev_time);
       if(!parallel_environment_.getrank() && verbose) {
         std::cout << "logged t:" << scheduler_.getTime() << std::endl;
@@ -138,7 +140,7 @@ void World::run(const double log_interval, const double end_time,
   if(!parallel_environment_.getrank() && verbose) {
     std::cout << "logged t:" << last_time << std::endl;
   }
-  //compartment_.outputCoordinates(last_time);
+  compartment_.outputCoordinates(last_time);
   compartment_.outputNumbers(last_time);
   parallel_environment_.stoptimer();
 }

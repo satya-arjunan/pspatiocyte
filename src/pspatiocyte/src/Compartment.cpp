@@ -1227,35 +1227,39 @@ void Compartment::addNumberSpecies(Species& species) {
 
 void Compartment::outputCoordinatesHeader(Lattice& lattice,
                                           ParallelEnvironment &pe) {
-  fout2 << "Time";
-  for (unsigned i(0); i < output_coord_species_.size(); ++i) {
-    Species& s(output_coord_species_[i]);
-    fout2 << "," << s.getName();
+  if (is_output_coords_) {
+    fout2 << "Time";
+    for (unsigned i(0); i < output_coord_species_.size(); ++i) {
+      Species& s(output_coord_species_[i]);
+      fout2 << "," << s.getName();
+    }
+    fout2 << "," << lattice.getradius() << " " << pe.getsize() << " " << 
+      pe.getNx() << " " << pe.getNy() << " " << pe.getNz() << endl;
   }
-  fout2 << "," << lattice.getradius() << " " << pe.getsize() << " " << 
-    pe.getNx() << " " << pe.getNy() << " " << pe.getNz() << endl;
 }
 
 void Compartment::outputCoordinates(const double current_time) {
-  fout2 << setprecision(15) << current_time;
-  for (unsigned i(0); i < output_coord_species_.size(); ++i) {
-    Species& s(output_coord_species_[i]);
-    std::vector<Molecule>& molecules(species_molecules_[s.getID()]);
-    vector<Molecule>::iterator p2 = molecules.begin();
-    vector<Molecule>::iterator e2 = molecules.end();
-    fout2 << "," ;
-    while (p2!=e2) {
-      // get linear coordinate of voxel
-      if (p2 == molecules.begin()) {
-        fout2 << p2->coord << " " << p2->mol_id;
+  if (is_output_coords_) {
+    fout2 << setprecision(15) << current_time;
+    for (unsigned i(0); i < output_coord_species_.size(); ++i) {
+      Species& s(output_coord_species_[i]);
+      std::vector<Molecule>& molecules(species_molecules_[s.getID()]);
+      vector<Molecule>::iterator p2 = molecules.begin();
+      vector<Molecule>::iterator e2 = molecules.end();
+      fout2 << "," ;
+      while (p2!=e2) {
+        // get linear coordinate of voxel
+        if (p2 == molecules.begin()) {
+          fout2 << p2->coord << " " << p2->mol_id;
+        }
+        else {
+          fout2 << " " << p2->coord << " " << p2->mol_id;
+        }
+        p2++;
       }
-      else {
-        fout2 << " " << p2->coord << " " << p2->mol_id;
-      }
-      p2++;
     }
+    fout2 << endl;
   }
-  fout2 << endl;
 }
 
 

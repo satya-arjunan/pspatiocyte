@@ -1,9 +1,8 @@
 
-set(model_name mapk)
+set(model_name trajectory)
 
 set(copy_files
-  plot_ratio.py
-  plot_output.py)
+  plot_trajectory.py)
 
 set(model_src ${model_name}.cpp)
 add_executable(${model_name} ${model_src})
