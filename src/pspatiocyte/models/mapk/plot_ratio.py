@@ -30,8 +30,6 @@ for i, D in enumerate(Ds):
   x = []
   y = []
   for j, ratio in enumerate(ratios):
-    if (D==4 and j > 4):
-      continue
     ratio_str = '{:.4f}'.format(ratio)
     dirname = 'D_'+str(D)+'__ratio_'+ratio_str
     subprocess.run(['python3', '../../scripts/gather_timecourse.py', dirname])

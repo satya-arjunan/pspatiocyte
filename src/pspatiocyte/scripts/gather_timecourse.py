@@ -10,6 +10,8 @@ def main():
     outputdir = dirname + os.sep
   print("Gathering timecourse data from directory:",dirname)
   inputf = dirname + os.sep + "timecourses_%06d"%(0) 
+  if (os.path.exists(inputf) == False):
+    return 0
   f = open(inputf, 'r')
   header = f.readline().strip()
   nproc = int(header.split(',')[0].split(' ')[1])
