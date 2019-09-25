@@ -8,13 +8,14 @@ matplotlib.rcParams["mathtext.fontset"] = "stix"
 rc('font',**{'family':'sans-serif','sans-serif':['Helvetica']})
 rc('text', usetex=True)
 matplotlib.rcParams['text.latex.preamble'] = [r'\usepackage{amsmath}',
-    r'\usepackage[helvet]{sfmath}']
-
-ratios = np.logspace(-1.5,1.5,12)
+    r'\usepackage[helvet]{sfmath}', r'\usepackage[utf8]{inputenc}',
+    r'\usepackage{arev}', r'\usepackage{siunitx}',
+    r'\sisetup{math-micro={\usefont{T1}{phv}{m}{n}\text{µ}}}']
+ratios = np.append(np.logspace(-1.5,1.5,12), [1])
 Ds = [0.06, 4.0]
 #Ds = [0.06]
 markers = ['o', 'o']
-labels = ['pSpatiocyte (D=0.06)', 'pSpatiocyte (D=4.0)', 'ODE (processive)', 'ODE (distributive)']
+labels = ['pSpatiocyte (D = 0.06 \si{\micro}m$^2$s$^{-1}$)', 'pSpatiocyte (D = 4 \si{\micro}m$^2$s$^{-1}$)', 'ODE (processive)', 'ODE (distributive)']
 
 fig,ax=plt.subplots()
 
@@ -38,14 +39,11 @@ for i, D in enumerate(Ds):
     NKK = data[:1,1][0]
     NPP = data[:1,3][0]
     #print("intial NKT:",NKT,"NKK:",NKK,"NPP:",NPP)
-    # KK/PP
     KK_over_PP = (NKK/NPP) 
     x.append(KK_over_PP)
     rows = len(data)
-    Kpp = np.mean(data[-int(rows*0.3):,2])
-    #Kp_PP = np.mean(data[-int(rows*0.3):,9]) # Kpp/NKT
-    Kp_PP = 0
-    y.append((Kpp+Kp_PP)/NKT)
+    Kpp = np.mean(data[-int(rows*0.5):,2])
+    y.append(Kpp/NKT)
   ax.semilogx(x,y, markers[i], label=labels[i], markersize=7)
 
 

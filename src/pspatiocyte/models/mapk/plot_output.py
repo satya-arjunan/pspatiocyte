@@ -6,15 +6,14 @@ import math
 from matplotlib import rc
 from pylab import *
 from collections import OrderedDict
-#uncomment the following to create valid eps (scribus) and svg (inkscape):
-#rc('svg', embed_char_paths=True)
-#rc('mathtext', fontset=r'stixsans')
 
 matplotlib.rcParams["mathtext.fontset"] = "stix"
 rc('font',**{'family':'sans-serif','sans-serif':['Helvetica']})
 rc('text', usetex=True)
 matplotlib.rcParams['text.latex.preamble'] = [r'\usepackage{amsmath}',
-    r'\usepackage[helvet]{sfmath}']
+    r'\usepackage[helvet]{sfmath}', r'\usepackage[utf8]{inputenc}',
+    r'\usepackage{arev}', r'\usepackage{siunitx}',
+    r'\sisetup{math-micro={\usefont{T1}{phv}{m}{n}\text{µ}}}']
 
 labelFontSize = 23
 legendFontSize = 18
@@ -35,8 +34,8 @@ for i in range(len(tableau20)):
     r, g, b = tableau20[i]    
     tableau20[i] = (r / 255., g / 255., b / 255.)  
 
-colors = [1, 0, 4, 2, 3, 5, 6, 7, 8]
-cols = [1, 2, 3, 4, 5, 6, 7, 8]
+colors = [1, 0, 4, 2, 16, 10, 6, 18, 8]
+cols = [1, 2, 3, 4, 5, 6, 7, 8, 9]
 
 linestyles = OrderedDict(
     [('solid',               (0, ())),
@@ -59,25 +58,25 @@ linestyles = OrderedDict(
 #fileNames = ['D_0.06__ratio_1.3689/output.txt']
 #fileNames = ['D_0.06__ratio_2.5650/output.txt']
 #fileNames = ['D_4.0__ratio_0.3899/output.txt']
-fileNames = ['D_4.0__ratio_0.2081/output.txt']
-legendTitles = ['pSpatiocyte (8 cores) ($\Delta t=0.5\ \mathrm{ms},\ T=11\ \mathrm{s}$)','Spatiocyte ($\Delta t=0.5\ \mathrm{ms}, T=139\ \mathrm{s}$)','Smoldyn ($\Delta t=1\ \mathrm{ms},\ T=449\ \mathrm{s}$)','Parallel ReaDDy (8 cores) ($\Delta t=1\ \mathrm{ms}, T=549\ \mathrm{s}$)','Serial ReaDDy ($\Delta t=1\ \mathrm{ms}, T=2197\ \mathrm{s}$)']
-speciesList = ['E','S','ES','P']
+#fileNames = ['D_4.0__ratio_0.2081/output.txt']
+fileNames = ['D_4.0__ratio_1.0000/output.txt']
 lines = ['-','-','-','-','-','-','-']
 opacity = [1, 1, 1, 1, 1]
+colormaps = {}
 
 volume = 10.0144
-for f in reversed(range(len(fileNames))):
+for f in range(len(fileNames)):
   if (os.path.isfile(path+fileNames[f])):
     deli = ','
+    af = open(fileNames[f], 'r')
+    legendTitles = af.readline().strip().split(",")
     data = genfromtxt(path+fileNames[f], delimiter=deli, skip_header=1).T
     colSize = len(data)-1
     for i in cols:
-      if (i == 2):
-        plot(data[0], (data[i]+data[9])/volume, ls=lines[i-1],
-            color=tableau20[colors[i-1]], label=legendTitles[i-1], linewidth=3)
-      else:
-        plot(data[0], data[i]/volume, ls=lines[0], color=tableau20[colors[i-1]],
-            linewidth=3)
+      label = legendTitles[i].replace('_','\_')
+      colormaps[legendTitles[i]] = colors[i-1]
+      plot(data[0], data[i]/volume, ls=lines[0], color=tableau20[colors[i-1]],
+          label=label, linewidth=3)
 
 molecule_radius = 0.0025
 ka1, kd1, kcat1 = 0.04483455086786913, 1.35, 1.5
@@ -152,25 +151,29 @@ def f(x, t0):
     ])
 
 NKT = int(120*volume) # total K
-ratio = np.logspace(-1.5,1.5,12)[3]
+#ratio = np.logspace(-1.5,1.5,12)[3]
+ratio = 1.
 ode_time = np.linspace(0.,duration,100000)
 result = []
 NPP = np.rint(60*volume/(ratio+1)) # initial PP
 NKK = int(60*volume-NPP) # initial KK 
 init_state = np.array([NKK, NKT, 0., 0., 0., 0., 0., NPP, 0., 0., 0.])/volume
 ode_result = odeint(f, y0=init_state, t=ode_time)
-plot(ode_time, ode_result[:,0], "--", color="k", alpha=.5, label="Mass Action")
-plot(ode_time, ode_result[:,1], "--", color="k", alpha=.5)
-plot(ode_time, ode_result[:,2], "--", color="k", alpha=.5)
-plot(ode_time, ode_result[:,3], "--", color="k", alpha=.5)
-plot(ode_time, ode_result[:,4], "--", color="k", alpha=.5)
-plot(ode_time, ode_result[:,5], "--", color="k", alpha=.5)
-plot(ode_time, ode_result[:,6], "--", color="k", alpha=.5)
-plot(ode_time, ode_result[:,7], "--", color="k", alpha=.5)
+plot(ode_time, ode_result[:,0], "--", color='k', label="ODE (distributive)")
+plot(ode_time, ode_result[:,1], "--", color='k')
+plot(ode_time, ode_result[:,2], "--", color='k')
+plot(ode_time, ode_result[:,3], "--", color='k')
+#plot(ode_time, ode_result[:,4], "--", label="KKa")
+plot(ode_time, ode_result[:,5], "--", color='k')
+plot(ode_time, ode_result[:,6], "--", color='k')
+plot(ode_time, ode_result[:,7], "--", color='k')
+plot(ode_time, ode_result[:,8], "--", color='k')
+#plot(ode_time, ode_result[:,9], "--", label="PPa")
+plot(ode_time, ode_result[:,10], "--", color='k')
 
 ax = gca()
 handles, labels = ax.get_legend_handles_labels()
-leg = legend(handles[::-1], labels[::-1], labelspacing=0.12, handlelength=1.0, handletextpad=0.3, frameon=False)
+leg = legend(labelspacing=0.12, handlelength=1.0, handletextpad=0.3, frameon=False, ncol=2)
 for t in leg.get_texts():
   t.set_fontsize(legendFontSize)   
 

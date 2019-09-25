@@ -56,8 +56,8 @@ linestyles = OrderedDict(
      ('dashdotdotted',         (0, (3, 5, 1, 5, 1, 5))),
      ('densely dashdotdotted', (0, (3, 1, 1, 1, 1, 1)))])
 
-#fileNames = ['D_0.06__ratio_1.3689/output.txt']
-fileNames = ['D_0.06__ratio_2.5650/output.txt']
+fileNames = ['D_0.06__ratio_1.3689/output.txt']
+#fileNames = ['D_0.06__ratio_2.5650/output.txt']
 legendTitles = ['pSpatiocyte (8 cores) ($\Delta t=0.5\ \mathrm{ms},\ T=11\ \mathrm{s}$)','Spatiocyte ($\Delta t=0.5\ \mathrm{ms}, T=139\ \mathrm{s}$)','Smoldyn ($\Delta t=1\ \mathrm{ms},\ T=449\ \mathrm{s}$)','Parallel ReaDDy (8 cores) ($\Delta t=1\ \mathrm{ms}, T=549\ \mathrm{s}$)','Serial ReaDDy ($\Delta t=1\ \mathrm{ms}, T=2197\ \mathrm{s}$)']
 speciesList = ['E','S','ES','P']
 lines = ['-','-','-','-','-','-','-']
@@ -140,7 +140,7 @@ def f(x, t0):
     ])
 
 NKT = int(120*volume) # total K
-ratio = np.logspace(-1.5,1.5,12)[7]
+ratio = np.logspace(-1.5,1.5,12)[6]
 print(ratio)
 ode_time = np.linspace(0.,duration,100000)
 result = []
@@ -148,7 +148,7 @@ NPP = np.rint(60*volume/(ratio+1)) # initial PP
 NKK = int(60*volume-NPP) # initial KK 
 init_state = np.array([NKT, NKK, 0., 0., 0., NPP, 0., 0.]) / volume
 ode_result = odeint(f, y0=init_state, t=ode_time)
-plot(ode_time, ode_result[:,0], "--", color="k", alpha=.5, label="Mass Action")
+plot(ode_time, ode_result[:,0], "--", color="k", alpha=.5, label="ODE (processive)")
 plot(ode_time, ode_result[:,1], "--", color="k", alpha=.5)
 plot(ode_time, ode_result[:,2], "--", color="k", alpha=.5)
 plot(ode_time, ode_result[:,3], "--", color="k", alpha=.5)
@@ -175,7 +175,7 @@ for axis in ['top','bottom','left','right']:
 
 xlabel('Time, $t$',size=labelFontSize)
 ylabel("Concentration")
-xlim(0,300)
+xlim(0,150)
 tight_layout(pad=0)
 savefig('reaction.pdf', format='pdf', dpi=600)#, bbox_inches='tight')
 show()

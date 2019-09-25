@@ -2,7 +2,7 @@ import time
 import math
 import numpy as np
 
-volume = 1.0
+volume = 10.0144
 molecule_radius = 0.0025
 box_l = math.pow(volume, 1.0/3.0)
 
@@ -14,10 +14,10 @@ ratios = np.logspace(-1.5,1.5,12)
 ratio = ratios[2]
 print(ratio, len(ratios))
 D = 4. # [4, 0.06]
-NKT = 120 # total K
-NPP = int(60./(ratio+1))
-NKK = 60-NPP
-duration = 1
+NKT = 120*volume
+NPP = np.rint(60*volume/(ratio+1))
+NKK = int(60*volume-NPP)
+duration = 50
 
 sim = theSimulator.createStepper('SpatiocyteStepper', 'SS')
 sim.VoxelRadius = 1.0208582*molecule_radius
@@ -29,9 +29,9 @@ theSimulator.createEntity('Variable', 'Variable:/:LENGTHY').Value = box_l
 theSimulator.createEntity('Variable', 'Variable:/:LENGTHZ').Value = box_l
 
 #periodic boundaries
-theSimulator.createEntity('Variable', 'Variable:/:XYPLANE').Value = 1
-theSimulator.createEntity('Variable', 'Variable:/:XZPLANE').Value = 1
-theSimulator.createEntity('Variable', 'Variable:/:YZPLANE').Value = 1
+#theSimulator.createEntity('Variable', 'Variable:/:XYPLANE').Value = 1
+#theSimulator.createEntity('Variable', 'Variable:/:XZPLANE').Value = 1
+#theSimulator.createEntity('Variable', 'Variable:/:YZPLANE').Value = 1
 
 theSimulator.createEntity('Variable', 'Variable:/:VACANT')
 theSimulator.createEntity('Variable', 'Variable:/:K').Value = NKT
@@ -191,6 +191,14 @@ log = theSimulator.createEntity('IteratingLogProcess', 'Process:/:log2')
 log.VariableReferenceList = [['_', 'Variable:.:KK']]
 log.VariableReferenceList = [['_', 'Variable:.:Kpp']]
 log.VariableReferenceList = [['_', 'Variable:.:PP']]
+log.VariableReferenceList = [['_', 'Variable:.:K']]
+log.VariableReferenceList = [['_', 'Variable:.:Kp']]
+log.VariableReferenceList = [['_', 'Variable:.:K_KK']]
+log.VariableReferenceList = [['_', 'Variable:.:Kp_KK']]
+log.VariableReferenceList = [['_', 'Variable:.:Kpp_PP']]
+log.VariableReferenceList = [['_', 'Variable:.:Kp_PP']]
+log.VariableReferenceList = [['_', 'Variable:.:KKa']]
+log.VariableReferenceList = [['_', 'Variable:.:PPa']]
 log.LogInterval = 1.0
 log.LogEnd = duration
 

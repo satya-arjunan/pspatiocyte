@@ -58,16 +58,21 @@ int main( int argc, char *argv[] ) {
   Reaction r1("K + KK -> K_KK", K, KK, ka1, K_KK, world);
   Reaction r2("K_KK -> K + KK", K_KK, kd1, K, KK, world);
   Reaction r3("K_KK -> Kp + KKa", K_KK, kcat1, Kp, KKa, world);
+
   Reaction r4("Kp + KK -> Kp_KK", Kp, KK, ka2, Kp_KK, world);
   Reaction r5("Kp_KK -> Kp + KK", Kp_KK, kd2, Kp, KK, world);
   Reaction r6("Kp_KK -> Kpp + KKa", Kp_KK, kcat2, Kpp, KKa, world);
+
   Reaction r7("KKa -> KK", KKa, k7, KK, world);
+
   Reaction r8("Kpp + PP -> Kpp_PP", Kpp, PP, ka1, Kpp_PP, world);
   Reaction r9("Kpp_PP -> Kpp + PP", Kpp_PP, kd1, Kpp, PP, world);
   Reaction r10("Kpp_PP -> Kp + PPa", Kpp_PP, kcat1, Kp, PPa, world);
+
   Reaction r11("Kp + PP -> Kp_PP", Kp, PP, ka2, Kp_PP, world);
   Reaction r12("Kp_PP -> Kp + PP", Kp_PP, kd2, Kp, PP, world);
   Reaction r13("Kp_PP -> K + PPa", Kp_PP, kcat2, K, PPa, world);
+
   Reaction r14("PPa -> PP", PPa, k7, PP, world);
 
   world.initialize();
