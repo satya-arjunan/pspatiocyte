@@ -10,14 +10,12 @@ ka1, kd1, kcat1 = 0.04483455086786913, 1.35, 1.5
 ka2, kd2, kcat2 = 0.09299017957780264, 1.73, 15.0
 trel = 1e-6
 k7 = math.log(2.)/trel
-ratios = np.logspace(-1.5,1.5,12)
-ratio = ratios[2]
-print(ratio, len(ratios))
+ratio = 1.0
 D = 4. # [4, 0.06]
 NKT = 120*volume
 NPP = np.rint(60*volume/(ratio+1))
 NKK = int(60*volume-NPP)
-duration = 50
+duration = 300
 
 sim = theSimulator.createStepper('SpatiocyteStepper', 'SS')
 sim.VoxelRadius = 1.0208582*molecule_radius

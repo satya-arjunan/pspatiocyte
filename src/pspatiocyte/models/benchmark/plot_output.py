@@ -6,22 +6,18 @@ import math
 from matplotlib import rc
 from pylab import *
 from collections import OrderedDict
-#uncomment the following to create valid eps (scribus) and svg (inkscape):
-#rc('svg', embed_char_paths=True)
-#rc('mathtext', fontset=r'stixsans')
 
 matplotlib.rcParams["mathtext.fontset"] = "stix"
 rc('font',**{'family':'sans-serif','sans-serif':['Helvetica']})
 rc('text', usetex=True)
 matplotlib.rcParams['text.latex.preamble'] = [r'\usepackage{amsmath}',
-    r'\usepackage[helvet]{sfmath}']
+    r'\usepackage[helvet]{sfmath}', r'\usepackage[utf8]{inputenc}',
+    r'\usepackage{arev}', r'\usepackage{siunitx}',
+    r'\sisetup{math-micro={\usefont{T1}{phv}{m}{n}\text{µ}}}']
 
-labelFontSize = 23
-legendFontSize = 18
-lineFontSize = 23
-
-matplotlib.rcParams.update({'font.size': labelFontSize})
-matplotlib.rcParams['figure.figsize'] = 9.1,7
+labelFontSize = 15
+legendFontSize = 13
+lineFontSize = 15
 
 path, file = os.path.split(os.path.abspath(__file__))
 path = path+os.sep
@@ -118,22 +114,17 @@ annotate(r'E + S $\overset{k_1}{\underset{k_2}\rightleftharpoons}$ ES $\overset{
 
 ax = gca()
 handles, labels = ax.get_legend_handles_labels()
-leg = legend(handles[::-1], labels[::-1], loc=(0.07,0.35), labelspacing=0.12, handlelength=1.0, handletextpad=0.3, frameon=False)
+leg = legend(handles[::-1], labels[::-1], loc=(0.07,0.35), labelspacing=0.3, handlelength=1.5, handletextpad=0.8, frameon=False)
 for t in leg.get_texts():
   t.set_fontsize(legendFontSize)   
 
 xticks(size=labelFontSize)
 yticks(size=labelFontSize)
 
-ax.yaxis.set_ticks_position('both')
-ax.xaxis.set_ticks_position('both')
-ax.tick_params(axis='both',which='both',direction='in',length=10,width=2)
-ax.tick_params(axis='both',which='major',length=10,width=2)
-for axis in ['top','bottom','left','right']:
-     ax.spines[axis].set_linewidth(2)
-
+ax.tick_params(axis='both', which='major', labelsize=lineFontSize)
+ax.tick_params(axis='both', which='minor', labelsize=lineFontSize)
 xlabel('Time, $t$ (s)',size=labelFontSize)
-ylabel("Concentration ($\mathrm{\mu m}^{-3}$)")
+ylabel("Concentration (\#\si{\micro}m$^{-3}$)",size=labelFontSize)
 xlim(0,10)
 tight_layout(pad=0)
 savefig('reaction.pdf', format='pdf', dpi=600)#, bbox_inches='tight')

@@ -173,7 +173,7 @@ plot(ode_time, ode_result[:,10], "--", color='k')
 
 ax = gca()
 handles, labels = ax.get_legend_handles_labels()
-leg = legend(labelspacing=0.12, handlelength=1.0, handletextpad=0.3, frameon=False, ncol=2)
+leg = legend(labelspacing=0.12, handlelength=1.2, handletextpad=0.5, frameon=False, ncol=2)
 for t in leg.get_texts():
   t.set_fontsize(legendFontSize)   
 
@@ -183,10 +183,10 @@ yticks(size=labelFontSize)
 ax.tick_params(axis='both', which='major', labelsize=lineFontSize)
 ax.tick_params(axis='both', which='minor', labelsize=lineFontSize)
 xlabel('Time, $t$ (s)',size=labelFontSize)
-ylabel("Concentration (\#\si{\micro}m$^-3$)",size=labelFontSize)
+ylabel("Concentration (\#\si{\micro}m$^{-3}$)",size=labelFontSize)
 xlim(0,100)
 tight_layout(pad=0)
-savefig('reaction.pdf', format='pdf', dpi=600)#, bbox_inches='tight')
+savefig('output.pdf', format='pdf', dpi=600)#, bbox_inches='tight')
 show()
 
 
