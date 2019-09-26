@@ -20,7 +20,7 @@ D = 4.
 duration = 300.
 
 def kon(k):
-  kD = 4*3.14*2*molecule_radius*2*D
+  kD = 4*math.pi*2*molecule_radius*2*D
   return k*kD/(k+kD)
 
 def koff(kd,ka):
@@ -81,7 +81,7 @@ def f(x, t0):
     kon2*x[3]*x[7] - koff2*x[10] - kcat2*x[10],
     ])
 
-length = 50
+length = 100
 NKT = int(120*volume) # total K
 ratios = np.logspace(-1.5,1.5,length)
 x = np.zeros(length)

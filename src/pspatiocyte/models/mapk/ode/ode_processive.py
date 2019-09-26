@@ -18,10 +18,10 @@ ka2, kd2, kcat2 = 0.09299017957780264, 1.73, 15.0
 trel = 1e-6
 k7 = math.log(2.)/trel
 D = 0.06
-duration = 1000.
+duration = 300.
 
 def kon(k):
-  kD = 4*3.14*2*molecule_radius*2*D
+  kD = 4*math.pi*2*molecule_radius*2*D
   return k*kD/(k+kD)
 
 def koff(kd,ka):
@@ -67,7 +67,7 @@ def f(x, t0):
     kcat1*x[6] - kcat2*x[7]*x[5]
     ])
 
-length = 50
+length = 100
 NKT = int(120*volume) # total K
 ratios = np.logspace(-1.5,1.5,length)
 x = np.zeros(length)
