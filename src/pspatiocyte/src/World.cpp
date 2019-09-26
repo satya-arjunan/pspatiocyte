@@ -16,7 +16,7 @@ World::World(int argc, char* argv[], const unsigned Nx,
   parallel_environment_(argc, argv, Nx, Ny, Nz, dirname),
   lattice_("SchisMatrix", rv, parallel_environment_, invalid_species_.getID(),
                vacant_species_.getID(), ghost_id_),
-  compartment_("Cell", VOLUME, rand()*parallel_environment_.getrank(),
+  compartment_("Cell", VOLUME, rand()*(parallel_environment_.getrank()+1),
                parallel_environment_.getsize(), parallel_environment_.getrank(),
                invalid_species_.getID(), vacant_species_.getID(), ghost_id_,
                is_output_coords) {
