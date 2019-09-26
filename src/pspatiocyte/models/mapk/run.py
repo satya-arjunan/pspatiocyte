@@ -4,7 +4,7 @@ import subprocess
 import csv
 import numpy as np
 
-ratios = np.logspace(-1.5,1.5,12)
+ratios = np.append(np.logspace(-1.5,1.5,12), [1])
 Ds = [0.06, 4.0]
 data = []
 
@@ -25,4 +25,5 @@ with open("elapsed_time.txt", "w+") as f:
   writer.writerow(['D', 'ratio', 'elapsed_time'])
   for row in data:
     writer.writerow(row)
+
 
