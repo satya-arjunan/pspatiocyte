@@ -155,6 +155,17 @@ void Compartment::initialize(Lattice &g, ParallelEnvironment &pe,
       }
     }
   }
+
+  const unsigned species_size(species_list_.size());
+  influenced_reaction_ids_.resize(species_size);
+  is_reactive_.resize(species_size);
+  reaction_probabilities_.resize(species_size);
+  for (unsigned i(0); i < species_size; ++i) {
+    influenced_reaction_ids_[i].resize(species_size);
+    is_reactive_[i].resize(species_size, 0);
+    reaction_probabilities_[i].resize(species_size, 0);
+  }
+
   /*
   std::cout << "n_out:" << n_out_voxels_ << " n_out_ghost:" <<
     n_out_ghost_voxels_ << " n_ghost:" << n_ghost_voxels_ << std::endl;
@@ -931,17 +942,6 @@ void Compartment::attachInfluencedReaction(Reaction& r) {
   influenced_reactions_.push_back(&r);
   const unsigned id0(s0.getID());
   const unsigned id1(s1.getID());
-  if (!influenced_reaction_ids_.size()) {
-    const unsigned species_size(species_list_.size());
-    influenced_reaction_ids_.resize(species_size);
-    is_reactive_.resize(species_size);
-    reaction_probabilities_.resize(species_size);
-    for (unsigned i(0); i < species_size; ++i) {
-      influenced_reaction_ids_[i].resize(species_size);
-      is_reactive_[i].resize(species_size, 0);
-      reaction_probabilities_[i].resize(species_size, 0);
-    }
-  }
   influenced_reaction_ids_[id0][id1] = reaction_id;
   influenced_reaction_ids_[id1][id0] = reaction_id;
   is_reactive_[id0][id1] = 1;

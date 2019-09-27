@@ -20,6 +20,7 @@ find_package(Boost COMPONENTS random filesystem REQUIRED)
 
 target_compile_options(${PROJECT_NAME} PRIVATE
   -O3 -mtune=native 
+  #-O3 -g3 -mtune=native # for valgrind debug
   ${MPI_CXX_COMPILE_FLAGS})
 
 target_include_directories(${PROJECT_NAME} PUBLIC
@@ -63,3 +64,4 @@ endforeach()
 add_subdirectory(models/benchmark)
 add_subdirectory(models/mapk)
 add_subdirectory(models/trajectory)
+add_subdirectory(models/dissociation)

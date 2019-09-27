@@ -34,6 +34,7 @@ Lattice::Lattice(string name, double r, ParallelEnvironment &pe,
     //bufsize = 4*max3( (Nxh+2)*(Nyh+2), (Nyh+2)*(Nzh+2), (Nzh+2)*(Nxh+2) );
     // full ghost, see Lattice::loadConfiguration()
     bufsize = max3( Nx_*Ny_, Ny_*Nz_, Nz_*Nx_ );
+    bufsize = Nx_*Ny_*Nz_;
     inbound = new int [bufsize]; 
     outboundx = new int [bufsize];
     outboundy = new int [bufsize];
