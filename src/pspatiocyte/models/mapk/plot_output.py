@@ -37,24 +37,6 @@ for i in range(len(tableau20)):
 colors = [1, 0, 4, 2, 16, 10, 6, 18, 8]
 cols = [1, 2, 3, 4, 5, 6, 7, 8, 9]
 
-linestyles = OrderedDict(
-    [('solid',               (0, ())),
-     ('loosely dotted',      (0, (1, 10))),
-     ('dotted',              (0, (1, 5))),
-     ('densely dotted',      (0, (1, 1))),
-
-     ('loosely dashed',      (0, (5, 10))),
-     ('dashed',              (0, (5, 5))),
-     ('densely dashed',      (0, (5, 1))),
-
-     ('loosely dashdotted',  (0, (3, 10, 1, 10))),
-     ('dashdotted',          (0, (3, 5, 1, 5))),
-     ('densely dashdotted',  (0, (3, 1, 1, 1))),
-
-     ('loosely dashdotdotted', (0, (3, 10, 1, 10, 1, 10))),
-     ('dashdotdotted',         (0, (3, 5, 1, 5, 1, 5))),
-     ('densely dashdotdotted', (0, (3, 1, 1, 1, 1, 1)))])
-
 #fileNames = ['D_0.06__ratio_1.3689/output.txt']
 #fileNames = ['D_0.06__ratio_2.5650/output.txt']
 #fileNames = ['D_4.0__ratio_0.3899/output.txt']
@@ -87,7 +69,7 @@ D = 4.
 duration = 300.
 
 def kon(k):
-  kD = 4*3.14*2*molecule_radius*2*D
+  kD = 4*math.pi*2*molecule_radius*2*D
   return k*kD/(k+kD)
 
 def koff(kd,ka):

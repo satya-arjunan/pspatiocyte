@@ -1,6 +1,22 @@
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 import numpy as np
+import matplotlib
+from matplotlib import rc
+
+matplotlib.rcParams["mathtext.fontset"] = "stix"
+rc('font',**{'family':'sans-serif','sans-serif':['Helvetica']})
+rc('text', usetex=True)
+matplotlib.rcParams['text.latex.preamble'] = [r'\usepackage{amsmath}',
+    r'\usepackage[helvet]{sfmath}', r'\usepackage[utf8]{inputenc}',
+    r'\usepackage{arev}', r'\usepackage{siunitx}',
+    r'\sisetup{math-micro={\usefont{T1}{phv}{m}{n}\text{µ}}}']
+
+labelFontSize = 15
+legendFontSize = 13
+lineFontSize = 15
+
+matplotlib.rcParams.update({'font.size': labelFontSize})
 
 fig = plt.figure()
 ax = plt.axes(projection='3d')
@@ -29,7 +45,13 @@ for mol_id in tracks:
   track = np.asarray(coords)
   ax.plot3D(track[:,0], track[:,1], track[:,2])
 
-fig.tight_layout()
+ax.set_xlim(0, 2.5)
+ax.set_ylim(0, 2.5)
+ax.set_zlim(0, 2.0)
+ax.set_xlabel('x (\si{\micro}m)', labelpad=10)
+ax.set_ylabel('y (\si{\micro}m)', labelpad=8)
+ax.set_zlabel('z (\si{\micro}m)', labelpad=5)
+plt.gca().invert_yaxis()
 plt.savefig('trajectory.pdf', format='pdf', dpi=600)#, bbox_inches='tight')
 plt.show()
 
