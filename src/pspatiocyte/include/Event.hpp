@@ -67,7 +67,7 @@ struct SpatiocyteEvent: public EventBase {
       pcomp_->walk(species_list_, *platt_, pe);
       break;
     case INDEPENDENT_REACTION:
-      dt_ = pcomp_->executeDirectMethodReaction(*platt_, pe, getTime());
+      dt_ = pcomp_->react_direct_method(*platt_, pe, getTime());
       break;
     }
     setTime( getTime() + dt_ );

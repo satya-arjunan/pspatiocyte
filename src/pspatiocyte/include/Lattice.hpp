@@ -66,13 +66,11 @@ public:
         return radius_;
     }
   
-    // return reference to a voxel in terms of linear coordinates
-    Voxel& getVoxel(int index)
+    Voxel& get_voxel(int index)
     {
-        return voxelVector_[index]; 
+        return voxels_[index]; 
     }
   
-    // convert cartesian to linear coordinates with range check
     int linearCoord(int i, int j, int k) 
     {
        return ( (i<0 || i>=Nx_ ||
@@ -172,7 +170,7 @@ public:
 
     vector<SpillMolecule> jumpincoords;
 
-    // followings are used to update Lattice::voxelVector_      
+    // followings are used to update Lattice::voxels_      
     vector<SpillMolecule> spillcoordsX;
     vector<SpillMolecule> spillcoordsY;
     vector<SpillMolecule> spillcoordsZ;
@@ -194,7 +192,7 @@ private:
   const double SQR83_;
   int out_id_;
   int latticeID_;
-  vector<Voxel> voxelVector_;
+  std::vector<Voxel> voxels_;
   std::vector<int> occupied_ghosts_;
   std::vector<SpeciesCoord> out_ghost_molecules_;
   int *outboundx;

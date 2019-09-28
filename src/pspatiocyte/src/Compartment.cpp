@@ -29,8 +29,8 @@ void Compartment::initialize(Lattice &g, ParallelEnvironment &pe,
     {
         const int lc0 = g.linearCoord(Nx_  , j, k);
         const int lc1 = g.linearCoord(Nx_+1, j, k);
-        g.getVoxel(lc0).species_id =
-        g.getVoxel(lc1).species_id = invalid_id_;
+        g.get_voxel(lc0).species_id =
+        g.get_voxel(lc1).species_id = invalid_id_;
     }
 
     // if left-boundary node
@@ -40,8 +40,8 @@ void Compartment::initialize(Lattice &g, ParallelEnvironment &pe,
     {
         const int lc0 = g.linearCoord(0, j, k);
         const int lc1 = g.linearCoord(1, j, k);
-        g.getVoxel(lc0).species_id =
-        g.getVoxel(lc1).species_id = invalid_id_;
+        g.get_voxel(lc0).species_id =
+        g.get_voxel(lc1).species_id = invalid_id_;
     }
 
     // if rear-boundary node
@@ -51,8 +51,8 @@ void Compartment::initialize(Lattice &g, ParallelEnvironment &pe,
     {
         const int lc0 = g.linearCoord(i, Ny_  , k);
         const int lc1 = g.linearCoord(i, Ny_+1, k);
-        g.getVoxel(lc0).species_id =
-        g.getVoxel(lc1).species_id = invalid_id_;
+        g.get_voxel(lc0).species_id =
+        g.get_voxel(lc1).species_id = invalid_id_;
     }
 
     // if front-boundary node
@@ -62,8 +62,8 @@ void Compartment::initialize(Lattice &g, ParallelEnvironment &pe,
     {
         const int lc0 = g.linearCoord(i, 0, k);
         const int lc1 = g.linearCoord(i, 1, k);
-        g.getVoxel(lc0).species_id =
-        g.getVoxel(lc1).species_id = invalid_id_;
+        g.get_voxel(lc0).species_id =
+        g.get_voxel(lc1).species_id = invalid_id_;
     }
 
     // if top boundary node
@@ -73,8 +73,8 @@ void Compartment::initialize(Lattice &g, ParallelEnvironment &pe,
     {
         const int lc0 = g.linearCoord(i, j, Nz_  );
         const int lc1 = g.linearCoord(i, j, Nz_+1);
-        g.getVoxel(lc0).species_id =
-        g.getVoxel(lc1).species_id = invalid_id_;
+        g.get_voxel(lc0).species_id =
+        g.get_voxel(lc1).species_id = invalid_id_;
     }
 
     // if bottom boundary node
@@ -84,8 +84,8 @@ void Compartment::initialize(Lattice &g, ParallelEnvironment &pe,
     {
         const int lc0 = g.linearCoord(i, j, 0);
         const int lc1 = g.linearCoord(i, j, 1);
-        g.getVoxel(lc0).species_id =
-        g.getVoxel(lc1).species_id = invalid_id_;
+        g.get_voxel(lc0).species_id =
+        g.get_voxel(lc1).species_id = invalid_id_;
     }
 
     // append inner voxels
@@ -94,12 +94,12 @@ void Compartment::initialize(Lattice &g, ParallelEnvironment &pe,
     for(int k=1; k<=Nz_; ++k)
     {
         const int lc = g.linearCoord(i, j, k);
-        if(g.getVoxel(lc).species_id == vacant_id_)
-            voxelVector_.push_back(lc);
+        if(g.get_voxel(lc).species_id == vacant_id_)
+            voxel_coords_.push_back(lc);
     }
-    numberOfVoxel_ = voxelVector_.size(); // = (Nx_-2)*(Ny_-2)*(Nz_-2)
-    unsigned total_voxels(numberOfVoxel_);
-    local_volume_ = numberOfVoxel_*4.0*SQR2*rv*rv*rv;
+    n_voxels_ = voxel_coords_.size(); // = (Nx_-2)*(Ny_-2)*(Nz_-2)
+    unsigned total_voxels(n_voxels_);
+    local_volume_ = n_voxels_*4.0*SQR2*rv*rv*rv;
     volume_ = local_volume_;
     const MPI::Cartcomm cart = pe.getcart();
     cart.Allreduce(MPI::IN_PLACE, &volume_, 1, MPI::DOUBLE, MPI::SUM);
@@ -139,7 +139,7 @@ void Compartment::initialize(Lattice &g, ParallelEnvironment &pe,
     for(int j=0; j<=Ny_+1; ++j) {
       for(int k=0; k<=Nz_+1; ++k) {
         const unsigned coord(g.linearCoord(i, j, k));
-        Voxel& voxel(g.getVoxel(coord));
+        Voxel& voxel(g.get_voxel(coord));
         int species_id(voxel.species_id);
         if (species_id >= out_id_) {
           ++n_out_voxels_;
@@ -186,7 +186,7 @@ void Compartment::check_voxels(Lattice& g, const double id) {
     for(int j=0; j<=Ny_+1; ++j) {
       for(int k=0; k<=Nz_+1; ++k) {
         const unsigned coord(g.linearCoord(i, j, k));
-        Voxel& voxel(g.getVoxel(coord));
+        Voxel& voxel(g.get_voxel(coord));
         int species_id(voxel.species_id);
         if (species_id >= out_id_) {
           ++n_out_voxels;
@@ -246,6 +246,7 @@ void Compartment::check_voxels(Lattice& g, const double id) {
               " error not consistent species id on normal voxel" <<
               " coord:" << coord << " other coord:" << 
               mols[voxel.mol_index].coord << " species id:" << species_id <<
+              " name:" << species_list_[species_id]->getName() <<
               std::endl;
             abort();
           }
@@ -312,7 +313,7 @@ void Compartment::check_voxels(Lattice& g, const double id) {
     for(int j=0; j<=Ny_+1; ++j) {
       for(int k=0; k<=Nz_+1; ++k) {
         const unsigned coord(g.linearCoord(i, j, k));
-        Voxel& voxel(g.getVoxel(coord));
+        Voxel& voxel(g.get_voxel(coord));
         int species_id(voxel.species_id);
         if (species_id >= out_id_) {
           om[species_id/out_id_].push_back(OutMolecule(coord,0,0));
@@ -328,10 +329,10 @@ void Compartment::check_voxels(Lattice& g, const double id) {
   }
 }
 
-void Compartment::throwinMolecules(Species& s, const unsigned size,
-                                   Lattice &g) {
+void Compartment::throw_in_molecules(Species& s, const unsigned size,
+                                     Lattice &g) {
   const int species_id(s.getID());
-  if (size > numberOfVoxel_) {
+  if (size > n_voxels_) {
     fout << "ERROR: too many molecules" << endl;
     abort();
   }
@@ -346,25 +347,25 @@ void Compartment::throwinMolecules(Species& s, const unsigned size,
     unsigned coord;
     int sid;
     do {
-      if(trial++ > numberOfVoxel_) {
+      if(trial++ > n_voxels_) {
         fout << "ABORT: hardly able to find vacant voxel! (" << s.getName() <<
           ")" << endl;
         abort();
       }
-      index = (int)(numberOfVoxel_*(*randdbl_)());
-      coord = voxelVector_[index];
-      sid = g.getVoxel(coord).species_id;
+      index = (int)(n_voxels_*(*randdbl_)());
+      coord = voxel_coords_[index];
+      sid = g.get_voxel(coord).species_id;
     } while((sid < out_id_ && sid != vacant_id_) ||
             (sid > out_id_ && sid%out_id_ != 0));
-    add_molecule(species_id, coord, get_new_mol_id(), g.getVoxel(coord)); 
+    add_molecule(species_id, coord, get_new_mol_id(), g.get_voxel(coord)); 
   }
 }
 
-void Compartment::attachIndependentReaction(Reaction& r) {
-  independent_reactions_.push_back(&r);
+void Compartment::add_direct_method_reaction(Reaction& r) {
+  direct_method_reactions_.push_back(&r);
 }
 
-bool Compartment::processingReaction(Reaction &f, Lattice &g,
+bool Compartment::process_reaction(Reaction &f, Lattice &g,
                                      ParallelEnvironment &pe) {
   const int r0 = f.getR0();       // moles of reactant 0
   const int r1 = f.getR1();       // moles of reactant 1
@@ -387,103 +388,184 @@ bool Compartment::processingReaction(Reaction &f, Lattice &g,
   const bool binary = (r2 && r3) ? true : false; // two products
 
   if (r0) { 
-    result = eliminateReactant(*s0, g, binary, center, neighbor);
+    result = remove_reactant(*s0, g, binary, center, neighbor);
   }
 
   if (r1) {
-    result = eliminateReactant(*s1, g, binary, center, neighbor);
+    result = remove_reactant(*s1, g, binary, center, neighbor);
   }
 
   if (result) {
     if (binary) { 
       const double location = (*randdbl_)();
       if(location>0.5) { 
-        generateProduct(*s2, g, center);
-        generateProduct(*s3, g, neighbor);
+        add_product(*s2, g, center);
+        add_product(*s3, g, neighbor);
       }
       else {
-        generateProduct(*s2, g, neighbor);
-        generateProduct(*s3, g, center);
+        add_product(*s2, g, neighbor);
+        add_product(*s3, g, center);
       }
     }
     else {
       if (r2) {
-        generateProduct(*s2, g, center);
+        add_product(*s2, g, center);
       }
       else
       if (r3) {
-        generateProduct(*s3, g, center);
+        add_product(*s3, g, center);
       }
     }
   }
   return result;
 }
 
-bool Compartment::eliminateReactant(Species &s, Lattice &g, bool binary,
+bool Compartment::remove_reactant(Species &s, Lattice &g, bool binary,
                                     int &center, int &neighbor) {
   std::vector<Molecule>& molecules(species_molecules_[s.getID()]); 
   const int size(molecules.size());
   const int target((size==1) ? 0 : (int)(size*(*randdbl_)()));
   Molecule& molecule(molecules[target]);
   const int coord(molecule.coord);
-  if(binary) {
-    bool noneighbor(searchAllNeighbors(g, coord, center, neighbor));
-    if (noneighbor) {
+  if(binary) { //if two products, find a vacant neighbor voxel:
+    if (!get_vacant_neighbor(g, coord, center, neighbor)) {
       return false;
-    } 
+    }
   }
   else {
     center = coord;
   }
-  Voxel& v0(g.getVoxel(coord));
+  Voxel& v0(g.get_voxel(coord));
   remove_molecule(g, s.getID(), v0);
   return true;
 }
 
 
-bool Compartment::searchAllNeighbors(Lattice &g, const int &coord, int &center,
-                                     int &neighbor) {
-  int order[12];
-  bool intact[12] = {true, true, true, true, true, true, true, true, true,
-    true, true, true};
-  int slot = 0;
-  while( slot<12 ) {
-    const int pos = (int)(12.0*(*randdbl_)());
-    if( intact[pos] ) {
-      intact[pos] = false;
-      order[slot++] = pos;
-    }
-  }
-
-  bool nongb = true; // all neighbor voxels are not selected
-  // search for all neighbor voxels
-  for(int i=0; i<12; i++) {
-    const int ngb = order[i];
-    const int adj = g.get_adjacent_coord(coord, ngb);
-    // if No coordinate (-1)
-    if (adj < 0) {
-      continue;
-    }
-
-    const int species_id(g.getVoxel(adj).species_id);
-    if(species_id == vacant_id_ || (species_id >= out_id_ &&
-                                    species_id%out_id_ == 0)) {
+bool Compartment::get_vacant_neighbor(Lattice& g, const int& coord, int& center,
+                                      int& neighbor) {
+  unsigned adj_index((*adj_rand_)());
+  for (unsigned i(0); i < 12; ++i) {
+    const int tar_coord(g.get_adjacent_coord(coord, adj_index));
+    const int species_id(g.get_voxel(tar_coord).species_id);
+    if (species_id == vacant_id_ || (species_id >= out_id_ &&
+                                     species_id%out_id_ == 0)) {
       center   = coord;
-      neighbor = adj;
-      nongb = false;
-      break;
+      neighbor = tar_coord;
+      return true;
+    }
+    ++adj_index;
+    if (adj_index > 11) {
+      adj_index = 0;
     }
   }
-  return nongb;
+  if (is_force_search_vacant_) {
+    for (unsigned i(0); i < 12; ++i) {
+      const int tar_coord(g.get_adjacent_coord(coord, adj_index));
+      if (walk_molecule(g, tar_coord, coord)) {
+        center   = coord;
+        neighbor = tar_coord;
+        return true;
+      }
+      ++adj_index;
+      if (adj_index > 11) {
+        adj_index = 0;
+      }
+    }
+  }
+  return false;
+}
+
+bool Compartment::walk_molecule(Lattice& g, const int src_coord,
+                                const int curr_coord) {
+  Voxel& src_voxel(g.get_voxel(src_coord)); 
+  const int src_voxel_species_id(src_voxel.species_id);
+  if (src_voxel_species_id < 0 || src_voxel_species_id == invalid_id_) {
+    return false;
+  }
+  const int species_id(src_voxel_species_id%out_id_);
+  std::vector<Molecule>& molecules(species_molecules_[species_id]);
+
+  unsigned adj_index((*adj_rand_)());
+  for (unsigned i(0); i < 12; ++i) {
+    const unsigned tar_coord(g.get_adjacent_coord(src_coord, adj_index));
+    if (tar_coord != curr_coord) {
+      Voxel& tar_voxel(g.get_voxel(tar_coord));
+      int tar_voxel_species_id(tar_voxel.species_id);
+      if(tar_voxel_species_id == vacant_id_) { //vacant and not ghost voxel
+        if (src_voxel_species_id < out_id_) { //src in normal voxel
+          Molecule& src_molecule(molecules[src_voxel.mol_index]);
+          tar_voxel = src_voxel;
+          src_voxel.species_id = vacant_id_;
+          src_molecule.coord = tar_coord;
+        }
+        else {
+          //src leaving out_voxel to occupy normal vacant voxel:
+          //populate a normal molecule in the tar voxel:
+          const unsigned oindex(src_voxel.mol_index);
+          const unsigned src_out_id(src_voxel_species_id/out_id_);
+          tar_voxel.species_id = src_voxel_species_id%out_id_;
+          const unsigned mol_index(outmolecules_[src_out_id][oindex].mol_index);
+          tar_voxel.mol_index = mol_index;
+          vacate_outmolecule_in_voxel(g, src_out_id, src_voxel);
+          Molecule& src_molecule(molecules[mol_index]);
+          src_molecule.coord = tar_coord;
+          check_voxels(g, 1);
+        }
+        return true;
+      } //tar is a normal vacant out voxel:
+      else if (tar_voxel_species_id >= out_id_ && 
+               tar_voxel_species_id%out_id_ == 0) {
+          //src is occupying a normal voxel:
+        if (src_voxel_species_id < out_id_) { 
+          Molecule& src_molecule(molecules[src_voxel.mol_index]);
+          const unsigned tar_out_id(tar_voxel_species_id/out_id_);
+          populate_outmolecule_in_voxel(tar_out_id,
+                                        src_voxel_species_id,
+                                        src_voxel.mol_index, tar_coord,
+                                        tar_voxel);
+          src_voxel.species_id = vacant_id_;
+          src_molecule.coord = tar_coord;
+        }
+        else { //src is occupying an out_voxel and tar is a vacant out voxel:
+          const unsigned src_out_id(src_voxel_species_id/out_id_);
+          const unsigned tar_out_id(tar_voxel_species_id/out_id_);
+          const unsigned oindex(src_voxel.mol_index);
+          const unsigned mol_index(outmolecules_[src_out_id][oindex].mol_index);
+          Molecule& src_molecule(molecules[mol_index]);
+          if (src_out_id == tar_out_id) {
+            tar_voxel = src_voxel;
+            //make src voxel vacant:
+            src_voxel.species_id = tar_voxel_species_id;
+            outmolecules_[src_out_id][src_voxel.mol_index].coord = tar_coord;
+          }
+          else {
+            const int src_species_id(src_voxel_species_id%out_id_);
+            populate_outmolecule_in_voxel(tar_out_id,
+                                          src_species_id,
+                                          mol_index, tar_coord,
+                                          tar_voxel);
+            vacate_outmolecule_in_voxel(g, src_out_id, src_voxel);
+          }
+          src_molecule.coord = tar_coord;
+        }
+        return true;
+      }
+    }
+    ++adj_index;
+    if (adj_index > 11) {
+      adj_index = 0;
+    }
+  }
+  return false;
 }
 
 
-void Compartment::generateProduct(Species &s, Lattice &g, int coord) {
-  Voxel& voxel(g.getVoxel(coord));
+void Compartment::add_product(Species &s, Lattice &g, int coord) {
+  Voxel& voxel(g.get_voxel(coord));
   add_molecule(s.getID(), coord, get_new_mol_id(), voxel); 
 }
 
-void Compartment::calculatePropensityNoParallel(Reaction &f) {
+void Compartment::calculate_propensity(Reaction &f) {
   const int r0 = f.getR0();        // moles of reactant 0
   const int r1 = f.getR1();        // moles of reactant 1
   Species  *s0 = f.getS0();        // species of reactant 0
@@ -503,10 +585,10 @@ void Compartment::calculatePropensityNoParallel(Reaction &f) {
     concentration1 = molecules.size()/volume_;
   }
   propensity = f.getK()*pow(concentration0, r0)*pow(concentration1, r1)*volume_;
-  f.setOldPropensity(propensity);
+  f.set_old_propensity(propensity);
 }
 
-void Compartment::calculateLocalPropensity(Reaction &f, double current_time) {
+void Compartment::calculate_local_propensity(Reaction &f, double current_time) {
   const int r0 = f.getR0();        // moles of reactant 0
   const int r1 = f.getR1();        // moles of reactant 1
   Species  *s0 = f.getS0();        // species of reactant 0
@@ -528,64 +610,65 @@ void Compartment::calculateLocalPropensity(Reaction &f, double current_time) {
 
   propensity = f.getK()*pow( concentration0, r0)*
     pow(concentration1, r1 )*local_volume_;
-  f.setPropensity(propensity);
+  f.set_propensity(propensity);
 }
 
 
-double Compartment::getNewPropensity(double current_time) {
-  vector<Reaction*>::iterator p(independent_reactions_.begin());
-  vector<Reaction*>::iterator e(independent_reactions_.end());
-  totalPropensity_ = 0.0;
+double Compartment::get_new_propensity(double current_time) {
+  vector<Reaction*>::iterator p(direct_method_reactions_.begin());
+  vector<Reaction*>::iterator e(direct_method_reactions_.end());
+  total_propensity_ = 0.0;
   while(p!=e) {
-      calculateLocalPropensity(*(*p), current_time);
-      totalPropensity_ += (*p)->getPropensity();
+      calculate_local_propensity(*(*p), current_time);
+      total_propensity_ += (*p)->get_propensity();
       p++;
   }
-  vector<Reaction*>::iterator p3(independent_reactions_.begin());
-  vector<Reaction*>::iterator e3(independent_reactions_.end());
+  vector<Reaction*>::iterator p3(direct_method_reactions_.begin());
+  vector<Reaction*>::iterator e3(direct_method_reactions_.end());
   while(p3!=e3) {
-      calculatePropensityNoParallel(*(*p3));
+      calculate_propensity(*(*p3));
       p3++;
   }
-  return totalPropensity_;
+  return total_propensity_;
 }
 
-double Compartment::getOldTotalPropensity() {
-  vector<Reaction*>::iterator p(independent_reactions_.begin());
-  vector<Reaction*>::iterator e(independent_reactions_.end());
-  double totalPropensity = 0.0;
+double Compartment::get_old_total_propensity() {
+  vector<Reaction*>::iterator p(direct_method_reactions_.begin());
+  vector<Reaction*>::iterator e(direct_method_reactions_.end());
+  double total_propensity = 0.0;
   while(p!=e) {
-    totalPropensity += (*p)->getOldPropensity();
+    total_propensity += (*p)->get_old_propensity();
     p++;
   }
-  return totalPropensity;
+  return total_propensity;
 }
 
-double Compartment::getNextTime(ParallelEnvironment &pe, double current_time) {
+double Compartment::get_next_time(ParallelEnvironment &pe,
+                                  double current_time) {
   if(next_react_time_ == std::numeric_limits<double>::infinity() || 
      next_react_time_ == current_time) {
-    return getNewNextTime(pe, current_time);
+    return get_new_next_time(pe, current_time);
   }
   double dt(std::numeric_limits<double>::infinity());
-  getNewPropensity(current_time);
-  const double oldPropensity(globalTotalPropensity_);
-  globalTotalPropensity_ = totalPropensity_;
-  pe.getcart().Allreduce(MPI::IN_PLACE, &globalTotalPropensity_, 1,
+  get_new_propensity(current_time);
+  const double old_propensity(global_total_propensity_);
+  global_total_propensity_ = total_propensity_;
+  pe.getcart().Allreduce(MPI::IN_PLACE, &global_total_propensity_, 1,
                          MPI::DOUBLE, MPI::SUM);
-  dt = oldPropensity/globalTotalPropensity_*(next_react_time_-current_time);
+  dt = old_propensity/global_total_propensity_*(next_react_time_-current_time);
   next_react_time_ = current_time + dt;
   return next_react_time_;
 }
 
-double Compartment::getNewNextTime(ParallelEnvironment &pe,
-                                   double current_time) {
+double Compartment::get_new_next_time(ParallelEnvironment &pe,
+                                      double current_time) {
   double dt(std::numeric_limits<double>::infinity());
-  getNewPropensity(current_time);
-  globalTotalPropensity_ = totalPropensity_;
-  pe.getcart().Allreduce(MPI::IN_PLACE, &globalTotalPropensity_, 1,
+  get_new_propensity(current_time);
+  global_total_propensity_ = total_propensity_;
+  pe.getcart().Allreduce(MPI::IN_PLACE, &global_total_propensity_, 1,
                          MPI::DOUBLE, MPI::SUM);
   if( pe.getrank()==0 ) {
-    dt = -log((*randdbl_)())/globalTotalPropensity_;
+    dt = -log((*randdbl_)())/global_total_propensity_;
   }
   pe.getcart().Bcast(&dt, 1 , MPI_DOUBLE, 0);
   next_react_time_ = current_time + dt;
@@ -593,14 +676,13 @@ double Compartment::getNewNextTime(ParallelEnvironment &pe,
 }
 
 
-double Compartment::executeDirectMethodReaction(Lattice &g,
-                                                ParallelEnvironment &pe,
-                                                double current_time) {
+double Compartment::react_direct_method(Lattice &g, ParallelEnvironment &pe,
+                                        double current_time) {
   double propensities[pe.getsize()];
   for (unsigned i(0); i < pe.getsize(); ++i) {
     propensities[i] = 0;
   }
-  propensities[pe.getrank()] = totalPropensity_;
+  propensities[pe.getrank()] = total_propensity_;
   pe.getcart().Allreduce(MPI::IN_PLACE, &propensities, pe.getsize(),
                          MPI::DOUBLE, MPI::MAX);
   double random(0);
@@ -618,18 +700,16 @@ double Compartment::executeDirectMethodReaction(Lattice &g,
     local += propensities[i];
     if(local >= random) {
       if(i == pe.getrank()) {
-        double randPropensity = 0.0;
-        double accuPropensity = 0.0;
-        randPropensity = totalPropensity_*(*randdbl_)();
-        vector<Reaction*>::iterator p(
-                                               independent_reactions_.begin());
-        vector<Reaction*>::iterator e(independent_reactions_.end());
+        double accumulated_propensity(0.0);
+        double random_propensity(total_propensity_*(*randdbl_)());
+        vector<Reaction*>::iterator p(direct_method_reactions_.begin());
+        vector<Reaction*>::iterator e(direct_method_reactions_.end());
         while(p!=e) {
-          accuPropensity += (*p)->getPropensity();  // accumulating propensity
-          if(accuPropensity >= randPropensity) break;
+          accumulated_propensity += (*p)->get_propensity();
+          if(accumulated_propensity >= random_propensity) break;
           p++;
         }
-        processingReaction( *(*p), g, pe );
+        process_reaction( *(*p), g, pe );
       }
       break;
     }
@@ -638,7 +718,7 @@ double Compartment::executeDirectMethodReaction(Lattice &g,
   return 0;
 }
 
-void Compartment::calculateProbability(Reaction &f, Lattice &g) {
+void Compartment::calculate_probability(Reaction &f, Lattice &g) {
   const int r0 = f.getR0();        // moles of reactant 0
   const int r1 = f.getR1();        // moles of reactant 1
   Species  *s0 = f.getS0();        // species of reactant 0
@@ -650,11 +730,11 @@ void Compartment::calculateProbability(Reaction &f, Lattice &g) {
   const double SQR2 = 1.414213562;
   if(r0==1 && r1==1) {
     const double probability = kAB /(6.0*SQR2*rv*(DA+DB));
-    f.setProbability(probability);
+    f.set_probability(probability);
   }
 }
 
-void Compartment::findMaxProbability(Species &s) {
+void Compartment::calculate_max_probability(Species &s) {
   int m = influenced_reactions_.size(); 
   double maxPi = 0.0;
   for(int j=0; j<m; ++j) {
@@ -662,7 +742,7 @@ void Compartment::findMaxProbability(Species &s) {
     Species* s0 = Rj.getS0();
     Species* s1 = Rj.getS1(); 
     if( s==*s0 || s==*s1 ) {
-      const double Pi = Rj.getProbability();
+      const double Pi = Rj.get_probability();
       maxPi = ( maxPi<Pi ? Pi : maxPi );
     }
   }
@@ -692,11 +772,11 @@ void Compartment::walk(std::vector<Species*>& species_list,
     while (index < begin_mol_size && index < molecules.size()) { 
       Molecule& src_molecule(molecules[index]);
       const unsigned src_coord(src_molecule.coord);
-      Voxel& src_voxel(g.getVoxel(src_coord)); 
+      Voxel& src_voxel(g.get_voxel(src_coord)); 
       const unsigned adj_index((*adj_rand_)());
       const unsigned tar_coord(g.get_adjacent_coord(src_coord, adj_index));
       const int src_voxel_species_id(src_voxel.species_id);
-      Voxel& tar_voxel(g.getVoxel(tar_coord));
+      Voxel& tar_voxel(g.get_voxel(tar_coord));
       int tar_voxel_species_id(tar_voxel.species_id);
       if(tar_voxel_species_id == vacant_id_) { //vacant and not ghost voxel
         if (s.get_walk_probability() == 1 ||
@@ -876,7 +956,7 @@ void Compartment::vacate_outmolecule_in_voxel(Lattice& g, const int out_id,
   std::vector<OutMolecule>& outmolecules(outmolecules_[out_id]);
   const unsigned oindex(voxel.mol_index);
   OutMolecule& back_outmolecule(outmolecules.back());
-  Voxel& back_voxel(g.getVoxel(back_outmolecule.coord));
+  Voxel& back_voxel(g.get_voxel(back_outmolecule.coord));
   back_voxel.mol_index = oindex;
   outmolecules[oindex] = back_outmolecule;
   outmolecules.pop_back();
@@ -894,7 +974,7 @@ unsigned Compartment::remove_molecule_from_molecules(Lattice& g,
   std::vector<Molecule>& molecules(species_molecules_[species_id]);
   const Molecule& back_molecule(molecules.back());
   const unsigned back_coord(back_molecule.coord);
-  Voxel& back_voxel(g.getVoxel(back_coord));
+  Voxel& back_voxel(g.get_voxel(back_coord));
   //we could have removed this back outmolecule before calling this function
   //so need ensure that the voxel is still not vacant before removing the
   //outmolecule:
@@ -913,14 +993,15 @@ unsigned Compartment::remove_molecule_from_molecules(Lattice& g,
 }
 
 
-void Compartment::calculateCollisionTime(Species& s, ParallelEnvironment& pe) {
+void Compartment::calculate_collision_time(Species& s,
+                                           ParallelEnvironment& pe) {
   s.calcCollisionTime();
   const unsigned id0(s.getID());
   for (unsigned i(0); i < is_reactive_[id0].size(); ++i) {
     if (is_reactive_[id0][i]) {
       const unsigned reaction_id(influenced_reaction_ids_[id0][i]);
       Reaction& reaction(*influenced_reactions_[reaction_id]);
-      double probability(reaction.getProbability()*s.get_walk_probability());
+      double probability(reaction.get_probability()*s.get_walk_probability());
       reaction_probabilities_[id0][i] = probability;
       if (!pe.getrank()) {
         std::cout << "reaction:" << reaction.getName() << std::endl;
@@ -935,7 +1016,7 @@ void Compartment::calculateCollisionTime(Species& s, ParallelEnvironment& pe) {
   }
 }
 
-void Compartment::attachInfluencedReaction(Reaction& r) {
+void Compartment::add_diffusion_influenced_reaction(Reaction& r) {
   Species& s0(*r.getS0());
   Species& s1(*r.getS1());
   const unsigned reaction_id(influenced_reactions_.size());
@@ -1001,9 +1082,9 @@ void Compartment::walk_on_ghost(std::vector<unsigned>& species_ids,
       const unsigned index(sub_indices[N][i]);
       const unsigned tar_coord(tar_coords[index]);
       const unsigned src_coord(src_coords[index]);
-      Voxel& tar_voxel(g.getVoxel(tar_coord));
+      Voxel& tar_voxel(g.get_voxel(tar_coord));
       int tar_voxel_species_id(tar_voxel.species_id);
-      Voxel& src_voxel(g.getVoxel(src_coord));
+      Voxel& src_voxel(g.get_voxel(src_coord));
       const int src_voxel_species_id(src_voxel.species_id);
       const int src_species_id(species_ids[index]);
       //some molecules that are supposed to move into ghost may have reacted
@@ -1185,7 +1266,7 @@ void Compartment::jumpin_molecules(Lattice& g, ParallelEnvironment& pe) {
     const SpillMolecule& sc(g.jumpincoords[i]);
     int species_id(sc.species_id);
     const unsigned coord(sc.coord);
-    Voxel& v(g.getVoxel(coord));
+    Voxel& v(g.get_voxel(coord));
     const int old_species_id(v.species_id);
     //if voxel state changed:
     if (old_species_id%out_id_ != species_id) {
@@ -1202,30 +1283,15 @@ void Compartment::jumpin_molecules(Lattice& g, ParallelEnvironment& pe) {
   }
 }
 
-void Compartment::throwinOneMolecule(Species &s, Lattice &g) {
-  const int i0 = g.getXdim();
-  const int j0 = g.getYdim();
-  const int k0 = g.getZdim();
-  const int index = g.linearCoord(i0/2,j0/2,k0/2);    // central point
-  const int specID(s.getID());
-  const double x = g.getXpos(i0/2, j0/2, k0/2);
-  const double y = g.getYpos(i0/2, j0/2, k0/2);
-  const double z = g.getZpos(i0/2, j0/2, k0/2);
-  species_molecules_[specID].push_back(Molecule(index, get_new_mol_id()));
-  g.getVoxel(index).species_id = specID;
-  g.getVoxel(index).mol_index = species_molecules_[specID].size()-1;
-}
-
-
-void Compartment::addCoordinatesSpecies(Species& species) {
+void Compartment::add_coordinates_species(Species& species) {
   output_coord_species_.push_back(species);
 }
 
-void Compartment::addNumberSpecies(Species& species) {
+void Compartment::add_number_species(Species& species) {
   output_number_species_.push_back(species);
 }
 
-void Compartment::outputCoordinatesHeader(Lattice& lattice,
+void Compartment::output_coordinates_header(Lattice& lattice,
                                           ParallelEnvironment &pe) {
   if (is_output_coords_) {
     fout2 << "Time";
@@ -1238,7 +1304,7 @@ void Compartment::outputCoordinatesHeader(Lattice& lattice,
   }
 }
 
-void Compartment::outputCoordinates(const double current_time) {
+void Compartment::output_coordinates(const double current_time) {
   if (is_output_coords_) {
     fout2 << setprecision(15) << current_time;
     for (unsigned i(0); i < output_coord_species_.size(); ++i) {
@@ -1263,7 +1329,7 @@ void Compartment::outputCoordinates(const double current_time) {
 }
 
 
-void Compartment::outputNumbersHeader(ParallelEnvironment& pe) {
+void Compartment::output_numbers_header(ParallelEnvironment& pe) {
   fout3 << setprecision(15) << "Time " << pe.getsize();
   for (unsigned i(0); i < output_number_species_.size(); ++i) {
     Species& s(output_number_species_[i]);
@@ -1273,7 +1339,7 @@ void Compartment::outputNumbersHeader(ParallelEnvironment& pe) {
 }
 
 
-void Compartment::outputNumbers(const double current_time) {
+void Compartment::output_numbers(const double current_time) {
   fout3 << setprecision(15) << current_time;
   for (unsigned i(0); i < output_number_species_.size(); ++i) {
     Species& s(output_number_species_[i]);

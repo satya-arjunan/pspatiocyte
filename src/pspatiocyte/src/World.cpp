@@ -11,7 +11,8 @@ ofstream fout, fout2, fout3;
 World::World(int argc, char* argv[], const unsigned Nx,
              const int Ny, const unsigned Nz, const double rv,
              const std::string dirname,
-             const bool is_output_coords):
+             const bool is_output_coords,
+             const bool is_force_search_vacant):
   invalid_species_("Invalid", 0, 0, *this),
   vacant_species_("Vacant", 0, 0, *this),
   ghost_id_(-1),
@@ -22,7 +23,7 @@ World::World(int argc, char* argv[], const unsigned Nx,
                time(NULL)+parallel_environment_.getrank(),
                parallel_environment_.getsize(), parallel_environment_.getrank(),
                invalid_species_.getID(), vacant_species_.getID(), ghost_id_,
-               is_output_coords) {
+               is_output_coords, is_force_search_vacant) {
   }
 
 int DistributeMolecule(int Total, int Nproc, int rank) {
@@ -54,18 +55,18 @@ void World::initialize() {
     if (init_size) {
       init_size = DistributeMolecule(init_size, nproc, myrank);
     }
-    compartment_.throwinMolecules(species, init_size, lattice_);
+    compartment_.throw_in_molecules(species, init_size, lattice_);
   }
 
   for (unsigned i(0); i < independent_reactions_.size(); ++i) {
-    compartment_.attachIndependentReaction(*independent_reactions_[i]);
+    compartment_.add_direct_method_reaction(*independent_reactions_[i]);
   }
 
   std::vector<Species*> reactants;
   for (unsigned i(0); i < influenced_reactions_.size(); ++i) {
     Reaction& reaction(*influenced_reactions_[i]);
-    compartment_.attachInfluencedReaction(reaction);
-    compartment_.calculateProbability(reaction, lattice_);
+    compartment_.add_diffusion_influenced_reaction(reaction);
+    compartment_.calculate_probability(reaction, lattice_);
     if (std::find(reactants.begin(), reactants.end(), reaction.getS0()) == 
         reactants.end()) {
       reactants.push_back(reaction.getS0());
@@ -77,11 +78,11 @@ void World::initialize() {
   }
 
   for (unsigned i(0); i < reactants.size(); ++i) {
-    compartment_.findMaxProbability(*reactants[i]);
+    compartment_.calculate_max_probability(*reactants[i]);
   }
 
   for (unsigned i(0); i < reactants.size(); ++i) {
-    compartment_.calculateCollisionTime(*reactants[i], parallel_environment_);
+    compartment_.calculate_collision_time(*reactants[i], parallel_environment_);
   }
 
   for (unsigned i(0); i < species_list_.size(); ++i) {
@@ -104,16 +105,16 @@ void World::run(const double log_interval, const double end_time,
     Species& species(*species_list_[i]);
     if (&species != &vacant_species_ && &species != &invalid_species_ &&
         &species != out_species_) {
-      compartment_.addCoordinatesSpecies(species);
-      compartment_.addNumberSpecies(species);
+      compartment_.add_coordinates_species(species);
+      compartment_.add_number_species(species);
     }
   }
   double current_time(scheduler_.getTime());
-  compartment_.outputCoordinatesHeader(lattice_, parallel_environment_);
-  compartment_.outputNumbersHeader(parallel_environment_);
+  compartment_.output_coordinates_header(lattice_, parallel_environment_);
+  compartment_.output_numbers_header(parallel_environment_);
   double prev_time(scheduler_.getTime());
-  compartment_.outputCoordinates(prev_time);
-  compartment_.outputNumbers(prev_time);
+  compartment_.output_coordinates(prev_time);
+  compartment_.output_numbers(prev_time);
   unsigned n(0);
   parallel_environment_.starttimer();
   while(scheduler_.getTime() < end_time) {
@@ -126,13 +127,13 @@ void World::run(const double log_interval, const double end_time,
        (independent_event_id_ == scheduler_.getTopID() &&
         scheduler_.getTime() == scheduler_.getTopTime())) {
       scheduler_.updateEventTime(independent_event_id_,
-         compartment_.getNextTime(parallel_environment_, scheduler_.getTime()));
+       compartment_.get_next_time(parallel_environment_, scheduler_.getTime()));
     }
     scheduler_.step(parallel_environment_);
     if(scheduler_.getTime()-prev_time > log_interval) {
       prev_time = scheduler_.getTime(); 
-      compartment_.outputCoordinates(prev_time);
-      compartment_.outputNumbers(prev_time);
+      compartment_.output_coordinates(prev_time);
+      compartment_.output_numbers(prev_time);
       if(!parallel_environment_.getrank() && verbose) {
         std::cout << "logged t:" << scheduler_.getTime() << std::endl;
       }
@@ -143,8 +144,8 @@ void World::run(const double log_interval, const double end_time,
   if(!parallel_environment_.getrank() && verbose) {
     std::cout << "logged t:" << last_time << std::endl;
   }
-  compartment_.outputCoordinates(last_time);
-  compartment_.outputNumbers(last_time);
+  compartment_.output_coordinates(last_time);
+  compartment_.output_numbers(last_time);
   parallel_environment_.stoptimer();
 }
 

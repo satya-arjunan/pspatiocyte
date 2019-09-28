@@ -17,7 +17,8 @@ public:
   World(int argc, char* argv[], const unsigned Nx, const int Ny,
         const unsigned Nz, const double rv,
         const std::string dirname="output",
-        const bool is_output_coords=false);
+        const bool is_output_coords=false,
+        const bool is_force_search_vacant=false);
   ~World() {} 
   int add_species(Species* newspec); 
   int add_independent_reaction(Reaction* reaction); 

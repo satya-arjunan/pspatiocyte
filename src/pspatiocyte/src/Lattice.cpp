@@ -25,7 +25,7 @@ Lattice::Lattice(string name, double r, ParallelEnvironment &pe,
   SQR31_(sqrt(3.0)),
   SQR13_(sqrt(1.0 / 3.0)),
   SQR83_(sqrt(8.0 / 3.0)) {
-    voxelVector_.resize(Nx_ * Ny_ * Nz_);
+    voxels_.resize(Nx_ * Ny_ * Nz_);
     // buffers for quater ghost
     const int Nxh = Nx_/2;
     const int Nyh = Ny_/2;
@@ -33,8 +33,8 @@ Lattice::Lattice(string name, double r, ParallelEnvironment &pe,
     // quarter ghost, see Lattice::loadGhost()
     //bufsize = 4*max3( (Nxh+2)*(Nyh+2), (Nyh+2)*(Nzh+2), (Nzh+2)*(Nxh+2) );
     // full ghost, see Lattice::loadConfiguration()
-    bufsize = max3( Nx_*Ny_, Ny_*Nz_, Nz_*Nx_ );
-    bufsize = Nx_*Ny_*Nz_;
+    //bufsize = max3( Nx_*Ny_, Ny_*Nz_, Nz_*Nx_ );
+    bufsize = Nx_*Ny_*Nz_/2;
     inbound = new int [bufsize]; 
     outboundx = new int [bufsize];
     outboundy = new int [bufsize];
@@ -54,10 +54,10 @@ Lattice::Lattice(string name, double r, ParallelEnvironment &pe,
           if ( i<GHOST_SIZE || Nx_-GHOST_SIZE<=i ||
                j<GHOST_SIZE || Ny_-GHOST_SIZE<=j ||
                k<GHOST_SIZE || Nz_-GHOST_SIZE<=k ) {
-            voxelVector_[lc].species_id = ghost_id_;
+            voxels_[lc].species_id = ghost_id_;
           }
           else {
-            voxelVector_[lc].species_id = vacant_id_;
+            voxels_[lc].species_id = vacant_id_;
           }
         }
       }
@@ -186,7 +186,7 @@ int Lattice::get_adjacent_coord(const int src_coord, const unsigned index) {
 
 void Lattice::clear_ghost(std::vector<SpillMolecule>& spill_coords) {
   for (unsigned i(0); i < spill_coords.size(); ++i) {
-    int& species_id(voxelVector_[spill_coords[i].coord].species_id);
+    int& species_id(voxels_[spill_coords[i].coord].species_id);
     if (species_id > -out_id_) {
       species_id = ghost_id_;
     }
@@ -196,7 +196,7 @@ void Lattice::clear_ghost(std::vector<SpillMolecule>& spill_coords) {
   }
 
   for (unsigned i(0); i < occupied_ghosts_.size(); ++i) {
-    int& species_id(voxelVector_[occupied_ghosts_[i]].species_id);
+    int& species_id(voxels_[occupied_ghosts_[i]].species_id);
     if (species_id > -out_id_) {
       species_id = ghost_id_;
     }
@@ -245,7 +245,7 @@ void Lattice::set_out_voxels(const int &xbegin, const int &xend,
       const int j = (jj-1+Ny)%Ny+1;
       const int k = (kk-1+Nz)%Nz+1;
       const int lc0 = linearCoordFast(i0,j,k);
-      int& species_id(voxelVector_[lc0].species_id);
+      int& species_id(voxels_[lc0].species_id);
         if (species_id != invalid_id_) {
           if (species_id == ghost_id_) {  //out ghost voxel:
             species_id = -out_id_*(1+sub);
@@ -276,7 +276,7 @@ void Lattice::set_out_voxels(const int &xbegin, const int &xend,
       const int i = ii;
       const int k = (kk-1+Nz)%Nz+1;
       const int lc0 = linearCoordFast(i,j0,k);
-      int& species_id(voxelVector_[lc0].species_id);
+      int& species_id(voxels_[lc0].species_id);
         if (species_id != invalid_id_) {
           if (species_id == ghost_id_) {  //out ghost voxel:
             species_id = -out_id_*(1+sub);
@@ -307,7 +307,7 @@ void Lattice::set_out_voxels(const int &xbegin, const int &xend,
       const int i = ii;
       const int j = jj;
       const int lc0 = linearCoordFast(i,j,k0);
-      int& species_id(voxelVector_[lc0].species_id);
+      int& species_id(voxels_[lc0].species_id);
         if (species_id != invalid_id_) {
           if (species_id == ghost_id_) {  //out ghost voxel:
             species_id = -out_id_*(1+sub);
@@ -382,7 +382,7 @@ void Lattice::set_out_voxels() {
         const int j((jj-1+ny_)%ny_+1);
         const int k((kk-1+nz_)%nz_+1);
         const int lc0(linearCoordFast(b.xout, j, k));
-        int& species_id(voxelVector_[lc0].species_id);
+        int& species_id(voxels_[lc0].species_id);
         if (species_id != invalid_id_) {
           if (species_id == ghost_id_) {  //out ghost voxel:
             species_id = -out_id_*(1+sub);
@@ -407,7 +407,7 @@ void Lattice::set_out_voxels() {
       for (int kk(b.begin.z-1); kk <= b.end.z+1; ++kk) {
         const int k((kk-1+nz_)%nz_+1);
         const int lc0(linearCoordFast(i, b.yout, k));
-        int& species_id(voxelVector_[lc0].species_id);
+        int& species_id(voxels_[lc0].species_id);
         if (species_id != invalid_id_) {
           if (species_id == ghost_id_) {  //out ghost voxel:
             species_id = -out_id_*(1+sub);
@@ -431,7 +431,7 @@ void Lattice::set_out_voxels() {
     for (int i(b.begin.x-1); i <= b.end.x+1; ++i) {
       for (int j(b.begin.y-1); j <= b.end.y+1; ++j) {
         const int lc0 = linearCoordFast(i, j, b.zout);
-        int& species_id(voxelVector_[lc0].species_id);
+        int& species_id(voxels_[lc0].species_id);
         if (species_id != invalid_id_) {
           if (species_id == ghost_id_) {  //out ghost voxel:
             species_id = -out_id_*(1+sub);
@@ -461,7 +461,7 @@ void Lattice::set_out_voxels() {
         const int j((jj-1+ny_)%ny_+1);
         const int k((kk-1+nz_)%nz_+1);
         const int lc0(linearCoordFast(b.xout, j, k));
-        int species_id(voxelVector_[lc0].species_id);
+        int species_id(voxels_[lc0].species_id);
         if (species_id == 9*out_id_) {
           is_shared_[sub] = 1;
           break;
@@ -474,7 +474,7 @@ void Lattice::set_out_voxels() {
       for (int kk(b.begin.z-1); kk <= b.end.z+1; ++kk) {
         const int k((kk-1+nz_)%nz_+1);
         const int lc0(linearCoordFast(i, b.yout, k));
-        int species_id(voxelVector_[lc0].species_id);
+        int species_id(voxels_[lc0].species_id);
         if (species_id == 9*out_id_) {
           is_shared_[sub] = 1;
           break;
@@ -486,7 +486,7 @@ void Lattice::set_out_voxels() {
     for (int i(b.begin.x-1); i <= b.end.x+1; ++i) {
       for (int j(b.begin.y-1); j <= b.end.y+1; ++j) {
         const int lc0 = linearCoordFast(i, j, b.zout);
-        int species_id(voxelVector_[lc0].species_id);
+        int species_id(voxels_[lc0].species_id);
         if (species_id == 9*out_id_) {
           is_shared_[sub] = 1;
           break;
@@ -577,7 +577,7 @@ void Lattice::load_ghost(ParallelEnvironment &pe,
       const int k = inbound[irecv+1];
       const int lc1 = linearCoordFast(b.xin, j, k);
       occupied_ghosts_.push_back(lc1);
-      int& species_id(voxelVector_[lc1].species_id);
+      int& species_id(voxels_[lc1].species_id);
       //if normal ghost:
       if (species_id == ghost_id_) {
         species_id = -inbound[irecv+2];
@@ -618,7 +618,7 @@ void Lattice::load_ghost(ParallelEnvironment &pe,
       const int k = inbound[irecv+1];
       const int lc1 = linearCoordFast(i, b.yin, k);
       occupied_ghosts_.push_back(lc1);
-      int& species_id(voxelVector_[lc1].species_id);
+      int& species_id(voxels_[lc1].species_id);
       //if normal ghost:
       if (species_id == ghost_id_) {
         species_id = -inbound[irecv+2];
@@ -660,7 +660,7 @@ void Lattice::load_ghost(ParallelEnvironment &pe,
       const int j = inbound[irecv+1];
       const int lc1 = linearCoordFast(i, j, b.zin);
       occupied_ghosts_.push_back(lc1);
-      int& species_id(voxelVector_[lc1].species_id);
+      int& species_id(voxels_[lc1].species_id);
       //if normal ghost:
       if (species_id == ghost_id_) {
         species_id = -inbound[irecv+2];

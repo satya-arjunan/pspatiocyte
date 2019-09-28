@@ -75,25 +75,25 @@ public:
   int getID() {
     return reactionID_;
   }
-  double getPropensity() {
+  double get_propensity() {
     return propensity_;
   }
-  double getOldPropensity() {
-    return oldpropensity_;
+  double get_old_propensity() {
+    return old_propensity_;
   }
-  void setPropensity(double p) {
+  void set_propensity(double p) {
     propensity_ = p;
   }
-  void setOldPropensity(double p) {
-    oldpropensity_ = p;
+  void set_old_propensity(double p) {
+    old_propensity_ = p;
   }
   bool operator==(const Reaction &r) const {
     return name_==r.name_ && type_==r.type_ && reactionID_==r.reactionID_;
   }
-  double getProbability() {
+  double get_probability() {
     return probability_;
   }
-  void setProbability(double p) {
+  void set_probability(double p) {
     probability_ = p;
   }
   void diagnostics();
@@ -116,7 +116,7 @@ private:
   double dt_;           // reaction time
   int reactionID_;      // ID
   double propensity_;    // propensity
-  double oldpropensity_;    // propensity
+  double old_propensity_;    // propensity
   double probability_;
 };
 

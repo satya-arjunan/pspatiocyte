@@ -28,18 +28,18 @@ public:
   Compartment(string name, COMPARTMENT_TYPE type, uint32_t seed,
               const int proc_size, const int proc_id, const int invalid_id,
               const int vacant_id, const int ghost_id,
-              const bool is_output_coords):
+              const bool is_output_coords, const bool is_force_search_vacant):
     is_parallel_(proc_size > 1),
     invalid_id_(invalid_id),
     vacant_id_(vacant_id),
     ghost_id_(ghost_id),
     is_output_coords_(is_output_coords),
+    is_force_search_vacant_(is_force_search_vacant),
     name_(name),
     type_(type),
-    rng_(rd_()),
+    rng_(seed),
     gen_(seed),
-    totalPropensity_(0),
-    reactionTime_(0),
+    total_propensity_(0),
     prev_react_time_(0),
     next_react_time_(std::numeric_limits<double>::infinity()),
     mol_id_min_(std::numeric_limits<unsigned>::max()/proc_size*proc_id),
@@ -56,24 +56,20 @@ public:
     delete adj_rand_;
   }
 
-  string getName() {
+  std::string get_name() {
     return name_;
   }
 
-  COMPARTMENT_TYPE getType() {
+  COMPARTMENT_TYPE get_type() {
     return type_;
   }
 
-  int getNumberOfVoxel() {
-    return numberOfVoxel_;
+  int get_id() {
+    return compartment_id_;
   }
 
-  int getID() {
-    return compartmentID_;
-  }
-
-  void setID(int ID) {
-    compartmentID_ = ID;
+  void set_id(int id) {
+    compartment_id_ = id;
   }
 
   void set_out_id(const int out_id) {
@@ -88,76 +84,43 @@ public:
     return mol_id_;
   }
 
+  bool walk_molecule(Lattice& g, const int src_coord, const int curr_coord);
   void initialize(Lattice &g, ParallelEnvironment &pe,
                   std::vector<Species*>& species_list);
-  double getOldTotalPropensity();
-
-  void throwinMolecules(Species& s, const unsigned size, Lattice &g);
-  /*
-   *  methods related to independent reaction
-   */
-  void attachIndependentReaction(Reaction& r);
-
-  bool eliminateReactant(Species &s, Lattice &g, bool binary, int &center,
-                         int &neighbor);
-
-  void generateProduct(Species &s, Lattice &g, int coord);
-
-  Molecule& identifyMolecule(Species &s, Lattice &g);
-
-  void calculatePropensity(Reaction &r, ParallelEnvironment &pe);
-
-  double getNewPropensity(double);
-
-  double getNextTime(ParallelEnvironment &pe, double current_time);
-  double getNewNextTime(ParallelEnvironment &pe, double current_time);
-  /*
-   *  methods related to influenced reaction
-   */
-  void attachInfluencedReaction(Reaction& r);
-
-  void calculateProbability(Reaction &r, Lattice &g);
-
-  void findMaxProbability(Species &s);
-
-  void calculateCollisionTime(Species &s, ParallelEnvironment &pe);
-
-  double executeDirectMethodReaction(Lattice &g, ParallelEnvironment &pe,
-                                     double current_time);
-
-  void walk(std::vector<Species*>& species_list,
-            Lattice &g, ParallelEnvironment &pe);
+  double get_old_total_propensity();
+  void throw_in_molecules(Species& s, const unsigned size, Lattice &g);
+  void add_direct_method_reaction(Reaction& r);
+  bool remove_reactant(Species &s, Lattice &g, bool binary, int &center,
+                       int &neighbor);
+  void add_product(Species &s, Lattice &g, int coord);
+  void calculate_propensity(Reaction &r, ParallelEnvironment &pe);
+  double get_new_propensity(double);
+  double get_next_time(ParallelEnvironment &pe, double current_time);
+  double get_new_next_time(ParallelEnvironment &pe, double current_time);
+  void add_diffusion_influenced_reaction(Reaction& r);
+  void calculate_probability(Reaction &r, Lattice &g);
+  void calculate_max_probability(Species &s);
+  void calculate_collision_time(Species &s, ParallelEnvironment &pe);
+  double react_direct_method(Lattice &g, ParallelEnvironment &pe,
+                             double current_time);
+  void walk(std::vector<Species*>& species_list, Lattice &g,
+            ParallelEnvironment &pe);
 
   void walk_on_ghost(std::vector<unsigned>& species_ids,
                      std::vector<unsigned>& src_coords,
                      std::vector<unsigned>& tar_coords,
                      Lattice& g, ParallelEnvironment& pe);
-  void throwinOneMolecule(Species &s, Lattice &g);
-
-  bool processingReaction(Reaction &r, Lattice &g, ParallelEnvironment &pe);
-  
-  bool searchAllNeighbors(Lattice &g, const int &coord, int &center,
-                          int &neighbor);
-
-  void calculatePropensityNoParallel(Reaction &r);
-  void calculateLocalPropensity(Reaction &r, double);
-
-  // independent reaction time
-  void setReactionTime(double time) {
-      reactionTime_ = time;
-  }
-  // independent reaction time
-  double getReactionTime() {
-      return reactionTime_;
-  }
-
-  // print coodinates of molecues
-  void addCoordinatesSpecies(Species& species);
-  void addNumberSpecies(Species& species);
-  void outputCoordinatesHeader(Lattice& lattice, ParallelEnvironment& pe);
-  void outputCoordinates(const double current_time);
-  void outputNumbersHeader(ParallelEnvironment& pe);
-  void outputNumbers(const double current_time);
+  bool process_reaction(Reaction &r, Lattice &g, ParallelEnvironment &pe);
+  bool get_vacant_neighbor(Lattice &g, const int &coord, int &center,
+                           int &neighbor);
+  void calculate_propensity(Reaction &r);
+  void calculate_local_propensity(Reaction &r, double);
+  void add_coordinates_species(Species& species);
+  void add_number_species(Species& species);
+  void output_coordinates_header(Lattice& lattice, ParallelEnvironment& pe);
+  void output_coordinates(const double current_time);
+  void output_numbers_header(ParallelEnvironment& pe);
+  void output_numbers(const double current_time);
 
   void react(Lattice& g, Species& s, const unsigned tarID, Voxel& src_voxel,
              Voxel& tar_voxel, const unsigned src_coord,
@@ -202,6 +165,7 @@ private:
   const int vacant_id_;
   const int ghost_id_;
   const bool is_output_coords_;
+  const bool is_force_search_vacant_;
   unsigned Nx_;
   unsigned Ny_;
   unsigned Nz_;
@@ -212,20 +176,18 @@ private:
   unsigned out_ghost_cnts_[10];
   int cntES = 0;
   int out_id_ = vacant_id_; //default value
-  std::random_device rd_;
   std::mt19937 rng_;
   std::vector<Species*> species_list_;
   std::vector<OutMolecule> outmolecules_[10];
   std::vector<std::vector<Molecule>> species_molecules_;
   string name_;                        // name of compartment
   COMPARTMENT_TYPE type_;              // volume or surface
-  int compartmentID_;                  // compartment ID
-  int numberOfVoxel_;                  // number of voxels
-//  long long numberOfVoxel_;            // number of voxels
-  vector<int> voxelVector_;            // linear coordinates of voxels
+  int compartment_id_;                  // compartment ID
+  int n_voxels_;                  // number of voxels
+  vector<int> voxel_coords_;            // linear coordinates of voxels
   vector<Species> output_coord_species_;
   vector<Species> output_number_species_;
-  vector<Reaction*> independent_reactions_;  // list of reactions
+  vector<Reaction*> direct_method_reactions_;  // list of reactions
   vector<Reaction*> influenced_reactions_;    // list of reactions
 
   double volume_;
@@ -233,11 +195,9 @@ private:
   double next_react_time_;
   double prev_react_time_;
 
-  double totalPropensity_;
-  double globalTotalPropensity_;
+  double total_propensity_;
+  double global_total_propensity_;
 
-  // Independent reation time
-  double reactionTime_;
   boost::uniform_int<> dist_ = boost::uniform_int<>(0, 11);
   boost::mt19937 gen_;
   boost::variate_generator<boost::mt19937&, boost::uniform_int<>>* adj_rand_;
