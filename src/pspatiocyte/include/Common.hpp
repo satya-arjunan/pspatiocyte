@@ -58,11 +58,10 @@ enum COMPARTMENT_TYPE
 // event type
 enum EVENT_TYPE
 {
-    DIFFUSION = 1,
-    INDEPENDENT_REACTION =2,
-    INFLUENCED_REACTION = 3,
-    COLLISION = 4,
-    REACTION = 5
+    DIFFUSION = 0,
+    INDEPENDENT_REACTION = 1,
+    OUTPUT_NUMBERS = 2,
+    OUTPUT_COORDINATES = 3,
 };
 
 // reaction type

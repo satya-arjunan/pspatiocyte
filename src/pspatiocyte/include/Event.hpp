@@ -32,7 +32,16 @@ struct SpatiocyteEvent: public EventBase {
     platt_ = latt;
     setTime(dt_);
   } 
-  
+
+  SpatiocyteEvent(Lattice* latt, Compartment* comp, ParallelEnvironment* pe,
+                  EVENT_TYPE etype, double dt) {
+    etype_ = etype;
+    dt_ = dt;
+    pcomp_ = comp;
+    platt_ = latt;
+    setTime(dt_);
+  } 
+
   int getID() {
     return id_;
   } 
@@ -69,8 +78,14 @@ struct SpatiocyteEvent: public EventBase {
     case INDEPENDENT_REACTION:
       dt_ = pcomp_->react_direct_method(*platt_, pe, getTime());
       break;
+    case OUTPUT_NUMBERS:
+      pcomp_->output_numbers(getTime());
+      break;
+    case OUTPUT_COORDINATES:
+      pcomp_->output_coordinates(getTime());
+      break;
     }
-    setTime( getTime() + dt_ );
+    setTime(getTime() + dt_);
   }
 
 private:

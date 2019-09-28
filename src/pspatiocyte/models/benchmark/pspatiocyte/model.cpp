@@ -19,7 +19,7 @@ int main(int argc, char *argv[]) {
   const int nlogs(100);
   const double log_interval(duration/nlogs);
 
-  World world(argc, argv, nx, ny, nz, rv);
+  World world(argc, argv, nx, ny, nz, rv, log_interval);
   Species E("E", D, num_E, world);
   Species S("S", D, num_S, world);
   Species ES("ES", D, num_ES, world);
@@ -36,7 +36,7 @@ int main(int argc, char *argv[]) {
   Reaction product("ES -> E + P", ES, kcat, E, P, world);
 
   world.initialize();
-  world.run(log_interval, duration, verbose);
+  world.run(duration, verbose);
   return 0;
 }
 

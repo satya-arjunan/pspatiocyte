@@ -42,8 +42,8 @@ int main( int argc, char *argv[] ) {
   const int nlogs(1000);
   const double log_interval(duration/nlogs);
   
-  //set true to record trajectory (coordinates and id of molecules):
-  World world(argc, argv, nx, ny, nz, rv, dirname, true);
+  //set log_interval to record trajectory (coordinates and id of molecules):
+  World world(argc, argv, nx, ny, nz, rv, log_interval, dirname, log_interval);
 
   Species KK("KK", D, NKK, world);
   Species Kpp("Kpp", D, 0, world);
@@ -78,7 +78,7 @@ int main( int argc, char *argv[] ) {
   Reaction r14("PPa -> PP", PPa, k7, PP, world);
 
   world.initialize();
-  world.run(log_interval, duration, verbose);
+  world.run(duration, verbose);
   return 0;
 }
 

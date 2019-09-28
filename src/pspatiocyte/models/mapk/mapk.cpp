@@ -41,7 +41,7 @@ int main( int argc, char *argv[] ) {
   const int nlogs(duration*2);
   const double log_interval(duration/nlogs);
 
-  World world(argc, argv, nx, ny, nz, rv, dirname);
+  World world(argc, argv, nx, ny, nz, rv, log_interval, dirname);
 
   Species KK("KK", D, NKK, world);
   Species Kpp("Kpp", D, 0, world);
@@ -76,7 +76,7 @@ int main( int argc, char *argv[] ) {
   Reaction r14("PPa -> PP", PPa, k7, PP, world);
 
   world.initialize();
-  world.run(log_interval, duration, verbose);
+  world.run(duration, verbose);
   return 0;
 }
 

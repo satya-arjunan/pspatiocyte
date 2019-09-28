@@ -19,33 +19,46 @@ labels = ['pSpatiocyte (D = 0.06 \si{\micro}m$^2$s$^{-1}$)', 'pSpatiocyte (D = 4
 
 fig,ax=plt.subplots()
 
-#D=0.06
-data = np.loadtxt('ode/ode_processive.csv', delimiter=',')
-ax.semilogx(data[:,0], data[:,1], '-', label=labels[2])
+searches = [0]
+#fractions = [0.5, 0.6, 0.7, 0.8, 0.9, 1.0]
+fractions = [0.5, 0.6, 0.7]
+iterations = 10
 
-#D=4
-data = np.loadtxt('ode/ode_distributive.csv', delimiter=',')
-ax.semilogx(data[:,0], data[:,1], '-', label=labels[3])
+volume = 909.
+for search in searches:
+  for fraction in fractions: 
+    data = []
+    for i in range(iterations):
+      fraction_str = '{:.2f}'.format(fraction)
+      dirname = 'forced_'+str(search)+'__fraction_'+fraction_str+'_'+str(i)
+      subprocess.run(['python3', '../../scripts/gather_timecourse.py', dirname])
+      if (i == 0):
+        data = np.loadtxt(dirname+'/output.txt', delimiter=',', skiprows=1)
+      else:
+        data = data + np.loadtxt(dirname+'/output.txt', delimiter=',',
+            skiprows=1)
+    ax.plot(data[:,0]/iterations, data[:,1]/iterations/volume,
+        label=dirname.replace('_','\_'))
 
-for i, D in enumerate(Ds):
-  x = []
-  y = []
-  for j, ratio in enumerate(ratios):
-    ratio_str = '{:.4f}'.format(ratio)
-    dirname = 'D_'+str(D)+'__ratio_'+ratio_str
-    subprocess.run(['python3', '../../scripts/gather_timecourse.py', dirname])
-    data = np.loadtxt(dirname+'/output.txt', delimiter=',', skiprows=1)
-    NKT = data[:1,4][0]
-    NKK = data[:1,1][0]
-    NPP = data[:1,3][0]
-    #print("intial NKT:",NKT,"NKK:",NKK,"NPP:",NPP)
-    KK_over_PP = (NKK/NPP) 
-    x.append(KK_over_PP)
-    rows = len(data)
-    Kpp = np.mean(data[-int(rows*0.5):,2])
-    y.append(Kpp/NKT)
-  ax.semilogx(x,y, markers[i], label=labels[i], markersize=7)
+n_particles_s = 50000
+duration = 10.0
 
+from scipy.integrate import odeint
+
+def f(x, t0, kcat, kr):
+    """
+    x: state vector with concentrations of S, P
+    """
+    return np.array([
+        -kcat*x[0],
+        kcat*x[0]
+    ])
+
+init_state = np.array([n_particles_s, 0.]) / volume
+ode_time = np.linspace(0.,duration,100000)
+ode_result = odeint(f, y0=init_state, t=ode_time, args=(1.0, 0))
+
+ax.plot(ode_time, ode_result[:,0], "--", color="k", alpha=.5, label="ODE")
 
 labelFontSize = 15
 legendFontSize = 13
@@ -60,6 +73,10 @@ ax.set_xlabel('KK$_0$/PP$_0$', size=labelFontSize)
 ax.set_ylabel('Kpp/K$_0$', size=labelFontSize)
 ax.tick_params(axis='both', which='major', labelsize=lineFontSize)
 ax.tick_params(axis='both', which='minor', labelsize=lineFontSize)
+ax.set_xlim(0.1,10.0)
+plt.xscale('log')
+plt.yscale('log')
 fig.tight_layout()
 plt.savefig('dissociation.pdf', format='pdf', dpi=600)#, bbox_inches='tight')
 plt.show()
+

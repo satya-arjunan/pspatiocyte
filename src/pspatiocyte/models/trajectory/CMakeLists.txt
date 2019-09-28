@@ -3,6 +3,7 @@ set(model_name trajectory)
 
 set(copy_files
   run.py
+  coordinates.spa
   plot_trajectory.py)
 
 set(model_src ${model_name}.cpp)

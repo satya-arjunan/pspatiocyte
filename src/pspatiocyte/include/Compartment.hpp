@@ -28,12 +28,11 @@ public:
   Compartment(string name, COMPARTMENT_TYPE type, uint32_t seed,
               const int proc_size, const int proc_id, const int invalid_id,
               const int vacant_id, const int ghost_id,
-              const bool is_output_coords, const bool is_force_search_vacant):
+              const bool is_force_search_vacant):
     is_parallel_(proc_size > 1),
     invalid_id_(invalid_id),
     vacant_id_(vacant_id),
     ghost_id_(ghost_id),
-    is_output_coords_(is_output_coords),
     is_force_search_vacant_(is_force_search_vacant),
     name_(name),
     type_(type),
@@ -164,7 +163,6 @@ private:
   const int invalid_id_;
   const int vacant_id_;
   const int ghost_id_;
-  const bool is_output_coords_;
   const bool is_force_search_vacant_;
   unsigned Nx_;
   unsigned Ny_;
