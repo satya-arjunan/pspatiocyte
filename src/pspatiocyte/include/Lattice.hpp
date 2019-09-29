@@ -48,17 +48,17 @@ public:
    
     int getXdim()
     {
-        return Nx_; 
+        return LNx_; 
     }
 
     int getYdim()
     {
-        return Ny_;
+        return LNy_;
     }
 
     int getZdim()
     { 
-        return Nz_;
+        return LNz_;
     }
 
     double getradius()
@@ -73,43 +73,43 @@ public:
   
     int linearCoord(int i, int j, int k) 
     {
-       return ( (i<0 || i>=Nx_ ||
-                 j<0 || j>=Ny_ ||
-                 k<0 || k>=Nz_) ? -1 : k + ( j + i * Ny_ ) * Nz_ );
+       return ( (i<0 || i>=LNx_ ||
+                 j<0 || j>=LNy_ ||
+                 k<0 || k>=LNz_) ? -1 : k + ( j + i * LNy_ ) * LNz_ );
     }
     // convert cartesian to linear coordinates without range check
     int linearCoordFast(int i, int j, int k) 
     {
-        return k + ( j + i * Ny_ ) * Nz_;
+        return k + ( j + i * LNy_ ) * LNz_;
     }
   
     // convert cartesian to linear coordinates (overloaded)
     int linearCoord(Coordinate position) 
     {
-        return position.ck + ( position.cj + position.ci * Ny_ ) * Nz_;
+        return position.ck + ( position.cj + position.ci * LNy_ ) * LNz_;
     }
 
     int get_adjacent_coord(const int src_coord, const unsigned index);
   
     int getXind(int index) 
     {
-        return index / (Nz_ * Ny_); 
+        return index / (LNz_ * LNy_); 
     }
 
     int getYind(int index)
     {
-        return (index % (Nz_ * Ny_)) / Nz_; 
+        return (index % (LNz_ * LNy_)) / LNz_; 
     }
 
     int getZind(int index)
     { 
-        return index % Nz_; 
+        return index % LNz_; 
     }
 
     void coord_to_ijk(const int coord, int& i, int& j, int& k) {
-        i = coord / (Nz_ * Ny_); 
-        j = (coord % (Nz_ * Ny_)) / Nz_; 
-        k = coord % Nz_; 
+        i = coord / (LNz_ * LNy_); 
+        j = (coord % (LNz_ * LNy_)) / LNz_; 
+        k = coord % LNz_; 
     }
     void clear_ghost(std::vector<SpillMolecule>& spill_coords);
 
@@ -183,9 +183,9 @@ private:
   const int nx_;          // comp dimensions
   const int ny_;
   const int nz_;
-  const int Nx_;          // system dimensions
-  const int Ny_;
-  const int Nz_;
+  const int LNx_;          // system dimensions
+  const int LNy_;
+  const int LNz_;
   const double radius_;
   const double SQR31_;
   const double SQR13_;

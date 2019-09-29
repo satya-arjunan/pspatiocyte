@@ -13,9 +13,19 @@ void Compartment::initialize(Lattice &g, ParallelEnvironment &pe,
                              std::vector<Species*>& species_list) {
   species_list_ = species_list;
   species_molecules_.resize(species_list_.size());
-  Nx_ = pe.getispan();    // 0 and Nx+1 serve as ghost cells
-  Ny_ = pe.getjspan();    // 0 and Ny+1 serve as ghost cells
-  Nz_ = pe.getkspan();    // 0 and Nz+1 serve as ghost cells 
+  nx_ = pe.getispan(); //x size allocated to local process from global lattice 
+  ny_ = pe.getjspan(); //y size allocated to local process from global lattice 
+  nz_ = pe.getkspan(); //z size allocated to local process from global lattice 
+  //LNx = nx_+2 (2 for ghost voxels at the sides)
+  //LNy = ny_+2 (2 for ghost voxels at the sides)
+  //LNz = nz_+2 (2 for ghost voxels at the sides)
+  //local lattice size is (nx_+2)*(ny_+2)*(nz_*2) or LNx*LNy*LNz
+  //molecules can only occupy coordinates:
+  //(x=1 to nx_),(y=1 to ny_),(z=1 to nz)
+  fout << "max:" << nx_ << " " << ny_ << " " << nz_ << std::endl;
+  // x=0 and x=nx_+1 are occupied by ghost or invalid voxels
+  // y=0 and y=ny_+1 are occupied by ghost or invalid voxels
+  // z=0 and z=nz_+1 are occupied by ghost or invalid voxels
   const int NE = MPI::PROC_NULL;  // no neighbor
   const double rv = g.getradius();
   const double SQR2 = 1.414213562;
@@ -24,19 +34,19 @@ void Compartment::initialize(Lattice &g, ParallelEnvironment &pe,
   if (type_==VOLUME) {
     // if right-boundary node
     if(pe.getneighbor_i_plus()==NE)
-    for(int j=0; j<=Ny_+1; ++j)
-    for(int k=0; k<=Nz_+1; ++k)
+    for(int j=0; j<=ny_+1; ++j)
+    for(int k=0; k<=nz_+1; ++k)
     {
-        const int lc0 = g.linearCoord(Nx_  , j, k);
-        const int lc1 = g.linearCoord(Nx_+1, j, k);
+        const int lc0 = g.linearCoord(nx_  , j, k);
+        const int lc1 = g.linearCoord(nx_+1, j, k);
         g.get_voxel(lc0).species_id =
         g.get_voxel(lc1).species_id = invalid_id_;
     }
 
     // if left-boundary node
     if(pe.getneighbor_i_minus()==NE)
-    for(int j=0; j<=Ny_+1; ++j)
-    for(int k=0; k<=Nz_+1; ++k)
+    for(int j=0; j<=ny_+1; ++j)
+    for(int k=0; k<=nz_+1; ++k)
     {
         const int lc0 = g.linearCoord(0, j, k);
         const int lc1 = g.linearCoord(1, j, k);
@@ -46,19 +56,19 @@ void Compartment::initialize(Lattice &g, ParallelEnvironment &pe,
 
     // if rear-boundary node
     if(pe.getneighbor_j_plus()==NE)
-    for(int i=0; i<=Nx_+1; ++i)
-    for(int k=0; k<=Nz_+1; ++k)
+    for(int i=0; i<=nx_+1; ++i)
+    for(int k=0; k<=nz_+1; ++k)
     {
-        const int lc0 = g.linearCoord(i, Ny_  , k);
-        const int lc1 = g.linearCoord(i, Ny_+1, k);
+        const int lc0 = g.linearCoord(i, ny_  , k);
+        const int lc1 = g.linearCoord(i, ny_+1, k);
         g.get_voxel(lc0).species_id =
         g.get_voxel(lc1).species_id = invalid_id_;
     }
 
     // if front-boundary node
     if(pe.getneighbor_j_minus()==NE)
-    for(int i=0; i<=Nx_+1; ++i)
-    for(int k=0; k<=Nz_+1; ++k)
+    for(int i=0; i<=nx_+1; ++i)
+    for(int k=0; k<=nz_+1; ++k)
     {
         const int lc0 = g.linearCoord(i, 0, k);
         const int lc1 = g.linearCoord(i, 1, k);
@@ -68,19 +78,19 @@ void Compartment::initialize(Lattice &g, ParallelEnvironment &pe,
 
     // if top boundary node
     if(pe.getneighbor_k_plus()==NE)
-    for(int i=0; i<=Nx_+1; ++i)
-    for(int j=0; j<=Ny_+1; ++j)
+    for(int i=0; i<=nx_+1; ++i)
+    for(int j=0; j<=ny_+1; ++j)
     {
-        const int lc0 = g.linearCoord(i, j, Nz_  );
-        const int lc1 = g.linearCoord(i, j, Nz_+1);
+        const int lc0 = g.linearCoord(i, j, nz_  );
+        const int lc1 = g.linearCoord(i, j, nz_+1);
         g.get_voxel(lc0).species_id =
         g.get_voxel(lc1).species_id = invalid_id_;
     }
 
     // if bottom boundary node
     if(pe.getneighbor_k_minus()==NE)
-    for(int i=0; i<=Nx_+1; ++i)
-    for(int j=0; j<=Ny_+1; ++j)
+    for(int i=0; i<=nx_+1; ++i)
+    for(int j=0; j<=ny_+1; ++j)
     {
         const int lc0 = g.linearCoord(i, j, 0);
         const int lc1 = g.linearCoord(i, j, 1);
@@ -89,15 +99,15 @@ void Compartment::initialize(Lattice &g, ParallelEnvironment &pe,
     }
 
     // append inner voxels
-    for(int i=1; i<=Nx_; ++i)
-    for(int j=1; j<=Ny_; ++j)
-    for(int k=1; k<=Nz_; ++k)
+    for(int i=1; i<=nx_; ++i)
+    for(int j=1; j<=ny_; ++j)
+    for(int k=1; k<=nz_; ++k)
     {
         const int lc = g.linearCoord(i, j, k);
         if(g.get_voxel(lc).species_id == vacant_id_)
             voxel_coords_.push_back(lc);
     }
-    n_voxels_ = voxel_coords_.size(); // = (Nx_-2)*(Ny_-2)*(Nz_-2)
+    n_voxels_ = voxel_coords_.size(); // = (nx_-2)*(ny_-2)*(nz_-2)
     unsigned total_voxels(n_voxels_);
     local_volume_ = n_voxels_*4.0*SQR2*rv*rv*rv;
     volume_ = local_volume_;
@@ -111,9 +121,9 @@ void Compartment::initialize(Lattice &g, ParallelEnvironment &pe,
     }
   }
 
-  mid_span_.x = Nx_/2 + Nx_%2;
-  mid_span_.y = Ny_/2 + Ny_%2;
-  mid_span_.z = Nz_/2 + Nz_%2; 
+  mid_span_.x = nx_/2 + nx_%2;
+  mid_span_.y = ny_/2 + ny_%2;
+  mid_span_.z = nz_/2 + nz_%2; 
   for (unsigned N(0); N < 8; ++N) {
     bit_[N].x = ((N/4)%2);
     bit_[N].y = ((N/2)%2);
@@ -121,9 +131,9 @@ void Compartment::initialize(Lattice &g, ParallelEnvironment &pe,
     begin_[N].x = (bit_[N].x*mid_span_.x + GHOST_SIZE);
     begin_[N].y = (bit_[N].y*mid_span_.y + GHOST_SIZE);
     begin_[N].z = (bit_[N].z*mid_span_.z + GHOST_SIZE);
-    end_[N].x = (bit_[N].x*(Nx_-mid_span_.x)+mid_span_.x + GHOST_SIZE - 1);
-    end_[N].y = (bit_[N].y*(Ny_-mid_span_.y)+mid_span_.y + GHOST_SIZE - 1);
-    end_[N].z = (bit_[N].z*(Nz_-mid_span_.z)+mid_span_.z + GHOST_SIZE - 1);
+    end_[N].x = (bit_[N].x*(nx_-mid_span_.x)+mid_span_.x + GHOST_SIZE - 1);
+    end_[N].y = (bit_[N].y*(ny_-mid_span_.y)+mid_span_.y + GHOST_SIZE - 1);
+    end_[N].z = (bit_[N].z*(nz_-mid_span_.z)+mid_span_.z + GHOST_SIZE - 1);
     ghosts_[N].x = (bit_[N].x==0 ? begin_[N].x-1 : end_[N].x+1);
     ghosts_[N].y = (bit_[N].y==0 ? begin_[N].y-1 : end_[N].y+1);
     ghosts_[N].z = (bit_[N].z==0 ? begin_[N].z-1 : end_[N].z+1);
@@ -135,9 +145,9 @@ void Compartment::initialize(Lattice &g, ParallelEnvironment &pe,
     out_cnts_[i] = 0;
     out_ghost_cnts_[i] = 0;
   }
-  for(int i=0; i<=Nx_+1; ++i) {
-    for(int j=0; j<=Ny_+1; ++j) {
-      for(int k=0; k<=Nz_+1; ++k) {
+  for(int i=0; i<=nx_+1; ++i) {
+    for(int j=0; j<=ny_+1; ++j) {
+      for(int k=0; k<=nz_+1; ++k) {
         const unsigned coord(g.linearCoord(i, j, k));
         Voxel& voxel(g.get_voxel(coord));
         int species_id(voxel.species_id);
@@ -182,9 +192,9 @@ void Compartment::check_voxels(Lattice& g, const double id) {
     out_cnts[i] = 0;
     out_ghost_cnts[i] = 0;
   }
-  for(int i=0; i<=Nx_+1; ++i) {
-    for(int j=0; j<=Ny_+1; ++j) {
-      for(int k=0; k<=Nz_+1; ++k) {
+  for(int i=0; i<=nx_+1; ++i) {
+    for(int j=0; j<=ny_+1; ++j) {
+      for(int k=0; k<=nz_+1; ++k) {
         const unsigned coord(g.linearCoord(i, j, k));
         Voxel& voxel(g.get_voxel(coord));
         int species_id(voxel.species_id);
@@ -309,9 +319,9 @@ void Compartment::check_voxels(Lattice& g, const double id) {
     }
   }
   std::vector<OutMolecule> om[10];
-  for(int i=0; i<=Nx_+1; ++i) {
-    for(int j=0; j<=Ny_+1; ++j) {
-      for(int k=0; k<=Nz_+1; ++k) {
+  for(int i=0; i<=nx_+1; ++i) {
+    for(int j=0; j<=ny_+1; ++j) {
+      for(int k=0; k<=nz_+1; ++k) {
         const unsigned coord(g.linearCoord(i, j, k));
         Voxel& voxel(g.get_voxel(coord));
         int species_id(voxel.species_id);
@@ -389,7 +399,7 @@ void Compartment::populate_molecules(Species& s, const unsigned size,
     fout << "nmin:" << nmin.x << " " << nmin.y << " " << nmin.z << std::endl;
       Vector<unsigned> nmax(imax.x-lmin.x, imax.y-lmin.y, imax.z-lmin.z);
     fout << "nmax:" << nmax.x << " " << nmax.y << " " << nmax.z << std::endl;
-      Vector<unsigned> ldims(nmax.x-nmin.x, nmax.y-nmin.y, nmax.z-nmin.z);
+      Vector<unsigned> ldims(nmax.x-nmin.x+1, nmax.y-nmin.y+1, nmax.z-nmin.z+1);
     fout << "ldims:" << ldims.x << " " << ldims.y << " " << ldims.z << std::endl;
       unsigned available(ldims.x*ldims.y*ldims.z);
       fout << "available:" << available << std::endl;
@@ -415,9 +425,9 @@ void Compartment::populate_molecules(Species& s, const unsigned size,
             index = (int)(available*(*randdbl_)());
             fout << "index:" << index << std::endl;
             fout << "index/(ldims.z*ldims.y):" << index/(ldims.z*ldims.y) << std::endl;
-            Vector<unsigned> ijk(index/(ldims.z*ldims.y)+nmin.x,
-                                 (index%(ldims.z*ldims.y))/ldims.z+nmin.y,
-                                 index%ldims.z+nmin.z); 
+            Vector<unsigned> ijk(index/(ldims.z*ldims.y)+nmin.x+1,
+                                 (index%(ldims.z*ldims.y))/ldims.z+nmin.y+1,
+                                 index%ldims.z+nmin.z+1); 
             fout << "ijk:" << ijk.x << " " << ijk.y << " " << ijk.z << std::endl;
             coord = g.linearCoordFast(ijk.x, ijk.y, ijk.z);
             sid = g.get_voxel(coord).species_id;
@@ -1399,8 +1409,9 @@ void Compartment::output_coordinates_header(Lattice& lattice,
     Species& s(output_coord_species_[i]);
     fout2 << "," << s.getName();
   }
+  Vector<unsigned> gdims(pe.get_global_dimensions());
   fout2 << "," << lattice.getradius() << " " << pe.getsize() << " " << 
-    pe.getNx() << " " << pe.getNy() << " " << pe.getNz() << endl;
+    gdims.x << " " << gdims.y << " " << gdims.z << endl;
 }
 
 void Compartment::output_coordinates(const double current_time) {

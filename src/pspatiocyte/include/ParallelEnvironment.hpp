@@ -40,13 +40,13 @@ struct counter
 class ParallelEnvironment
 {
 public:
-    ParallelEnvironment(int argc, char* argv[], const int &Nx,
-                        const int &Ny, const int &Nz,
+    ParallelEnvironment(int argc, char* argv[], const int &GNx,
+                        const int &GNy, const int &GNz,
                         const std::string dirname)
     {
-        Nx_ = Nx;
-        Ny_ = Ny;
-        Nz_ = Nz;
+        GNx_ = GNx;
+        GNy_ = GNy;
+        GNz_ = GNz;
         comm = MPI::COMM_WORLD;   // initially allocated processes
         verbose = false;           // diagnostics
 
@@ -138,9 +138,9 @@ public:
         jbgn = new int[dims[1]];   jend = new int[dims[1]];
         kbgn = new int[dims[0]];   kend = new int[dims[0]];
 
-        partition( Nx, dims[2], ibgn, iend, rank, verbose );
-        partition( Ny, dims[1], jbgn, jend, rank, verbose );
-        partition( Nz, dims[0], kbgn, kend, rank, verbose );
+        partition( GNx, dims[2], ibgn, iend, rank, verbose );
+        partition( GNy, dims[1], jbgn, jend, rank, verbose );
+        partition( GNz, dims[0], kbgn, kend, rank, verbose );
 
         ib = ibgn[coords[2]];   ie = iend[coords[2]];   in = ie - ib + 1;
         jb = jbgn[coords[1]];   je = jend[coords[1]];   jn = je - jb + 1;
@@ -164,20 +164,8 @@ public:
         delete kbgn, kend;
     }
 
-    unsigned getNx() {
-      return Nx_;
-    }
-
-    unsigned getNy() {
-      return Ny_;
-    }
-
-    unsigned getNz() {
-      return Nz_;
-    }
-
     Vector<unsigned> get_global_dimensions() {
-      return Vector<unsigned>(Nx_, Ny_, Nz_);
+      return Vector<unsigned>(GNx_, GNy_, GNz_);
     }
 
     Vector<unsigned> get_local_min() {
@@ -563,9 +551,9 @@ private:
     int coords[3];   // process coordinates
     int  inbnd[6];   // inbound processes
     int outbnd[6];   // outbound processes
-    unsigned Nx_;
-    unsigned Ny_;
-    unsigned Nz_;
+    unsigned GNx_;
+    unsigned GNy_;
+    unsigned GNz_;
 
     bool reorder;    // processor reordering
     bool periods[3]; // periodicity

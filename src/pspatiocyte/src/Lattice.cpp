@@ -18,15 +18,15 @@ Lattice::Lattice(string name, double r, ParallelEnvironment &pe,
   nx_(pe.getispan()), //local nx 
   ny_(pe.getjspan()), //local ny
   nz_(pe.getkspan()), //local nz
-  Nx_(nx_ + 2*GHOST_SIZE),
-  Ny_(ny_ + 2*GHOST_SIZE),
-  Nz_(nz_ + 2*GHOST_SIZE),
+  LNx_(nx_ + 2*GHOST_SIZE), //GHOST_SIZE=1
+  LNy_(ny_ + 2*GHOST_SIZE),
+  LNz_(nz_ + 2*GHOST_SIZE),
   radius_(r),
   SQR31_(sqrt(3.0)),
   SQR13_(sqrt(1.0 / 3.0)),
   SQR83_(sqrt(8.0 / 3.0)) {
-    voxels_.resize(Nx_*Ny_*Nz_);
-    bufsize = Nx_*Ny_*Nz_/2;
+    voxels_.resize(LNx_*LNy_*LNz_);
+    bufsize = LNx_*LNy_*LNz_/2;
     inbound = new int [bufsize]; 
     outboundx = new int [bufsize];
     outboundy = new int [bufsize];
@@ -39,13 +39,13 @@ Lattice::Lattice(string name, double r, ParallelEnvironment &pe,
     spillcoordsY.reserve(molesize);
     spillcoordsZ.reserve(molesize);
 
-    for (int i=0; i<Nx_; ++i) {
-      for (int j=0; j<Ny_; ++j) {
-        for(int k=0; k<Nz_; ++k) {
+    for (int i=0; i<LNx_; ++i) {
+      for (int j=0; j<LNy_; ++j) {
+        for(int k=0; k<LNz_; ++k) {
           const int lc = linearCoord(i,j,k);
-          if ( i<GHOST_SIZE || Nx_-GHOST_SIZE<=i ||
-               j<GHOST_SIZE || Ny_-GHOST_SIZE<=j ||
-               k<GHOST_SIZE || Nz_-GHOST_SIZE<=k ) {
+          if ( i<GHOST_SIZE || LNx_-GHOST_SIZE<=i ||
+               j<GHOST_SIZE || LNy_-GHOST_SIZE<=j ||
+               k<GHOST_SIZE || LNz_-GHOST_SIZE<=k ) {
             voxels_[lc].species_id = ghost_id_;
           }
           else {

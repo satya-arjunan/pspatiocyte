@@ -167,9 +167,9 @@ private:
   const int vacant_id_;
   const int ghost_id_;
   const bool is_force_search_vacant_;
-  unsigned Nx_;
-  unsigned Ny_;
-  unsigned Nz_;
+  unsigned nx_;
+  unsigned ny_;
+  unsigned nz_;
   unsigned n_out_voxels_ = 0;
   unsigned n_out_ghost_voxels_ = 0;
   unsigned n_ghost_voxels_ = 0;
