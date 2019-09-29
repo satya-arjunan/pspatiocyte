@@ -20,9 +20,8 @@ labels = ['pSpatiocyte (D = 0.06 \si{\micro}m$^2$s$^{-1}$)', 'pSpatiocyte (D = 4
 fig,ax=plt.subplots()
 
 searches = [0]
-#fractions = [0.5, 0.6, 0.7, 0.8, 0.9, 1.0]
-fractions = [0.5, 0.6, 0.7]
-iterations = 10
+fractions = [0.5, 0.6, 0.7, 0.8, 0.9, 1.0]
+iterations = 100
 
 volume = 909.
 for search in searches:

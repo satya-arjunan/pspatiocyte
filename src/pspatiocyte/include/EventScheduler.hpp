@@ -211,30 +211,29 @@ public:
     }
     */
 
-    EventID addEvent(Event event)
-    {
-        for (unsigned i(0); i < events_.size(); ++i) {
-          if (event.get_event_type() == DIFFUSION &&
-              event.get_event_type() == events_[i]->get_event_type() &&
-              event.get_interval() == events_[i]->get_interval()) {
-            Event& queued_event(
-                this->eventPriorityQueue.get(events_[i]->getID()));
-            queued_event.add_species(event.get_species());
-            fout << std::endl;
-            if (event.get_event_type() == DIFFUSION) {
-              fout << "diffusion: " << events_[i]->get_interval() << 
-                std::endl;
-            }
-            fout << "adding:" << event.get_species()->getName() <<
-              " parent:" << queued_event.get_species()->getName() << std::endl;
-            return 0;
+    EventID addEvent(Event event) {
+      for (unsigned i(0); i < events_.size(); ++i) {
+        if (event.get_event_type() == DIFFUSION &&
+            event.get_event_type() == events_[i]->get_event_type() &&
+            event.get_interval() == events_[i]->get_interval()) {
+          Event& queued_event(
+              this->eventPriorityQueue.get(events_[i]->getID()));
+          queued_event.add_species(event.get_species());
+          fout << std::endl;
+          if (event.get_event_type() == DIFFUSION) {
+            fout << "diffusion: " << events_[i]->get_interval() << 
+              std::endl;
           }
+          fout << "adding:" << event.get_species()->getName() <<
+            " parent:" << queued_event.get_species()->getName() << std::endl;
+          return 0;
         }
-        EventID id(this->eventPriorityQueue.push(event));
-        Event& newEvent(this->eventPriorityQueue.get(id));
-        newEvent.setID(id);
-        events_.push_back(&newEvent);
-        return id;
+      }
+      EventID id(this->eventPriorityQueue.push(event));
+      Event& newEvent(this->eventPriorityQueue.get(id));
+      newEvent.setID(id);
+      events_.push_back(&newEvent);
+      return id;
     }
 
     void removeEvent( const EventID id )

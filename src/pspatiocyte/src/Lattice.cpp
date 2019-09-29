@@ -15,9 +15,9 @@ Lattice::Lattice(string name, double r, ParallelEnvironment &pe,
   vacant_id_(vacant_id),
   ghost_id_(ghost_id),
   name_(name),
-  nx_(pe.getispan()), 
-  ny_(pe.getjspan()),
-  nz_(pe.getkspan()),
+  nx_(pe.getispan()), //local nx 
+  ny_(pe.getjspan()), //local ny
+  nz_(pe.getkspan()), //local nz
   Nx_(nx_ + 2*GHOST_SIZE),
   Ny_(ny_ + 2*GHOST_SIZE),
   Nz_(nz_ + 2*GHOST_SIZE),
@@ -25,15 +25,7 @@ Lattice::Lattice(string name, double r, ParallelEnvironment &pe,
   SQR31_(sqrt(3.0)),
   SQR13_(sqrt(1.0 / 3.0)),
   SQR83_(sqrt(8.0 / 3.0)) {
-    voxels_.resize(Nx_ * Ny_ * Nz_);
-    // buffers for quater ghost
-    const int Nxh = Nx_/2;
-    const int Nyh = Ny_/2;
-    const int Nzh = Nz_/2;
-    // quarter ghost, see Lattice::loadGhost()
-    //bufsize = 4*max3( (Nxh+2)*(Nyh+2), (Nyh+2)*(Nzh+2), (Nzh+2)*(Nxh+2) );
-    // full ghost, see Lattice::loadConfiguration()
-    //bufsize = max3( Nx_*Ny_, Ny_*Nz_, Nz_*Nx_ );
+    voxels_.resize(Nx_*Ny_*Nz_);
     bufsize = Nx_*Ny_*Nz_/2;
     inbound = new int [bufsize]; 
     outboundx = new int [bufsize];
@@ -42,10 +34,10 @@ Lattice::Lattice(string name, double r, ParallelEnvironment &pe,
 
     // preallocate enough spaces to suppress system calls
     const int molesize = bufsize/4;
-    jumpincoords.reserve( molesize );
-    spillcoordsX.reserve( molesize );
-    spillcoordsY.reserve( molesize );
-    spillcoordsZ.reserve( molesize );
+    jumpincoords.reserve(molesize);
+    spillcoordsX.reserve(molesize);
+    spillcoordsY.reserve(molesize);
+    spillcoordsZ.reserve(molesize);
 
     for (int i=0; i<Nx_; ++i) {
       for (int j=0; j<Ny_; ++j) {

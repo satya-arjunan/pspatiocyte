@@ -52,7 +52,7 @@ enum SPECIES_TYPE
 enum COMPARTMENT_TYPE
 {
     VOLUME = 1,
-    SURFACE = 2,
+    SURFACE = 2
 };
 
 // event type
@@ -61,7 +61,7 @@ enum EVENT_TYPE
     DIFFUSION = 0,
     INDEPENDENT_REACTION = 1,
     OUTPUT_NUMBERS = 2,
-    OUTPUT_COORDINATES = 3,
+    OUTPUT_COORDINATES = 3
 };
 
 // reaction type

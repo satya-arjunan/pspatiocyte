@@ -8,12 +8,10 @@ Species::Species(string n, double D,  unsigned init_size,
   P_(std::min(P, 1.0)),
   init_size_(init_size),
   dt_(std::numeric_limits<double>::infinity()),
-  type_(( D_> 0 ) ? DIFFUSIVE : IMMOBILE),
   species_id_(world.add_species(this)) {}
 
 Species::Species(const Species &s) {
   name_ = s.name_;
-  type_ = s.type_;
   D_ = s.D_;
   dt_ = s.dt_;
   P_ = s.P_;
@@ -25,7 +23,6 @@ Species::Species(const Species &s) {
 void Species::diagnostics() {
   fout << "Species:" << endl;
   fout << "   name = " <<  name_ << endl;
-  fout << "   type = " <<  type_ << endl;
   fout << "   D    = " <<  D_    << endl;
   fout << "   dt   = " <<  dt_   << endl;
   fout << "   ID   = " <<  species_id_   << endl;

@@ -329,18 +329,119 @@ void Compartment::check_voxels(Lattice& g, const double id) {
   }
 }
 
-void Compartment::throw_in_molecules(Species& s, const unsigned size,
-                                     Lattice &g) {
-  const int species_id(s.getID());
-  if (size > n_voxels_) {
-    fout << "ERROR: too many molecules" << endl;
-    abort();
-  }
-  std::vector<Molecule>& molecules(species_molecules_[species_id]);
+void Compartment::populate_molecules(Species& s, const unsigned size,
+                                     Lattice &g, ParallelEnvironment &pe,
+                                     const Vector<float>& origin,
+                                     const Vector<float>& range) {
   double rv = g.getradius();
-  if (type_==VOLUME) {
+  if (type_ == VOLUME) {
     s.setVolumeDt(rv);
   }
+
+  if (!size) {
+    return;
+  }
+
+  if (size > n_voxels_) {
+    fout << "ERROR: too many molecules to be populated:" << s.getName() << endl;
+    abort();
+  }
+
+  if (origin.x == 0.5 && origin.y == 0.5 && origin.z == 0.5 &&
+      range.x == 1 && range.y == 1 && range.z == 1) { 
+    populate_molecules(s, size, g);
+  }
+  else { 
+    fout << "species:" << s.getName() << " size:" << size << std::endl;
+    Vector<unsigned> dims(pe.get_global_dimensions());
+    fout << "dims:" << dims.x << " " << dims.y << " " << dims.z << std::endl;
+    Vector<unsigned> o(dims.x*origin.x, dims.y*origin.y, dims.z*origin.z);
+    fout << "o:" << o.x << " " << o.y << " " << o.z << std::endl;
+    Vector<unsigned> r(dims.x*range.x, dims.y*range.y, dims.z*range.z);
+    fout << "r:" << r.x << " " << r.y << " " << r.z << std::endl;
+    //global coordinates:
+    Vector<unsigned> gmin(std::max(unsigned(0), o.x-r.x/2),
+                          std::max(unsigned(0), o.y-r.y/2),
+                          std::max(unsigned(0), o.z-r.z/2));
+    fout << "gmin:" << gmin.x << " " << gmin.y << " " << gmin.z << std::endl;
+    Vector<unsigned> gmax(std::min(dims.x, o.x+r.x/2),
+                          std::min(dims.y, o.y+r.y/2),
+                          std::min(dims.z, o.z+r.z/2));
+    fout << "gmax:" << gmax.x << " " << gmax.y << " " << gmax.z << std::endl;
+    //local coordinates:
+    Vector<unsigned> lmin(pe.get_local_min());
+    fout << "lmin:" << lmin.x << " " << lmin.y << " " << lmin.z << std::endl;
+    Vector<unsigned> lmax(pe.get_local_max());
+    fout << "lmax:" << lmax.x << " " << lmax.y << " " << lmax.z << std::endl;
+    //intersecting coordinates:
+    Vector<unsigned> imin(std::max(lmin.x, gmin.x),
+                          std::max(lmin.y, gmin.y),
+                          std::max(lmin.z, gmin.z));
+    fout << "imin:" << imin.x << " " << imin.y << " " << imin.z << std::endl;
+    Vector<unsigned> imax(std::min(lmax.x, gmax.x),
+                          std::min(lmax.y, gmax.y),
+                          std::min(lmax.z, gmax.z));
+    fout << "imax:" << imax.x << " " << imax.y << " " << imax.z << std::endl;
+    //if intersecting:
+    if (imin.x < imax.x && imin.y < imax.y && imin.z < imax.z) {
+      //local normalized coordinates:
+      Vector<unsigned> nmin(imin.x-lmin.x, imin.y-lmin.y, imin.z-lmin.z);
+    fout << "nmin:" << nmin.x << " " << nmin.y << " " << nmin.z << std::endl;
+      Vector<unsigned> nmax(imax.x-lmin.x, imax.y-lmin.y, imax.z-lmin.z);
+    fout << "nmax:" << nmax.x << " " << nmax.y << " " << nmax.z << std::endl;
+      Vector<unsigned> ldims(nmax.x-nmin.x, nmax.y-nmin.y, nmax.z-nmin.z);
+    fout << "ldims:" << ldims.x << " " << ldims.y << " " << ldims.z << std::endl;
+      unsigned available(ldims.x*ldims.y*ldims.z);
+      fout << "available:" << available << std::endl;
+      if (available < size) {
+        std::cout << "Unable to populate " << size << " molecules within" <<
+          " the specified range in space. Only " << available << " vacant" <<
+          " voxels available:" << s.getName() << std::endl;
+        abort();
+      }
+      else {
+        const int species_id(s.getID());
+        for (unsigned i(0); i < size; ++i) {
+          unsigned trial(0);
+          unsigned index;
+          unsigned coord;
+          int sid;
+          do {
+            if(trial++ > available) {
+              fout << "ABORT: unable to find a vacant voxel to populate in " <<
+                "range! (" << s.getName() << ")" << endl;
+              abort();
+            }
+            index = (int)(available*(*randdbl_)());
+            fout << "index:" << index << std::endl;
+            fout << "index/(ldims.z*ldims.y):" << index/(ldims.z*ldims.y) << std::endl;
+            Vector<unsigned> ijk(index/(ldims.z*ldims.y)+nmin.x,
+                                 (index%(ldims.z*ldims.y))/ldims.z+nmin.y,
+                                 index%ldims.z+nmin.z); 
+            fout << "ijk:" << ijk.x << " " << ijk.y << " " << ijk.z << std::endl;
+            coord = g.linearCoordFast(ijk.x, ijk.y, ijk.z);
+            sid = g.get_voxel(coord).species_id;
+            fout << "sid:" << sid << " vacant:" << vacant_id_ << " out:" << out_id_ << " invalid:" << invalid_id_ << std::endl;
+          } while((sid < out_id_ && sid != vacant_id_) ||
+                  (sid > out_id_ && sid%out_id_ != 0));
+          fout << "added:" << index << std::endl;
+          add_molecule(species_id, coord, get_new_mol_id(), g.get_voxel(coord)); 
+        }
+      }
+    }
+    else {
+      if (size) {
+        std::cout << "Unable to populate " << size << " molecules within" <<
+          " the specified range in space:" << s.getName() << std::endl;
+        abort();
+      }
+    }
+  }
+}
+
+void Compartment::populate_molecules(Species& s, const unsigned size,
+                                     Lattice &g) {
+  const int species_id(s.getID());
   for (unsigned i(0); i < size; ++i) {
     unsigned trial = 0;
     unsigned index;
@@ -348,8 +449,8 @@ void Compartment::throw_in_molecules(Species& s, const unsigned size,
     int sid;
     do {
       if(trial++ > n_voxels_) {
-        fout << "ABORT: hardly able to find vacant voxel! (" << s.getName() <<
-          ")" << endl;
+        fout << "ABORT: unable to find a vacant voxel to populate! ("
+          << s.getName() << ")" << endl;
         abort();
       }
       index = (int)(n_voxels_*(*randdbl_)());

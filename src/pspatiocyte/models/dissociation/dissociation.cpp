@@ -30,7 +30,7 @@ int main(int argc, char *argv[]) {
   const int num_A(50000);
   const int num_crowd(std::max(int(crowd_fraction*num_voxels-num_A*2), 0));
   const double D(10e-12); // m^2/s (diffusion coefficient)
-  const int nlogs(10000);
+  const int nlogs(20000);
   const double log_interval(duration/nlogs);
   const bool log_coordinates(false);
   World world(argc, argv, nx, ny, nz, rv, log_interval, output_dirname,

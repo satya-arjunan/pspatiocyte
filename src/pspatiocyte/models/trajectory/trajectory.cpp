@@ -1,3 +1,4 @@
+#include <time.h>
 #include "World.hpp"
 #include "Species.hpp"
 #include "Reaction.hpp"
@@ -40,10 +41,13 @@ int main( int argc, char *argv[] ) {
   const int NKK(1);
   const double dt(rv*rv*2/(D*3)); // s (diffusion interval)
   const int nlogs(1000);
-  const double log_interval(duration/nlogs);
+  const unsigned seed(time(NULL));
+  const double numbers_log_interval(0); //don't log numbers
+  const double coords_log_interval(duration/nlogs);
   
   //set log_interval to record trajectory (coordinates and id of molecules):
-  World world(argc, argv, nx, ny, nz, rv, log_interval, dirname, log_interval);
+  World world(argc, argv, nx, ny, nz, rv, numbers_log_interval, dirname, seed,
+              coords_log_interval);
 
   Species KK("KK", D, NKK, world);
   Species Kpp("Kpp", D, 0, world);

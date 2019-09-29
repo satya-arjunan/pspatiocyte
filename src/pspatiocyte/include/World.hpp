@@ -4,13 +4,13 @@
 #include <string>
 #include <vector>
 #include <map>
+#include <time.h>
 #include "Common.hpp"
 #include "Lattice.hpp"
 #include "Compartment.hpp"
 #include "Species.hpp"
 #include "Reaction.hpp"
 #include "Event.hpp"
-using namespace std;
 
 class World {
 public:
@@ -18,6 +18,7 @@ public:
         const unsigned Nz, const double rv,
         const float output_numbers_dt=0,
         const std::string dirname="output",
+        const unsigned seed=time(NULL),
         const float output_coords_dt=0,
         const bool is_force_search_vacant=false);
   ~World() {} 
@@ -27,6 +28,8 @@ public:
   double get_current_time();
   void initialize();
   void run(const double end_time, const unsigned verbose);
+  void set_populate_origin_range(const Vector<float>& origin,
+                                 const Vector<float>& range);
 private:
   ParallelEnvironment parallel_environment_;
   std::vector<Species*> species_list_;
@@ -41,7 +44,9 @@ private:
   EventScheduler<SpatiocyteEvent> scheduler_;
   std::vector<Reaction*> independent_reactions_;
   std::vector<Reaction*> influenced_reactions_;
-  int independent_event_id_ = 0;
+  int independent_event_id_ = -1;
+  Vector<float> origin_ = Vector<float>(0.5, 0.5, 0.5);
+  Vector<float> range_ = Vector<float>(1, 1, 1);
 };
 
 #endif /* __WORLD_HPP */

@@ -4,6 +4,7 @@
 #include <mpi.h>
 #include <iomanip>
 #include <boost/filesystem.hpp>
+#include "Vector.hpp"
 #include "Common.hpp"
 using namespace std;
 
@@ -173,6 +174,18 @@ public:
 
     unsigned getNz() {
       return Nz_;
+    }
+
+    Vector<unsigned> get_global_dimensions() {
+      return Vector<unsigned>(Nx_, Ny_, Nz_);
+    }
+
+    Vector<unsigned> get_local_min() {
+      return Vector<unsigned>(ib, jb, kb);
+    }
+
+    Vector<unsigned> get_local_max() {
+      return Vector<unsigned>(ie, je, ke);
     }
 
     int getndims()

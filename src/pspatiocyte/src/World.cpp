@@ -1,17 +1,13 @@
-#include <time.h>
 #include "World.hpp"
-
-
-using namespace std;
 
 // parallel file streams
 ofstream fout, fout2, fout3;
 
-//distribute molecules thrown in for each process
 World::World(int argc, char* argv[], const unsigned Nx,
              const int Ny, const unsigned Nz, const double rv,
              const float output_numbers_dt,
              const std::string dirname,
+             const unsigned seed,
              const float output_coords_dt,
              const bool is_force_search_vacant):
   invalid_species_("Invalid", 0, 0, *this),
@@ -23,7 +19,7 @@ World::World(int argc, char* argv[], const unsigned Nx,
   lattice_("SchisMatrix", rv, parallel_environment_, invalid_species_.getID(),
                vacant_species_.getID(), ghost_id_),
   compartment_("Cell", VOLUME, //rand(),
-               time(NULL)+parallel_environment_.getrank(),
+               seed+parallel_environment_.getrank(),
                parallel_environment_.getsize(), parallel_environment_.getrank(),
                invalid_species_.getID(), vacant_species_.getID(), ghost_id_,
                is_force_search_vacant) {
@@ -44,6 +40,11 @@ double World::get_current_time() {
   return scheduler_.getTime();
 }
 
+void World::set_populate_origin_range(const Vector<float>& origin,
+                                      const Vector<float>& range) {
+  origin_ = origin;
+  range_ = range;
+}
 
 void World::initialize() {
   out_species_= new Species("Out", 0, 0, *this),
@@ -58,7 +59,8 @@ void World::initialize() {
     if (init_size) {
       init_size = DistributeMolecule(init_size, nproc, myrank);
     }
-    compartment_.throw_in_molecules(species, init_size, lattice_);
+    compartment_.populate_molecules(species, init_size, lattice_,
+                                    parallel_environment_, origin_, range_);
   }
 
   for (unsigned i(0); i < independent_reactions_.size(); ++i) {
@@ -144,7 +146,8 @@ void World::run(const double end_time, const unsigned verbose) {
       scheduler_.getTopTime() << " name:" << 
       scheduler_.getTopEvent().getName() << std::endl;
       */
-    if(scheduler_.getTime() < scheduler_.getTopTime() ||
+    if(independent_event_id_ >= 0 && 
+       (scheduler_.getTime() < scheduler_.getTopTime()) ||
        (independent_event_id_ == scheduler_.getTopID() &&
         scheduler_.getTime() == scheduler_.getTopTime())) {
       scheduler_.updateEventTime(independent_event_id_,
@@ -152,6 +155,7 @@ void World::run(const double end_time, const unsigned verbose) {
     }
     scheduler_.step(parallel_environment_);
     if(scheduler_.getTime()-prev_time > interval) {
+      prev_time = scheduler_.getTime(); 
       if(!parallel_environment_.getrank() && verbose) {
         std::cout << "current t:" << scheduler_.getTime() << std::endl;
       }
