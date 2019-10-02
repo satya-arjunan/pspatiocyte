@@ -40,12 +40,6 @@ double World::get_current_time() {
   return scheduler_.getTime();
 }
 
-void World::set_populate_origin_range(const Vector<float>& origin,
-                                      const Vector<float>& range) {
-  origin_ = origin;
-  range_ = range;
-}
-
 void World::initialize() {
   out_species_= new Species("Out", 0, 0, *this),
   compartment_.set_out_id(out_species_->getID());
@@ -60,7 +54,7 @@ void World::initialize() {
       init_size = DistributeMolecule(init_size, nproc, myrank);
     }
     compartment_.populate_molecules(species, init_size, lattice_,
-                                    parallel_environment_, origin_, range_);
+                                    parallel_environment_);
   }
 
   for (unsigned i(0); i < independent_reactions_.size(); ++i) {

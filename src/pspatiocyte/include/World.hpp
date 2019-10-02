@@ -28,8 +28,6 @@ public:
   double get_current_time();
   void initialize();
   void run(const double end_time, const unsigned verbose);
-  void set_populate_origin_range(const Vector<float>& origin,
-                                 const Vector<float>& range);
 private:
   ParallelEnvironment parallel_environment_;
   std::vector<Species*> species_list_;
@@ -45,8 +43,6 @@ private:
   std::vector<Reaction*> independent_reactions_;
   std::vector<Reaction*> influenced_reactions_;
   int independent_event_id_ = -1;
-  Vector<float> origin_ = Vector<float>(0.5, 0.5, 0.5);
-  Vector<float> range_ = Vector<float>(1, 1, 1);
 };
 
 #endif /* __WORLD_HPP */

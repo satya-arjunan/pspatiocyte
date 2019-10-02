@@ -88,8 +88,7 @@ public:
                   std::vector<Species*>& species_list);
   double get_old_total_propensity();
   void populate_molecules(Species& s, const unsigned size, Lattice &g,
-                          ParallelEnvironment &pe, const Vector<float>& origin,
-                          const Vector<float>& range);
+                          ParallelEnvironment &pe);
   void populate_molecules(Species& s, const unsigned size, Lattice &g);
   void add_direct_method_reaction(Reaction& r);
   bool remove_reactant(Species &s, Lattice &g, bool binary, int &center,

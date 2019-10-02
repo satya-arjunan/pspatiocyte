@@ -4,8 +4,8 @@
 #include <iostream>
 #include <string>
 #include <limits>
+#include "Vector.hpp"
 #include "Common.hpp"
-using namespace std;
 
 class Species {
 public:
@@ -56,7 +56,18 @@ public:
   unsigned get_init_size() {
     return init_size_;
   }
-  void diagnostics();
+  void set_populate_origin(const Vector<float>& origin) {
+    populate_origin_ = origin;
+  }
+  void set_populate_range(const Vector<float>& range) {
+    populate_range_ = range;
+  }
+  const Vector<float>& get_populate_origin() const {
+    return populate_origin_;
+  }
+  const Vector<float>& get_populate_range() const {
+    return populate_range_;
+  }
 private:
   string name_;        // name of species
   double D_ = 0;     // diffusion coefficient
@@ -66,6 +77,8 @@ private:
   double dt_;          // diffusion interval time
   double rho_;         // max reaction probability [max(p_j)] of all reactions
   int species_id_;
+  Vector<float> populate_origin_ = Vector<float>(0.5, 0.5, 0.5);
+  Vector<float> populate_range_ = Vector<float>(1, 1, 1);
 };
 
 #endif /* __SPECIES_HPP */

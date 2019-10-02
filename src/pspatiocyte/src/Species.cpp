@@ -20,10 +20,4 @@ Species::Species(const Species &s) {
   species_id_ = s.species_id_;
 }
 
-void Species::diagnostics() {
-  fout << "Species:" << endl;
-  fout << "   name = " <<  name_ << endl;
-  fout << "   D    = " <<  D_    << endl;
-  fout << "   dt   = " <<  dt_   << endl;
-  fout << "   ID   = " <<  species_id_   << endl;
-}
+

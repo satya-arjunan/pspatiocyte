@@ -340,9 +340,7 @@ void Compartment::check_voxels(Lattice& g, const double id) {
 }
 
 void Compartment::populate_molecules(Species& s, unsigned size,
-                                     Lattice &g, ParallelEnvironment &pe,
-                                     const Vector<float>& origin,
-                                     const Vector<float>& range) {
+                                     Lattice &g, ParallelEnvironment &pe) {
   double rv = g.getradius();
   if (type_ == VOLUME) {
     s.setVolumeDt(rv);
@@ -357,6 +355,8 @@ void Compartment::populate_molecules(Species& s, unsigned size,
     abort();
   }
 
+  const Vector<float>& origin(s.get_populate_origin());
+  const Vector<float>& range(s.get_populate_range());
   if (origin.x == 0.5 && origin.y == 0.5 && origin.z == 0.5 &&
       range.x == 1 && range.y == 1 && range.z == 1) { 
     populate_molecules(s, size, g);

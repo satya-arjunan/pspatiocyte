@@ -1,7 +1,8 @@
-import numpy as np
-import os,sys
+import os
+import sys
 import math
 import pandas as pd
+import numpy as np
 
 # constants
 sqr31 = math.sqrt(3.0)
@@ -46,9 +47,9 @@ class RealCoord:
     zind += origin[2]
     return self.get_real_coordinate((xind,yind,zind))
 	
-  def write(self):
-    outfile = open("coordinates.spa", 'w')
-    files = [open("output/coordinates_%06d"%(x), 'r') 
+  def write(self, outputdir):
+    outfile = open(outputdir+"coordinates.spa", 'w')
+    files = [open(outputdir+"coordinates_%06d"%(x), 'r') 
         for x in range(self.nproc)]
     for afile in files:
       header = afile.readline().split(',')[:-1]
@@ -56,7 +57,6 @@ class RealCoord:
     outfile.write(','.join(header)+os.linesep) #write header
     origins = [self.get_subvolume_origin(x) for x in range(self.nproc)]
     for i in range(self.nlines):
-      print("line:",i)
       outline = [[]]*(1+self.nspecies)
       for rank in range(self.nproc):
         line = files[rank].readline().strip().split(',')
@@ -80,7 +80,12 @@ class RealCoord:
       outfile.write(','.join(outline)+os.linesep)
 
 def main():
-  inputf = "output/coordinates_%06d"%(0) 
+  dirname = 'output' + os.sep
+  outputdir = ''
+  if (len(sys.argv) >= 2):
+    dirname = sys.argv[1]
+    outputdir = dirname + os.sep
+  inputf = outputdir+"coordinates_%06d"%(0) 
   f = open(inputf, 'r')
   header = f.readline().strip().split(',')
   nlines = 0
@@ -99,7 +104,7 @@ def main():
   # process size
   psize = (int(nx/dx), int(ny/dy), int(nz/dz))
   obj = RealCoord(nproc, radius, size, decomp, psize, nspecies, nlines)
-  obj.write()
+  obj.write(outputdir)
 
 if __name__ == "__main__":
   main()
