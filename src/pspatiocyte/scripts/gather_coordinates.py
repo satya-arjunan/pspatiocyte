@@ -81,7 +81,7 @@ class RealCoord:
 
 def main():
   dirname = 'output' + os.sep
-  outputdir = ''
+  outputdir = dirname
   if (len(sys.argv) >= 2):
     dirname = sys.argv[1]
     outputdir = dirname + os.sep
@@ -108,6 +108,7 @@ def main():
 
 if __name__ == "__main__":
   main()
+
 
 
 

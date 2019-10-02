@@ -79,10 +79,10 @@ struct SpatiocyteEvent: public EventBase {
       dt_ = pcomp_->react_direct_method(*platt_, pe, getTime());
       break;
     case OUTPUT_NUMBERS:
-      pcomp_->output_numbers(getTime());
+      dt_ = pcomp_->output_numbers(getTime());
       break;
     case OUTPUT_COORDINATES:
-      pcomp_->output_coordinates(getTime());
+      dt_ = pcomp_->output_coordinates(getTime());
       break;
     }
     setTime(getTime() + dt_);

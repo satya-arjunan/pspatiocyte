@@ -40,6 +40,30 @@ double World::get_current_time() {
   return scheduler_.getTime();
 }
 
+void World::add_output_numbers_species(Species& species) {
+  output_numbers_species_list_.push_back(&species);
+}
+
+void World::add_output_coords_species(Species& species) {
+  output_coords_species_list_.push_back(&species);
+}
+
+void World::set_output_numbers_logspace(const float start_time,
+                                        const float end_time,
+                                        const unsigned n_logs) {
+  output_numbers_start_ = start_time;
+  output_numbers_end_ = end_time;
+  output_numbers_n_logs_ = n_logs;
+}
+
+void World::set_output_coords_logspace(const float start_time,
+                                       const float end_time,
+                                       const unsigned n_logs) {
+  output_coords_start_ = start_time;
+  output_coords_end_ = end_time;
+  output_coords_n_logs_ = n_logs;
+}
+
 void World::initialize() {
   out_species_= new Species("Out", 0, 0, *this),
   compartment_.set_out_id(out_species_->getID());
@@ -98,33 +122,45 @@ void World::initialize() {
   }
 
   if (output_numbers_dt_ > 0) {
-    scheduler_.addEvent(SpatiocyteEvent(&lattice_, &compartment_,
-                                  &parallel_environment_, OUTPUT_NUMBERS,
-                                  output_numbers_dt_));
-    for (unsigned i(0); i < species_list_.size(); ++i) { 
-      Species& species(*species_list_[i]);
+    if (!output_numbers_species_list_.size()) {
+      output_numbers_species_list_ = species_list_;
+    }
+    for (unsigned i(0); i < output_numbers_species_list_.size(); ++i) { 
+      Species& species(*output_numbers_species_list_[i]);
       if (&species != &vacant_species_ && &species != &invalid_species_ &&
           &species != out_species_) {
         compartment_.add_number_species(species);
       }
     }
-    compartment_.output_numbers_header(parallel_environment_);
-    compartment_.output_numbers(scheduler_.getTime());
+    compartment_.output_numbers_header(parallel_environment_,
+                                       output_numbers_dt_, 
+                                       output_numbers_start_,
+                                       output_numbers_end_,
+                                       output_numbers_n_logs_);
+    float dt(compartment_.output_numbers(scheduler_.getTime()));
+    scheduler_.addEvent(SpatiocyteEvent(&lattice_, &compartment_,
+                                  &parallel_environment_, OUTPUT_NUMBERS, dt));
   }
 
   if (output_coords_dt_ > 0) {
-      scheduler_.addEvent(SpatiocyteEvent(&lattice_, &compartment_,
-                                  &parallel_environment_, OUTPUT_COORDINATES,
-                                  output_coords_dt_));
-    for (unsigned i(0); i < species_list_.size(); ++i) { 
-      Species& species(*species_list_[i]);
+    if (!output_coords_species_list_.size()) {
+      output_coords_species_list_ = species_list_;
+    }
+    for (unsigned i(0); i < output_coords_species_list_.size(); ++i) { 
+      Species& species(*output_coords_species_list_[i]);
       if (&species != &vacant_species_ && &species != &invalid_species_ &&
           &species != out_species_) {
         compartment_.add_coordinates_species(species);
       }
     }
-    compartment_.output_coordinates_header(lattice_, parallel_environment_);
-    compartment_.output_coordinates(scheduler_.getTime());
+    compartment_.output_coordinates_header(lattice_, parallel_environment_,
+                                           output_coords_dt_,
+                                           output_coords_start_,
+                                           output_coords_end_,
+                                           output_coords_n_logs_);
+    float dt(compartment_.output_coordinates(scheduler_.getTime()));
+    scheduler_.addEvent(SpatiocyteEvent(&lattice_, &compartment_,
+                              &parallel_environment_, OUTPUT_COORDINATES, dt));
   }
 
 }

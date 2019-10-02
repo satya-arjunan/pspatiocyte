@@ -118,10 +118,14 @@ public:
   void calculate_local_propensity(Reaction &r, double);
   void add_coordinates_species(Species& species);
   void add_number_species(Species& species);
-  void output_coordinates_header(Lattice& lattice, ParallelEnvironment& pe);
-  void output_coordinates(const double current_time);
-  void output_numbers_header(ParallelEnvironment& pe);
-  void output_numbers(const double current_time);
+  void output_coordinates_header(Lattice& lattice, ParallelEnvironment &pe,
+                                 const float dt, const float start_time,
+                                 const float end_time, const unsigned n_logs);
+  float output_coordinates(const double current_time);
+  void output_numbers_header(ParallelEnvironment& pe, const float dt,
+                             const float start_time, const float end_time,
+                             const unsigned n_logs);
+  float output_numbers(const double current_time);
 
   void react(Lattice& g, Species& s, const unsigned tarID, Voxel& src_voxel,
              Voxel& tar_voxel, const unsigned src_coord,
@@ -215,6 +219,12 @@ private:
   const unsigned mol_id_min_ = 0;
   const unsigned mol_id_max_ = UINT_MAX;
   unsigned mol_id_;
+  float output_coords_dt_;
+  float output_numbers_dt_;
+  std::vector<float> coords_logspace_;
+  std::vector<float> numbers_logspace_;
+  unsigned coords_logspace_cnt_ = 0;
+  unsigned numbers_logspace_cnt_ = 0;
 };
 
 #endif /* __COMPARTMENT_HPP */

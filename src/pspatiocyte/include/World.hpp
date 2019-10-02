@@ -28,6 +28,12 @@ public:
   double get_current_time();
   void initialize();
   void run(const double end_time, const unsigned verbose);
+  void add_output_numbers_species(Species& species);
+  void add_output_coords_species(Species& species);
+  void set_output_numbers_logspace(const float start_time,
+                                   const float end_time, const unsigned n_logs);
+  void set_output_coords_logspace(const float start_time, const float end_time,
+                                  const unsigned n_logs);
 private:
   ParallelEnvironment parallel_environment_;
   std::vector<Species*> species_list_;
@@ -43,6 +49,14 @@ private:
   std::vector<Reaction*> independent_reactions_;
   std::vector<Reaction*> influenced_reactions_;
   int independent_event_id_ = -1;
+  std::vector<Species*> output_numbers_species_list_;
+  std::vector<Species*> output_coords_species_list_;
+  unsigned output_coords_n_logs_ = 0;
+  unsigned output_numbers_n_logs_ = 0;
+  float output_coords_end_;
+  float output_numbers_end_;
+  float output_coords_start_;
+  float output_numbers_start_;
 };
 
 #endif /* __WORLD_HPP */

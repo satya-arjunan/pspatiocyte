@@ -1332,8 +1332,67 @@ void Compartment::add_number_species(Species& species) {
   output_number_species_.push_back(species);
 }
 
+
+/*
+std::vector<float> get_logspace_vector(float a, float b, int k) {
+  const auto exp_scale = (b - a) / (k - 1);
+  std::vector<float> logspace;
+  logspace.reserve(k);
+  for (int i = 0; i < k; i++) {
+    logspace.push_back(i * exp_scale);
+  }
+  std::for_each(logspace.begin(), logspace.end(), [](float &x) {
+    x = pow(10, x); });
+  return logspace;
+}
+*/
+
+/*
+std::vector<float> get_logspace_vector(float a, float b, int k) {
+  std::vector<float> logspace;
+  for (int i = 0; i < k; i++) {
+    logspace.push_back(pow(10, i * (b - a) / (k - 1)));
+  }
+  return logspace;
+}
+*/
+
+template<typename T>
+class Logspace {
+private:
+    T curValue, base;
+
+public:
+    Logspace(T first, T base) : curValue(first), base(base) {}
+
+    T operator()() {
+        T retval = curValue;
+        curValue *= base;
+        return retval;
+    }
+};
+
+std::vector<float> get_logspace_vector(float start, float stop, int num = 50,
+                                       float base = 10) {
+  float realStart = pow(base, start);
+  float realBase = pow(base, (stop-start)/num); 
+  std::vector<float> retval;
+  retval.reserve(num);
+  std::generate_n(std::back_inserter(retval), num,
+                  Logspace<float>(realStart,realBase));
+  return retval;
+}
+
 void Compartment::output_coordinates_header(Lattice& lattice,
-                                          ParallelEnvironment &pe) {
+                                          ParallelEnvironment &pe,
+                                          const float dt,
+                                          const float start_time,
+                                          const float end_time,
+                                          const unsigned n_logs) {
+  output_coords_dt_ = dt;
+  if (n_logs) {
+    coords_logspace_ = get_logspace_vector(start_time, end_time, n_logs);
+  }
   fout2 << "Time";
   for (unsigned i(0); i < output_coord_species_.size(); ++i) {
     Species& s(output_coord_species_[i]);
@@ -1344,7 +1403,7 @@ void Compartment::output_coordinates_header(Lattice& lattice,
     gdims.x << " " << gdims.y << " " << gdims.z << endl;
 }
 
-void Compartment::output_coordinates(const double current_time) {
+float Compartment::output_coordinates(const double current_time) {
   fout2 << setprecision(15) << current_time;
   for (unsigned i(0); i < output_coord_species_.size(); ++i) {
     Species& s(output_coord_species_[i]);
@@ -1364,10 +1423,27 @@ void Compartment::output_coordinates(const double current_time) {
     }
   }
   fout2 << endl;
+  if (coords_logspace_.size()) {
+    if (coords_logspace_cnt_+1 >= coords_logspace_.size()) {
+      return std::numeric_limits<float>::infinity();
+    }
+    float curr_time(coords_logspace_[coords_logspace_cnt_]);
+    float next_time(coords_logspace_[coords_logspace_cnt_+1]);
+    coords_logspace_cnt_++;
+    return next_time-curr_time;
+  }
+  return output_coords_dt_;
 }
 
 
-void Compartment::output_numbers_header(ParallelEnvironment& pe) {
+void Compartment::output_numbers_header(ParallelEnvironment& pe,
+                                        const float dt, const float start_time,
+                                        const float end_time,
+                                        const unsigned n_logs) {
+  output_numbers_dt_ = dt;
+  if (n_logs) {
+    numbers_logspace_ = get_logspace_vector(start_time, end_time, n_logs);
+  }
   fout3 << setprecision(15) << "Time " << pe.getsize();
   for (unsigned i(0); i < output_number_species_.size(); ++i) {
     Species& s(output_number_species_[i]);
@@ -1377,11 +1453,21 @@ void Compartment::output_numbers_header(ParallelEnvironment& pe) {
 }
 
 
-void Compartment::output_numbers(const double current_time) {
+float Compartment::output_numbers(const double current_time) {
   fout3 << setprecision(15) << current_time;
   for (unsigned i(0); i < output_number_species_.size(); ++i) {
     Species& s(output_number_species_[i]);
     fout3 << "," << species_molecules_[s.getID()].size();
   }
   fout3 << endl;
+  if (numbers_logspace_.size()) {
+    if (numbers_logspace_cnt_ >= numbers_logspace_.size()) {
+      return std::numeric_limits<float>::infinity();
+    }
+    float curr_time(numbers_logspace_[numbers_logspace_cnt_]);
+    float next_time(numbers_logspace_[numbers_logspace_cnt_+1]);
+    numbers_logspace_cnt_++;
+    return next_time-curr_time;
+  }
+  return output_numbers_dt_;
 }
