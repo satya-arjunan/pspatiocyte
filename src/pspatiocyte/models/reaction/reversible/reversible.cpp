@@ -7,27 +7,28 @@ int main(int argc, char *argv[]) {
   const int ny(960);
   const int nz(960);
   const bool verbose(true);
-  const double duration(0.1); // s
+  const double duration(1.01); // s
   const double rv(5e-9);
   const int num_A(0);
   const int num_B(64000);
   const int num_C(64000);
   const double D(10e-12); // m^2/s (diffusion coefficient)
-  const int nlogs(100);
-  const double log_interval(duration/nlogs);
+  const int nlogs(1000);
 
-  World world(argc, argv, nx, ny, nz, rv, log_interval);
+  World world(argc, argv, nx, ny, nz, rv);
+  world.set_output_numbers_logspace(-5, 1, nlogs);
+
   Species A("A", D, num_A, world);
   Species B("B", D, num_B, world);
   Species C("C", D, num_C, world);
 
-  const double keff(2.51e-19); //effective or macroscopic rate
+  const double keff(20e-19); //effective or macroscopic rate
   const double kd(4*M_PI*2*rv*2*D);
   const double ka((keff*kd)/(kd-keff)); //intrinsic rate, used by Spatiocyte
-  const double kb(1.35); //reverse rate
+  const double kr(1.35); //reverse rate
 
   Reaction forward("B + C -> A", B, C, ka, A, world);
-  Reaction reverse("A -> B + C", A, kb, B, C, world);
+  Reaction reverse("A -> B + C", A, kr, B, C, world);
 
   world.initialize();
   world.run(duration, verbose);

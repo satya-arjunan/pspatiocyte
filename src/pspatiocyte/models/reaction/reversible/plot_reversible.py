@@ -1,107 +1,128 @@
-import subprocess
-import numpy as np
-import matplotlib
 import os
+import sys
+import numpy
+import csv
 import math
-import matplotlib.pyplot as plt
 from matplotlib import rc
+from pylab import *
+from collections import OrderedDict
+#uncomment the following to create valid eps (scribus) and svg (inkscape):
+#rc('svg', embed_char_paths=True)
+#rc('mathtext', fontset=r'stixsans')
 
-matplotlib.rcParams["mathtext.fontset"] = "stix"
-rc('font',**{'family':'sans-serif','sans-serif':['Helvetica']})
-rc('text', usetex=True)
-matplotlib.rcParams['text.latex.preamble'] = [r'\usepackage{amsmath}',
-    r'\usepackage[helvet]{sfmath}', r'\usepackage[utf8]{inputenc}',
-    r'\usepackage{arev}', r'\usepackage{siunitx}',
-    r'\sisetup{math-micro={\usefont{T1}{phv}{m}{n}\text{µ}}}']
-
-labelFontSize = 15
-legendFontSize = 13
-lineFontSize = 15
+labelFontSize = 23
+legendFontSize = 18
+lineFontSize = 23
 
 matplotlib.rcParams.update({'font.size': labelFontSize})
+matplotlib.rcParams['figure.figsize'] = 9.1,7
 
-fig,ax=plt.subplots()
+path, file = os.path.split(os.path.abspath(__file__))
+path = path+os.sep
 
-Ds = [1e-12]
-#Ds = [5e-12]
-iterations = 200
+tableau20 = [(31, 119, 180), (174, 199, 232), (255, 127, 14), (255, 187, 120),
+    (44, 160, 44), (152, 223, 138), (214, 39, 40), (255, 152, 150),
+    (148, 103, 189), (197, 176, 213), (140, 86, 75), (196, 156, 148),
+    (227, 119, 194), (247, 182, 210), (127, 127, 127), (199, 199, 199),
+    (188, 189, 34), (219, 219, 141), (23, 190, 207), (158, 218, 229)]    
+for i in range(len(tableau20)):    
+    r, g, b = tableau20[i]    
+    tableau20[i] = (r / 255., g / 255., b / 255.)  
 
-def get_squared_displacement(track):
-  size = len(track)
-  sd = np.empty(size)
-  x = track[:,0]
-  y = track[:,1]
-  z = track[:,2]
-  sd[0] = 0;
-  for i in range(size-1):
-    sd[i+1] = math.pow(x[i]-x[0],2) + math.pow(y[i]-y[0],2) + math.pow(
-        z[i]-z[0],2)
-  return sd
+colors = [1, 0, 4, 2, 3]
 
-for D in Ds: 
-  sd = np.array([])
-  times = np.array([])
-  cnt = 0
-  for i in range(iterations): 
-    dirname = 'D_'+str(D)+'__'+str(i)
-    print(dirname)
-    inputf = dirname+os.sep+'coordinates.spa'
-    f = open(inputf, 'r')
-    header = f.readline().strip().split(',')
-    voxel_radius = float(header[-1].split('=')[1])
-    data = np.loadtxt(inputf, delimiter=',', skiprows=1, dtype=np.str)
-    tracks = {}
-    if (times.size == 0):
-      times = data[:,0].astype(float)
-    for row in data:
-      for species_id, col in enumerate(row[1:]): #skip the first time col
-        if col:
-          coords = col.split(' ')
-          for i in range(0, len(coords), 4):
-            x = float(coords[i])
-            y = float(coords[i+1])
-            z = float(coords[i+2])
-            mol_id = int(coords[i+3])
-            if mol_id not in tracks:
-              tracks[mol_id] = []
-            tracks[mol_id].append([x, y, z])
+linestyles = OrderedDict(
+    [('solid',               (0, ())),
+     ('loosely dotted',      (0, (1, 10))),
+     ('dotted',              (0, (1, 5))),
+     ('densely dotted',      (0, (1, 1))),
 
-    for mol_id in tracks:
-      coords = tracks[mol_id]
-      track = np.asarray(coords)
-      cnt = cnt + 1
-      if (sd.size == 0):
-        sd = get_squared_displacement(track)
+     ('loosely dashed',      (0, (5, 10))),
+     ('dashed',              (0, (5, 5))),
+     ('densely dashed',      (0, (5, 1))),
+
+     ('loosely dashdotted',  (0, (3, 10, 1, 10))),
+     ('dashdotted',          (0, (3, 5, 1, 5))),
+     ('densely dashdotted',  (0, (3, 1, 1, 1))),
+
+     ('loosely dashdotdotted', (0, (3, 10, 1, 10, 1, 10))),
+     ('dashdotdotted',         (0, (3, 5, 1, 5, 1, 5))),
+     ('densely dashdotdotted', (0, (3, 1, 1, 1, 1, 1)))])
+
+#fileNames = ['spatiocyte/output.txt', 'pspatiocyte/output.txt', 'smoldyn/output.txt', 'readdy/output.txt', 'readdy_serial/output.txt']
+#fileNames = ['spatiocyte/output.txt', 'pspatiocyte_fix/output.txt', 'smoldyn/output.txt', 'readdy/output.txt', 'readdy_serial/output.txt']
+fileNames = ['output.txt']
+legendTitles = ['Spatiocyte ($\Delta t=0.48\ \mathrm{ms}, T=166\ \mathrm{s}$)']
+speciesList = ['E','S','ES','P']
+lines = ['-','-','-','-','-','-','-']
+opacity = [1, 1, 1, 1, 1]
+
+volume = 6.21701e-16
+for f in range(len(fileNames)):
+  if (os.path.isfile(path+fileNames[f])):
+    data = genfromtxt(path+fileNames[f], delimiter=',', skip_header=1).T
+    colSize = len(data)-1
+    for i in range(colSize):
+      if (i == 0):
+        plot(data[0], data[i+1]/volume, ls=lines[f], 
+            color=tableau20[colors[f]], label=legendTitles[0],
+            linewidth=3, alpha=opacity[f])
       else:
-        sd = sd + get_squared_displacement(track)
-  ax.plot(times, sd/cnt/1e-12, 
-      label='pSpatiocyte (D = %d \si{\micro}m$^{2}$s$^{-1}$)'%(int(D/1e-12)))
-  np.savetxt('D_'+str(D)+'.csv', np.transpose([times, sd/cnt]),
-      delimiter=',')
-  
-for i, D in enumerate(Ds): 
-  if (i == 0):
-    ax.plot(times, 6.0*D*times/1e-12, 'k--', label='6Dt')
-  else:
-    ax.plot(times, 6.0*D*times/1e-12, 'k--')
+        plot(data[0], data[i+1]/volume, ls=lines[f],
+            color=tableau20[colors[f]], linewidth=3, alpha=opacity[f])
 
-handles, labels = ax.get_legend_handles_labels()
-leg = ax.legend(frameon=False, loc=2)
+num_B = 64000.
+num_C = 64000.
+duration = 1.01
+keff = 4e-19
+kr = 1.35
+
+from scipy.integrate import odeint
+
+
+# B + C -> A (keff)
+# A -> B + C (kr)
+#
+# A = keff*B*C - kr*A
+# B = -keff*B*C + kr*A
+# C = -keff*B*C + kr*A
+def f(x, t0, keff, kr):
+    """
+    x: state vector with concentrations of E, S, ES, P
+    """
+    return np.array([
+        keff * x[1] * x[2] - kr*x[0],
+        -keff * x[1] * x[2] + kr*x[0],
+        -keff * x[1] * x[2] + kr*x[0]
+    ])
+
+init_state = np.array([0, num_B, num_C]) / volume
+ode_time = np.logspace(-6, 0,10000)
+ode_result = odeint(f, y0=init_state, t=ode_time, args=(keff, kr))
+
+plot(ode_time, ode_result[:,0], "--", color="k", alpha=.5, label="ODE")
+plot(ode_time, ode_result[:,1], "--", color="k", alpha=.5)
+plot(ode_time, ode_result[:,2], "--", color="k", alpha=.5)
+
+ax = gca()
+leg = legend(loc=(0.07,0.35), labelspacing=0.12, handlelength=1.0, handletextpad=0.3, frameon=False)
 for t in leg.get_texts():
   t.set_fontsize(legendFontSize)   
+xticks(size=labelFontSize)
+yticks(size=labelFontSize)
 
-ax.set_xlabel('Time (s)', size=labelFontSize)
-ax.set_ylabel('Mean-squared displacement (\si{\micro}m$^{2}$)', size=labelFontSize)
-ax.tick_params(axis='both', which='major', labelsize=lineFontSize)
-ax.tick_params(axis='both', which='minor', labelsize=lineFontSize)
-ax.set_xlim(1e-6,1e-1)
-ax.set_ylim(1e-4,1e+1)
+ax.yaxis.set_ticks_position('both')
+ax.xaxis.set_ticks_position('both')
+ax.tick_params(axis='both',which='both',direction='in',length=10,width=2)
+ax.tick_params(axis='both',which='major',length=10,width=2)
+for axis in ['top','bottom','left','right']:
+     ax.spines[axis].set_linewidth(2)
+
+xlabel('Time, $t$ (s)',size=labelFontSize)
+ylabel("Concentration ($\mathrm{\mu m}^{-3}$)")
 plt.xscale('log')
-plt.yscale('log')
-fig.tight_layout()
-plt.savefig('dilute_diffusion.pdf', format='pdf', dpi=600)
-plt.show()
-
-
+xlim(0,1)
+tight_layout(pad=0)
+show()
 
 

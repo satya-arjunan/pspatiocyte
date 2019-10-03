@@ -55,6 +55,9 @@ void World::set_output_numbers_logspace(const float start_time,
   output_numbers_start_ = start_time;
   output_numbers_end_ = end_time;
   output_numbers_n_logs_ = n_logs;
+  if (!output_numbers_dt_) {
+    output_numbers_dt_ = 1e-7;
+  }
 }
 
 void World::set_output_coords_logspace(const float start_time,
@@ -63,6 +66,9 @@ void World::set_output_coords_logspace(const float start_time,
   output_coords_start_ = start_time;
   output_coords_end_ = end_time;
   output_coords_n_logs_ = n_logs;
+  if (!output_coords_dt_) {
+    output_coords_dt_ = 1e-7;
+  }
 }
 
 void World::initialize() {
@@ -188,7 +194,8 @@ void World::run(const double end_time, const unsigned verbose) {
     if(scheduler_.getTime()-prev_time > interval) {
       prev_time = scheduler_.getTime(); 
       if(!parallel_environment_.getrank() && verbose) {
-        std::cout << "current t:" << scheduler_.getTime() << std::endl;
+        std::cout << "current t/duration: " << scheduler_.getTime() << "/" << end_time <<
+          std::endl;
       }
       ++n;
     }
