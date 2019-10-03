@@ -21,4 +21,3 @@ for fraction in fractions:
 
 
 
-

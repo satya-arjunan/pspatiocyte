@@ -22,8 +22,9 @@ matplotlib.rcParams.update({'font.size': labelFontSize})
 
 fig,ax=plt.subplots()
 
-Ds = [10e-12, 5e-12, 1e-12]
+fractions = [0.0, 0.3, 0.5]
 iterations = 1000
+D = 10e-12
 
 def get_squared_displacement(track):
   size = len(track)
@@ -31,17 +32,18 @@ def get_squared_displacement(track):
   x = track[:,0]
   y = track[:,1]
   z = track[:,2]
+  sd[0] = 0;
   for i in range(size-1):
-    sd[i] = math.pow(x[i+1]-x[0],2) + math.pow(y[i+1]-y[0],2) + math.pow(
-        z[i+1]-z[0], 2.0)
+    sd[i+1] = math.pow(x[i]-x[0],2) + math.pow(y[i]-y[0],2) + math.pow(
+        z[i]-z[0],2)
   return sd
 
-for D in Ds: 
+for fraction in fractions: 
   sd = np.array([])
   times = np.array([])
   cnt = 0
   for i in range(iterations): 
-    dirname = 'D_'+str(D)+'__'+str(i)
+    dirname = 'fraction_'+str(fraction)+'__'+str(i)
     print(dirname)
     inputf = dirname+os.sep+'coordinates.spa'
     f = open(inputf, 'r')
@@ -72,29 +74,30 @@ for D in Ds:
         sd = get_squared_displacement(track)
       else:
         sd = sd + get_squared_displacement(track)
-  ax.plot(times, sd/cnt/1e-12, label='pSpatiocyte (D = %d \si{\micro}m$^{2}$s$^{-1}$)'%(int(D/1e-12)))
+  ax.plot(times/1e-6, sd/cnt/1e-12, 
+      label=r'pSpatiocyte (%0.1f fraction, %d \si{\micro}m$^{2}$s$^{-1}$)' %(
+        fraction, int(D/1e-12)))
+  np.savetxt('fraction_'+str(fraction)+'.csv', np.transpose([times, sd/cnt]),
+      delimiter=',')
   
-for i, D in enumerate(Ds): 
-  if (i == 0):
-    ax.plot(times, 6.0*D*times/1e-12, 'k--', label='6Dt')
-  else:
-    ax.plot(times, 6.0*D*times/1e-12, 'k--')
+ax.plot(times/1e-6, 6.0*D*times/1e-12, 'k--', label='6$Dt$')
 
 handles, labels = ax.get_legend_handles_labels()
 leg = ax.legend(frameon=False, loc=2)
 for t in leg.get_texts():
   t.set_fontsize(legendFontSize)   
 
-ax.set_xlabel('Time (s)', size=labelFontSize)
+ax.set_xlabel('Time, $t$ (\si{\micro}s)', size=labelFontSize)
 ax.set_ylabel('Mean-squared displacement (\si{\micro}m$^{2}$)', size=labelFontSize)
 ax.tick_params(axis='both', which='major', labelsize=lineFontSize)
 ax.tick_params(axis='both', which='minor', labelsize=lineFontSize)
-ax.set_xlim(1e-6,1e-1)
-ax.set_ylim(1e-4,1e+1)
-plt.xscale('log')
-plt.yscale('log')
+ax.set_xlim(0,160)
+ax.set_ylim(0,0.012)
 fig.tight_layout()
-plt.savefig('dilute_diffusion.pdf', format='pdf', dpi=600)
+plt.savefig('crowded_diffusion.pdf', format='pdf', dpi=600)
 plt.show()
+
+
+
 
 

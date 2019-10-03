@@ -19,7 +19,8 @@ World::World(int argc, char* argv[], const unsigned Nx,
   lattice_("SchisMatrix", rv, parallel_environment_, invalid_species_.getID(),
                vacant_species_.getID(), ghost_id_),
   compartment_("Cell", VOLUME, //rand(),
-               seed+parallel_environment_.getrank(),
+               seed*parallel_environment_.getsize()+
+               parallel_environment_.getrank(),
                parallel_environment_.getsize(), parallel_environment_.getrank(),
                invalid_species_.getID(), vacant_species_.getID(), ghost_id_,
                is_force_search_vacant) {
