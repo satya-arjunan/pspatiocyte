@@ -97,9 +97,9 @@ init_state = np.array([0, num_B, num_C]) / volume
 ode_time = np.logspace(-6,0,100)
 ode_result = odeint(f, y0=init_state, t=ode_time, args=(keff, kr))
 
-plot(ode_time, ode_result[:,0], "--", color="k", alpha=.5, label="ODE")
-plot(ode_time, ode_result[:,1], "--", color="k", alpha=.5)
-plot(ode_time, ode_result[:,2], "--", color="k", alpha=.5)
+plot(ode_time, ode_result[:,0], "--", color="k", label="ODE")
+plot(ode_time, ode_result[:,1], "--", color="k")
+plot(ode_time, ode_result[:,2], "--", color="k")
 
 
 ax = gca()
@@ -122,6 +122,7 @@ xlabel('Time, $t$ (s)',size=labelFontSize)
 ylabel("Concentration (\#\si{\micro}m$^{-3}$)",size=labelFontSize)
 xlim(1e-6,5e-1)
 plt.xscale('log')
+tight_layout()
 savefig('reversible_reaction.pdf', format='pdf', dpi=600)#, bbox_inches='tight')
 show()
 
