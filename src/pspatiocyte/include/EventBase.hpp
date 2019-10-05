@@ -1,79 +1,55 @@
-#ifndef EVENTBASE_HPP
-#define EVENTBASE_HPP
+//::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+//
+//        This file is part of pSpatiocyte
+//
+//        Copyright (C) 2019 Satya N.V. Arjunan
+//
+//::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+//
+//
+// Motocyte is free software; you can redistribute it and/or
+// modify it under the terms of the GNU General Public
+// License as published by the Free Software Foundation; either
+// version 2 of the License, or (at your option) any later version.
+// 
+// Motocyte is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+// See the GNU General Public License for more details.
+// 
+// You should have received a copy of the GNU General Public
+// License along with Motocyte -- see the file COPYING.
+// If not, write to the Free Software Foundation, Inc.,
+// 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+// 
+//END_HEADER
+//
+// written by Satya Arjunan <satya.arjunan@gmail.com>
+// and Atsushi Miyauchi
+//
 
-/**
-   EventBase
-   
-   A subclass must define three customization points;
 
-   void fire()
-   {
-   (1) do what this event is supposed to do.
-   (2) setTime( next scheduled time of this event );
-   }
+#ifndef EventBase_hpp
+#define EventBase_hpp
 
-   void update( const Event& anEvent )
-   {
-   Given the last fired Event (anEvent) that this Event
-   depends on,
-
-   (1) recalculate scheduled time (if necessary).
-   (2) setTime( new scheduled time ).
-   }
-
-   const bool isDependentOn( const Event& anEvent )
-   {
-   Return true if this Event must be updated when the
-   given Event (anEvent) fired.  Otherwise return false;
-   }
-*/
-
-class EventBase
-{
+class EventBase {
 public:
-    EventBase( const double& time )
-        : time( time )
-    {
-        ; // do nothing
-    }
-
-    const double getTime() const
-    {
-        return this->time;
-    }
-
-    void setTime(const double& time)
-    {
-        this->time = time;
-    }
-
-    const bool operator<= ( const EventBase& rhs ) const
-    {
-        return getTime() <= rhs.getTime();
-    }
-
-    const bool operator< ( const EventBase& rhs ) const
-    {
-        return getTime() < rhs.getTime();
-    }
-
-    const bool operator== ( const EventBase& rhs ) const
-    {
-        return getTime() == rhs.getTime();
-    }
-
-    const bool operator!= ( const EventBase& rhs ) const
-    {
-        return ! this->operator==( rhs );
-    }
-
-    // dummy, because DynamicPriorityQueue requires this. better without.
-    EventBase(): time( -1.0 )
-    {
-        ; // do nothing
-    }
+  EventBase() {}
+  const float get_time() const {
+    return time_;
+  } 
+  void set_time(const float& time) {
+    time_ = time;
+  }
+  const int get_priority() const {
+    return priority_;
+  } 
+  void set_priority(const unsigned priority) {
+    priority_ = priority;
+  } 
 private:
-    double  time;
+  float time_;
+  int priority_ = 0;
 };
 
-#endif /* EVENTBASE_HPP */
+#endif /* EventBase_hpp */

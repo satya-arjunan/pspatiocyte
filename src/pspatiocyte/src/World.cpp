@@ -16,13 +16,13 @@ World::World(int argc, char* argv[], const unsigned Nx,
   output_numbers_dt_(output_numbers_dt),
   output_coords_dt_(output_coords_dt),
   parallel_environment_(argc, argv, Nx, Ny, Nz, dirname),
-  lattice_("SchisMatrix", rv, parallel_environment_, invalid_species_.getID(),
-               vacant_species_.getID(), ghost_id_),
+  lattice_("SchisMatrix", rv, parallel_environment_, invalid_species_.get_id(),
+               vacant_species_.get_id(), ghost_id_),
   compartment_("Cell", VOLUME, //rand(),
                seed*parallel_environment_.getsize()+
                parallel_environment_.getrank(),
                parallel_environment_.getsize(), parallel_environment_.getrank(),
-               invalid_species_.getID(), vacant_species_.getID(), ghost_id_,
+               invalid_species_.get_id(), vacant_species_.get_id(), ghost_id_,
                is_force_search_vacant) {
   }
 
@@ -38,7 +38,7 @@ int DistributeMolecule(int Total, int Nproc, int rank) {
 }
 
 double World::get_current_time() {
-  return scheduler_.getTime();
+  return scheduler_.get_time();
 }
 
 void World::add_output_numbers_species(Species& species) {
@@ -55,7 +55,7 @@ void World::set_output_numbers_logspace(const float start_time,
   output_numbers_start_ = start_time;
   output_numbers_end_ = end_time;
   output_numbers_n_logs_ = n_logs;
-  if (!output_numbers_dt_) {
+  if (output_numbers_dt_ <= 0) {
     output_numbers_dt_ = 1e-7;
   }
 }
@@ -66,15 +66,15 @@ void World::set_output_coords_logspace(const float start_time,
   output_coords_start_ = start_time;
   output_coords_end_ = end_time;
   output_coords_n_logs_ = n_logs;
-  if (!output_coords_dt_) {
+  if (output_coords_dt_ <= 0) {
     output_coords_dt_ = 1e-7;
   }
 }
 
 void World::initialize() {
   out_species_= new Species("Out", 0, 0, *this),
-  compartment_.set_out_id(out_species_->getID());
-  lattice_.set_out_id(out_species_->getID());
+  compartment_.set_out_id(out_species_->get_id());
+  lattice_.set_out_id(out_species_->get_id());
   compartment_.initialize(lattice_, parallel_environment_, species_list_);
   const int nproc(parallel_environment_.getsize());
   const int myrank(parallel_environment_.getrank());
@@ -115,20 +115,7 @@ void World::initialize() {
     compartment_.calculate_collision_time(*reactants[i], parallel_environment_);
   }
 
-  for (unsigned i(0); i < species_list_.size(); ++i) {
-    Species& species(*species_list_[i]);
-    if (species.getD()) {
-      scheduler_.addEvent(SpatiocyteEvent(&lattice_, &compartment_,  &species));
-    }
-  }
-
-  if (independent_reactions_.size()) {
-    independent_event_id_ =
-      scheduler_.addEvent(SpatiocyteEvent(&lattice_, &compartment_,
-                                          &parallel_environment_));
-  }
-
-  if (output_numbers_dt_ > 0) {
+  if (output_numbers_dt_) {
     if (!output_numbers_species_list_.size()) {
       output_numbers_species_list_ = species_list_;
     }
@@ -144,12 +131,12 @@ void World::initialize() {
                                        output_numbers_start_,
                                        output_numbers_end_,
                                        output_numbers_n_logs_);
-    float dt(compartment_.output_numbers(scheduler_.getTime()));
-    scheduler_.addEvent(SpatiocyteEvent(&lattice_, &compartment_,
-                                  &parallel_environment_, OUTPUT_NUMBERS, dt));
+    float dt(compartment_.output_numbers(scheduler_.get_time()));
+    scheduler_.add_event(SpatiocyteEvent(lattice_, compartment_,
+                                 parallel_environment_, OUTPUT_NUMBERS, dt));
   }
 
-  if (output_coords_dt_ > 0) {
+  if (output_coords_dt_) {
     if (!output_coords_species_list_.size()) {
       output_coords_species_list_ = species_list_;
     }
@@ -165,44 +152,67 @@ void World::initialize() {
                                            output_coords_start_,
                                            output_coords_end_,
                                            output_coords_n_logs_);
-    float dt(compartment_.output_coordinates(scheduler_.getTime()));
-    scheduler_.addEvent(SpatiocyteEvent(&lattice_, &compartment_,
-                              &parallel_environment_, OUTPUT_COORDINATES, dt));
+    float dt(compartment_.output_coordinates(scheduler_.get_time()));
+    scheduler_.add_event(SpatiocyteEvent(lattice_, compartment_,
+                               parallel_environment_, OUTPUT_COORDINATES, dt));
   }
 
+  for (unsigned i(0); i < species_list_.size(); ++i) {
+    Species& species(*species_list_[i]);
+    if (species.getD()) {
+      scheduler_.add_event(SpatiocyteEvent(lattice_, compartment_,
+                                           parallel_environment_, species));
+    }
+  }
+
+  if (independent_reactions_.size()) {
+    independent_event_index_ =
+      scheduler_.add_event(SpatiocyteEvent(lattice_, compartment_,
+                                          parallel_environment_));
+  }
+  //queue events should be executed after pushing all the events in the
+  //scheduler, otherwise the event pointers in queue will become invalid:
+  scheduler_.queue_events();
+  if (independent_event_index_ >= 0) {
+    independent_event_id_ = 
+      scheduler_.get_events()[independent_event_index_].get_id();
+  }
 }
 
 void World::run(const double end_time, const unsigned verbose) {
   double interval(end_time/10);
-  double prev_time(scheduler_.getTime());
+  double prev_time(scheduler_.get_time());
   unsigned n(0);
   parallel_environment_.starttimer();
-  while(scheduler_.getTime() < end_time) {
+  while(scheduler_.get_time() < end_time) {
     /*
-    std::cout << "step: time:" << scheduler_.getTime() << " top time:" <<
-      scheduler_.getTopTime() << " name:" << 
-      scheduler_.getTopEvent().getName() << std::endl;
-      */
-    if(independent_event_id_ >= 0 && 
-       (scheduler_.getTime() < scheduler_.getTopTime()) ||
-       (independent_event_id_ == scheduler_.getTopID() &&
-        scheduler_.getTime() == scheduler_.getTopTime())) {
-      scheduler_.updateEventTime(independent_event_id_,
-       compartment_.get_next_time(parallel_environment_, scheduler_.getTime()));
+    if (!parallel_environment_.getrank()) {
+      std::cout << "step: time:" << scheduler_.get_time() << " top time:" <<
+        scheduler_.get_top_time() << " name:" << 
+        scheduler_.get_top_event().get_name() << std::endl;
     }
-    scheduler_.step(parallel_environment_);
-    if(scheduler_.getTime()-prev_time > interval) {
-      prev_time = scheduler_.getTime(); 
+    */
+    if(independent_event_index_ >= 0 && 
+       (scheduler_.get_time() < scheduler_.get_top_time()) ||
+       (independent_event_id_ == scheduler_.get_top_id() &&
+        scheduler_.get_time() == scheduler_.get_top_time())) {
+      scheduler_.update_event_time(independent_event_index_,
+       compartment_.get_next_time(parallel_environment_,
+                                  scheduler_.get_time()));
+    }
+    scheduler_.step();
+    if(scheduler_.get_time()-prev_time > interval) {
+      prev_time = scheduler_.get_time(); 
       if(!parallel_environment_.getrank() && verbose) {
-        std::cout << "current t/duration: " << scheduler_.getTime() << "/" << end_time <<
-          std::endl;
+        std::cout << "t/duration: " << scheduler_.get_time() << "/" <<
+          end_time << std::endl;
       }
       ++n;
     }
   }
-  const double last_time(scheduler_.getTime());
+  const double last_time(scheduler_.get_time());
   if(!parallel_environment_.getrank() && verbose) {
-    std::cout << "current t:" << last_time << std::endl;
+    std::cout << "t/duration:" << last_time << "/" << end_time << std::endl;
   }
   parallel_environment_.stoptimer();
 }

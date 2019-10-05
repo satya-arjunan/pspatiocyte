@@ -36,7 +36,7 @@ public:
            World& world);
 
   ~Reaction() {}
-  string getName() {
+  string get_name() {
     return name_;
   }
   REACTION_TYPE getType() { 

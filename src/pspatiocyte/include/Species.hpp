@@ -13,21 +13,22 @@ public:
   Species(string n, double D, unsigned init_size, World& world, double P=1);
   Species(const Species &s);
   ~Species() {} 
-  string getName() {
+  string get_name() {
     return name_;
   } 
   double getD() {
     return D_;
   }
-  double getDt() {
-    return dt_*walk_probability_;
+  double get_walk_interval() {
+    return walk_interval_*walk_probability_;
   } 
-  int getID() {
+  int get_id() {
     return species_id_;
   } 
   void setVolumeDt(double rv) { 
     const double alpha = 2.0/3.0;
-    dt_ = (D_ > 0) ? alpha*rv*rv/D_ : std::numeric_limits<double>::infinity();
+    walk_interval_ = (D_ > 0) ? alpha*rv*rv/D_ :
+      std::numeric_limits<double>::infinity();
   } 
   void setSurfaceDt(double rv) {
     const double SQR2  = 1.414213562373;  
@@ -36,7 +37,7 @@ public:
     const double SQR22 = 4.690415759823;
     const double sqra = ( 2*SQR2 + 4*SQR3 + 3*SQR6 + SQR22 )/
                         ( 6*SQR2 + 4*SQR3 + 3*SQR6 );
-    dt_ = (D_ > 0) ? sqra*sqra*rv*rv/D_ :
+    walk_interval_ = (D_ > 0) ? sqra*sqra*rv*rv/D_ :
       std::numeric_limits<double>::infinity(); 
   } 
   void set_rho(double rho) {
@@ -74,7 +75,8 @@ private:
   double P_ = 1; // user-defined upper limit of reaction probability
   unsigned init_size_ = 0;
   double walk_probability_ = 1;
-  double dt_;          // diffusion interval time
+  // diffusion step interval time
+  double walk_interval_ = std::numeric_limits<double>::infinity();
   double rho_;         // max reaction probability [max(p_j)] of all reactions
   int species_id_;
   Vector<float> populate_origin_ = Vector<float>(0.5, 0.5, 0.5);

@@ -248,7 +248,7 @@ void Compartment::check_voxels(Lattice& g, const double id) {
             std::cout << id << " nonoutvoxel voxel.mol_index:" <<
               voxel.mol_index << " size:" << mols.size() << " species:" 
               << species_id << " name:" <<
-              species_list_[species_id]->getName() << std::endl;
+              species_list_[species_id]->get_name() << std::endl;
             abort();
           }
           if (mols[voxel.mol_index].coord != coord) {
@@ -256,7 +256,7 @@ void Compartment::check_voxels(Lattice& g, const double id) {
               " error not consistent species id on normal voxel" <<
               " coord:" << coord << " other coord:" << 
               mols[voxel.mol_index].coord << " species id:" << species_id <<
-              " name:" << species_list_[species_id]->getName() <<
+              " name:" << species_list_[species_id]->get_name() <<
               std::endl;
             abort();
           }
@@ -351,7 +351,7 @@ void Compartment::populate_molecules(Species& s, unsigned size,
   }
 
   if (size > n_voxels_) {
-    fout << "ERROR: too many molecules to be populated:" << s.getName() << endl;
+    fout << "ERROR: too many molecules to be populated:" << s.get_name() << endl;
     abort();
   }
 
@@ -364,15 +364,16 @@ void Compartment::populate_molecules(Species& s, unsigned size,
   else { 
     pe.getcart().Allreduce(MPI::IN_PLACE, &size, 1, MPI::INT, MPI::SUM);
     if (pe.getrank() == 0) {
-      const int species_id(s.getID());
-      int coord(g.linearCoordFast(nx_, ny_, nz_));
+      const int species_id(s.get_id());
+      int coord(g.linearCoordFast(nx_-20-(*adj_rand_)(), ny_-20-(*adj_rand_)(),
+                                  nz_-20-(*adj_rand_)()));
       int sid(g.get_voxel(coord).species_id);
       if (!((sid < out_id_ && sid != vacant_id_) ||
             (sid > out_id_ && sid%out_id_ != 0))) {
         add_molecule(species_id, coord, get_new_mol_id(), g.get_voxel(coord)); 
       }
       else {
-        std::cout << "Unable to populate ranged" << s.getName() << std::endl;
+        std::cout << "Unable to populate ranged" << s.get_name() << std::endl;
         abort();
       }
     }
@@ -381,7 +382,7 @@ void Compartment::populate_molecules(Species& s, unsigned size,
 
 void Compartment::populate_molecules(Species& s, const unsigned size,
                                      Lattice &g) {
-  const int species_id(s.getID());
+  const int species_id(s.get_id());
   for (unsigned i(0); i < size; ++i) {
     unsigned trial = 0;
     unsigned index;
@@ -390,7 +391,7 @@ void Compartment::populate_molecules(Species& s, const unsigned size,
     do {
       if(trial++ > n_voxels_) {
         fout << "ABORT: unable to find a vacant voxel to populate! ("
-          << s.getName() << ")" << endl;
+          << s.get_name() << ")" << endl;
         abort();
       }
       index = (int)(n_voxels_*(*randdbl_)());
@@ -463,7 +464,7 @@ bool Compartment::process_reaction(Reaction &f, Lattice &g,
 
 bool Compartment::remove_reactant(Species &s, Lattice &g, bool binary,
                                     int &center, int &neighbor) {
-  std::vector<Molecule>& molecules(species_molecules_[s.getID()]); 
+  std::vector<Molecule>& molecules(species_molecules_[s.get_id()]); 
   const int size(molecules.size());
   const int target((size==1) ? 0 : (int)(size*(*randdbl_)()));
   Molecule& molecule(molecules[target]);
@@ -477,7 +478,7 @@ bool Compartment::remove_reactant(Species &s, Lattice &g, bool binary,
     center = coord;
   }
   Voxel& v0(g.get_voxel(coord));
-  remove_molecule(g, s.getID(), v0);
+  remove_molecule(g, s.get_id(), v0);
   return true;
 }
 
@@ -603,7 +604,7 @@ bool Compartment::walk_molecule(Lattice& g, const int src_coord,
 
 void Compartment::add_product(Species &s, Lattice &g, int coord) {
   Voxel& voxel(g.get_voxel(coord));
-  add_molecule(s.getID(), coord, get_new_mol_id(), voxel); 
+  add_molecule(s.get_id(), coord, get_new_mol_id(), voxel); 
 }
 
 void Compartment::calculate_propensity(Reaction &f) {
@@ -617,12 +618,12 @@ void Compartment::calculate_propensity(Reaction &f) {
   double concentration1 = 0.0;  // number of reactant S1 / volume
 
   if(r0) {
-    std::vector<Molecule>& molecules(species_molecules_[(*s0).getID()]); 
+    std::vector<Molecule>& molecules(species_molecules_[(*s0).get_id()]); 
     concentration0 = molecules.size()/volume_;
   }
 
   if(r1) {
-    std::vector<Molecule>& molecules(species_molecules_[(*s1).getID()]); 
+    std::vector<Molecule>& molecules(species_molecules_[(*s1).get_id()]); 
     concentration1 = molecules.size()/volume_;
   }
   propensity = f.getK()*pow(concentration0, r0)*pow(concentration1, r1)*volume_;
@@ -640,12 +641,12 @@ void Compartment::calculate_local_propensity(Reaction &f, double current_time) {
   double concentration1 = 0.0;  // number of reactant S1 / local_volume
 
   if(r0) { 
-    std::vector<Molecule>& molecules(species_molecules_[(*s0).getID()]); 
+    std::vector<Molecule>& molecules(species_molecules_[(*s0).get_id()]); 
     concentration0 = molecules.size()/local_volume_;
   }
 
   if(r1) {
-    std::vector<Molecule>& molecules(species_molecules_[(*s1).getID()]); 
+    std::vector<Molecule>& molecules(species_molecules_[(*s1).get_id()]); 
     concentration1 = molecules.size()/local_volume_;
   }
 
@@ -804,12 +805,12 @@ void Compartment::walk(std::vector<Species*>& species_list,
   std::vector<unsigned> ghost_tar_coords;
   for (unsigned i(0); i < species_list.size(); ++i) {
     Species& s(*species_list[i]);
-    std::vector<Molecule>& molecules(species_molecules_[s.getID()]);
+    std::vector<Molecule>& molecules(species_molecules_[s.get_id()]);
     const unsigned begin_mol_size(molecules.size());
     unsigned index(0);
-    std::vector<unsigned>& is_reactive(is_reactive_[s.getID()]);
+    std::vector<unsigned>& is_reactive(is_reactive_[s.get_id()]);
     std::vector<double>& reaction_probabilities(reaction_probabilities_[
-                                                s.getID()]);
+                                                s.get_id()]);
     while (index < begin_mol_size && index < molecules.size()) { 
       Molecule& src_molecule(molecules[index]);
       const unsigned src_coord(src_molecule.coord);
@@ -874,7 +875,7 @@ void Compartment::walk(std::vector<Species*>& species_list,
         }
       }
       else if (is_parallel_ && tar_voxel_species_id < 0) { //ghost voxel
-        ghost_species_ids.push_back(s.getID());
+        ghost_species_ids.push_back(s.get_id());
         ghost_src_coords.push_back(src_coord);
         ghost_tar_coords.push_back(tar_coord);
       }
@@ -905,7 +906,7 @@ void Compartment::walk(std::vector<Species*>& species_list,
 void Compartment::react(Lattice& g, Species& s, const unsigned tarID,
                         Voxel& src_voxel, Voxel& tar_voxel,
                         const unsigned src_coord, const unsigned tar_coord) {
-  const unsigned reaction_id(influenced_reaction_ids_[s.getID()][tarID]);
+  const unsigned reaction_id(influenced_reaction_ids_[s.get_id()][tarID]);
   Reaction& reaction(*influenced_reactions_[reaction_id]);
   Species& s0(*reaction.getS0());
   if (&s0 == &s) {
@@ -927,12 +928,12 @@ void Compartment::do_reaction(Lattice& g, Reaction& r, Voxel& v0, Voxel& v1,
         //must remove before adding since in the removed species, the replacing
         //molecule might be the one removed and it will be occupied
         //by the new molecule:
-        remove_molecule(g, s0.getID(), v0);
-        add_molecule(p0.getID(), c0, get_new_mol_id(), v0);
+        remove_molecule(g, s0.get_id(), v0);
+        add_molecule(p0.get_id(), c0, get_new_mol_id(), v0);
       }
     }
     else {
-      remove_molecule(g, s0.getID(), v0);
+      remove_molecule(g, s0.get_id(), v0);
     }
     if (r.getP3()) {
       Species& p1(*r.getS3());
@@ -940,12 +941,12 @@ void Compartment::do_reaction(Lattice& g, Reaction& r, Voxel& v0, Voxel& v1,
         //must remove before adding since in the removed species, the replacing
         //molecule might be the one removed and it will be occupied
         //by the new molecule:
-        remove_molecule(g, s1.getID(), v1);
-        add_molecule(p1.getID(), c1, get_new_mol_id(), v1);
+        remove_molecule(g, s1.get_id(), v1);
+        add_molecule(p1.get_id(), c1, get_new_mol_id(), v1);
       }
     }
     else {
-      remove_molecule(g, s1.getID(), v1);
+      remove_molecule(g, s1.get_id(), v1);
     }
   }
   else {
@@ -1037,7 +1038,7 @@ unsigned Compartment::remove_molecule_from_molecules(Lattice& g,
 void Compartment::calculate_collision_time(Species& s,
                                            ParallelEnvironment& pe) {
   s.calcCollisionTime();
-  const unsigned id0(s.getID());
+  const unsigned id0(s.get_id());
   for (unsigned i(0); i < is_reactive_[id0].size(); ++i) {
     if (is_reactive_[id0][i]) {
       const unsigned reaction_id(influenced_reaction_ids_[id0][i]);
@@ -1045,12 +1046,12 @@ void Compartment::calculate_collision_time(Species& s,
       double probability(reaction.get_probability()*s.get_walk_probability());
       reaction_probabilities_[id0][i] = probability;
       if (!pe.getrank()) {
-        std::cout << "reaction:" << reaction.getName() << std::endl;
-        std::cout << "\tspecies:" << s.getName() << std::endl;
+        std::cout << "reaction:" << reaction.get_name() << std::endl;
+        std::cout << "\tspecies:" << s.get_name() << std::endl;
         std::cout << "\tp:" << probability << std::endl;
         std::cout << "\twalk probability:" << s.get_walk_probability() <<
           std::endl;
-        std::cout << "\twalk interval:" << s.getDt() <<
+        std::cout << "\twalk interval:" << s.get_walk_interval() <<
           std::endl;
       }
     }
@@ -1062,8 +1063,8 @@ void Compartment::add_diffusion_influenced_reaction(Reaction& r) {
   Species& s1(*r.getS1());
   const unsigned reaction_id(influenced_reactions_.size());
   influenced_reactions_.push_back(&r);
-  const unsigned id0(s0.getID());
-  const unsigned id1(s1.getID());
+  const unsigned id0(s0.get_id());
+  const unsigned id1(s1.get_id());
   influenced_reaction_ids_[id0][id1] = reaction_id;
   influenced_reaction_ids_[id1][id0] = reaction_id;
   is_reactive_[id0][id1] = 1;
@@ -1074,10 +1075,10 @@ unsigned Compartment::check_species_size(Lattice& g, ParallelEnvironment& pe,
                                          const unsigned sid,
                                          const double id) {
   Species& s(*species_list_[sid]);
-  const std::vector<Molecule>& molecules(species_molecules_[s.getID()]);
+  const std::vector<Molecule>& molecules(species_molecules_[s.get_id()]);
   unsigned size(molecules.size());
   pe.getcart().Allreduce(MPI::IN_PLACE, &size, 1, MPI::INT, MPI::SUM);
-  fout << id << " " << s.getName() << " size:" << size << std::endl;
+  fout << id << " " << s.get_name() << " size:" << size << std::endl;
   return size;
 }
 
@@ -1185,7 +1186,7 @@ void Compartment::react_on_ghost(Lattice& g, Species& s, const unsigned tarID,
                                  const unsigned src_coord,
                                  const unsigned tar_coord, 
                                  std::vector<SpillMolecule>& spill_coords) {
-  const unsigned reaction_id(influenced_reaction_ids_[s.getID()][tarID]);
+  const unsigned reaction_id(influenced_reaction_ids_[s.get_id()][tarID]);
   Reaction& reaction(*influenced_reactions_[reaction_id]);
   Species& s0(*reaction.getS0());
   if (&s0 == &s) {
@@ -1212,12 +1213,12 @@ void Compartment::do_reaction_on_ghost(Lattice& g, Reaction& r, Voxel& v0,
         //must remove before adding since in the removed species, the replacing
         //molecule might be the one removed and it will be occupied
         //by the new molecule:
-        remove_molecule_on_ghost(g, s0.getID(), c0, v0, spill_coords);
-        add_molecule_on_ghost(p0.getID(), c0, v0, spill_coords);
+        remove_molecule_on_ghost(g, s0.get_id(), c0, v0, spill_coords);
+        add_molecule_on_ghost(p0.get_id(), c0, v0, spill_coords);
       }
     }
     else {
-      remove_molecule_on_ghost(g, s0.getID(), c0, v0, spill_coords);
+      remove_molecule_on_ghost(g, s0.get_id(), c0, v0, spill_coords);
     }
     if (r.getP3()) {
       Species& p1(*r.getS3());
@@ -1225,12 +1226,12 @@ void Compartment::do_reaction_on_ghost(Lattice& g, Reaction& r, Voxel& v0,
         //must remove before adding since in the removed species, the replacing
         //molecule might be the one removed and it will be occupied
         //by the new molecule:
-        remove_molecule_on_ghost(g, s1.getID(), c1, v1, spill_coords);
-        add_molecule_on_ghost(p1.getID(), c1, v1, spill_coords);
+        remove_molecule_on_ghost(g, s1.get_id(), c1, v1, spill_coords);
+        add_molecule_on_ghost(p1.get_id(), c1, v1, spill_coords);
       }
     }
     else {
-      remove_molecule_on_ghost(g, s1.getID(), c1, v1, spill_coords);
+      remove_molecule_on_ghost(g, s1.get_id(), c1, v1, spill_coords);
     }
   }
   else {
@@ -1389,14 +1390,25 @@ void Compartment::output_coordinates_header(Lattice& lattice,
                                           const float start_time,
                                           const float end_time,
                                           const unsigned n_logs) {
-  output_coords_dt_ = dt;
+  if (dt < 0) {
+    output_coords_dt_ = std::numeric_limits<double>::infinity();
+    for (unsigned i(0); i < output_coord_species_.size(); ++i) {
+      Species& s(output_coord_species_[i]);
+      if (s.get_walk_interval() < output_coords_dt_) {
+        output_coords_dt_ = s.get_walk_interval();
+      }
+    }
+  }
+  else {
+    output_coords_dt_ = dt;
+  }
   if (n_logs) {
     coords_logspace_ = get_logspace_vector(start_time, end_time, n_logs);
   }
   fout2 << "Time";
   for (unsigned i(0); i < output_coord_species_.size(); ++i) {
     Species& s(output_coord_species_[i]);
-    fout2 << "," << s.getName();
+    fout2 << "," << s.get_name();
   }
   Vector<unsigned> gdims(pe.get_global_dimensions());
   fout2 << "," << lattice.getradius() << " " << pe.getsize() << " " << 
@@ -1407,7 +1419,7 @@ float Compartment::output_coordinates(const double current_time) {
   fout2 << setprecision(15) << current_time;
   for (unsigned i(0); i < output_coord_species_.size(); ++i) {
     Species& s(output_coord_species_[i]);
-    std::vector<Molecule>& molecules(species_molecules_[s.getID()]);
+    std::vector<Molecule>& molecules(species_molecules_[s.get_id()]);
     vector<Molecule>::iterator p2 = molecules.begin();
     vector<Molecule>::iterator e2 = molecules.end();
     fout2 << "," ;
@@ -1440,14 +1452,25 @@ void Compartment::output_numbers_header(ParallelEnvironment& pe,
                                         const float dt, const float start_time,
                                         const float end_time,
                                         const unsigned n_logs) {
-  output_numbers_dt_ = dt;
+  if (dt < 0) {
+    output_numbers_dt_ = std::numeric_limits<double>::infinity();
+    for (unsigned i(0); i < output_coord_species_.size(); ++i) {
+      Species& s(output_coord_species_[i]);
+      if (s.get_walk_interval() < output_numbers_dt_) {
+        output_numbers_dt_ = s.get_walk_interval();
+      }
+    }
+  }
+  else {
+    output_numbers_dt_ = dt;
+  }
   if (n_logs) {
     numbers_logspace_ = get_logspace_vector(start_time, end_time, n_logs);
   }
   fout3 << setprecision(15) << "Time " << pe.getsize();
   for (unsigned i(0); i < output_number_species_.size(); ++i) {
     Species& s(output_number_species_[i]);
-    fout3 << "," << s.getName();
+    fout3 << "," << s.get_name();
   }
   fout3 << endl;
 }
@@ -1457,7 +1480,7 @@ float Compartment::output_numbers(const double current_time) {
   fout3 << setprecision(15) << current_time;
   for (unsigned i(0); i < output_number_species_.size(); ++i) {
     Species& s(output_number_species_[i]);
-    fout3 << "," << species_molecules_[s.getID()].size();
+    fout3 << "," << species_molecules_[s.get_id()].size();
   }
   fout3 << endl;
   if (numbers_logspace_.size()) {

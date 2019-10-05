@@ -11,92 +11,105 @@
 #include "EventScheduler.hpp"
 #include "EventBase.hpp"
 
-using namespace std;
-
 struct SpatiocyteEvent: public EventBase {
-  SpatiocyteEvent(Lattice* latt, Compartment* comp, Species* spec) {
-    etype_ = DIFFUSION;
-    dt_ = spec->getDt();
-    pspec_ = spec;
-    species_list_.push_back(spec);
-    pcomp_ = comp;
-    platt_ = latt;
-    name_ = spec->getName();
-    setTime(dt_);
+  SpatiocyteEvent(Lattice& lattice, Compartment& compartment,
+                  ParallelEnvironment& parallel_environment, Species& species):
+    lattice_(lattice),
+    compartment_(compartment),
+    parallel_environment_(parallel_environment),
+    species_(&species),
+    name_(species.get_name()),
+    type_(DIFFUSION),
+    interval_(species.get_walk_interval()) {
+      if (!parallel_environment_.getrank()) { 
+        std::cout << "Species " << species.get_name() << 
+          " walk interval:" << species.get_walk_interval() << std::endl;
+      }
+      species_list_.push_back(&species);
+      set_time(interval_);
+  }
+
+  SpatiocyteEvent(Lattice& lattice, Compartment& compartment,
+                  ParallelEnvironment& parallel_environment):
+    lattice_(lattice),
+    compartment_(compartment),
+    parallel_environment_(parallel_environment),
+    name_("IndependentReaction"),
+    type_(INDEPENDENT_REACTION),
+    interval_(std::numeric_limits<float>::infinity()) {
+      set_time(interval_);
+  }
+
+  SpatiocyteEvent(Lattice& lattice, Compartment& compartment,
+                  ParallelEnvironment& parallel_environment,
+                  const EVENT_TYPE type, const float interval):
+    lattice_(lattice),
+    compartment_(compartment),
+    parallel_environment_(parallel_environment),
+    name_("Logger"),
+    type_(type),
+    interval_(interval) {
+      set_time(interval_);
+      set_priority(-5);
   }
   
-  SpatiocyteEvent(Lattice* latt, Compartment* comp, ParallelEnvironment* pe) {
-    etype_ = INDEPENDENT_REACTION;
-    dt_ = std::numeric_limits<double>::infinity();
-    pcomp_ = comp;
-    platt_ = latt;
-    setTime(dt_);
-  } 
-
-  SpatiocyteEvent(Lattice* latt, Compartment* comp, ParallelEnvironment* pe,
-                  EVENT_TYPE etype, double dt) {
-    etype_ = etype;
-    dt_ = dt;
-    pcomp_ = comp;
-    platt_ = latt;
-    setTime(dt_);
-  } 
-
-  int getID() {
+  int get_id() const {
     return id_;
   } 
   
-  void setID(int id) {
+  void set_id(int id) {
     id_ = id;
   }
   
-  const string getName() const {
+  const std::string get_name() const {
     return name_;
   }
   
   EVENT_TYPE get_event_type() {
-    return etype_;
+    return type_;
   }
   
-  double get_interval() const {
-    return dt_;
+  float get_interval() const {
+    return interval_;
   } 
   
-  Species* get_species() const {
-    return pspec_;
+  Species& get_species() const {
+    return *species_;
   } 
   
-  void add_species(Species* species) {
-    species_list_.push_back(species);
-  } 
+  void add_species(Species& species) {
+    species_list_.push_back(&species);
+  }
   
-  void fire(ParallelEnvironment &pe) {
-    switch(etype_) {
+  void fire() {
+    switch(type_) {
     case DIFFUSION:
-      pcomp_->walk(species_list_, *platt_, pe);
+      compartment_.walk(species_list_, lattice_, parallel_environment_);
       break;
     case INDEPENDENT_REACTION:
-      dt_ = pcomp_->react_direct_method(*platt_, pe, getTime());
+      interval_ = compartment_.react_direct_method(lattice_,
+                                           parallel_environment_, get_time());
       break;
     case OUTPUT_NUMBERS:
-      dt_ = pcomp_->output_numbers(getTime());
+      interval_ = compartment_.output_numbers(get_time());
       break;
     case OUTPUT_COORDINATES:
-      dt_ = pcomp_->output_coordinates(getTime());
+      interval_ = compartment_.output_coordinates(get_time());
       break;
     }
-    setTime(getTime() + dt_);
+    set_time(get_time() + interval_);
   }
 
 private:
-  int id_;
-  EVENT_TYPE etype_;
-  double dt_;
-  Species* pspec_;
-  Compartment* pcomp_;
-  Lattice* platt_;
-  string name_;
+  Lattice& lattice_;
+  Compartment& compartment_;
+  ParallelEnvironment& parallel_environment_;
+  Species* species_;
+  std::string name_;
+  EVENT_TYPE type_;
+  float interval_;
   std::vector<Species*> species_list_;
+  int id_;
 };
 
 #endif /* __SPATIOEVENT_HPP */

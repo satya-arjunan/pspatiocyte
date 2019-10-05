@@ -11,17 +11,17 @@ void Reaction::diagnostics()
 
     fout << "   scheme [ ";
 
-    if(s0_) fout          << s0_->getName(); 
-    if(s1_) fout << " + " << s1_->getName();
+    if(s0_) fout          << s0_->get_name(); 
+    if(s1_) fout << " + " << s1_->get_name();
             fout << " => ";
-    if(s2_) fout          << s2_->getName();
-    if(s3_) fout << " + " << s3_->getName();
+    if(s2_) fout          << s2_->get_name();
+    if(s3_) fout << " + " << s3_->get_name();
             fout << " ] " << endl;
 /*
-    if(s0_) fout << "   s0   = " <<  s0_->getName() << endl;
-    if(s1_) fout << "   s1   = " <<  s1_->getName() << endl;
-    if(s2_) fout << "   s2   = " <<  s2_->getName() << endl;
-    if(s3_) fout << "   s3   = " <<  s3_->getName() << endl;
+    if(s0_) fout << "   s0   = " <<  s0_->get_name() << endl;
+    if(s1_) fout << "   s1   = " <<  s1_->get_name() << endl;
+    if(s2_) fout << "   s2   = " <<  s2_->get_name() << endl;
+    if(s3_) fout << "   s3   = " <<  s3_->get_name() << endl;
 */
     fout << "   ID   = " <<  reactionID_    << endl;
 //    fout << "   dt   = " <<  dt_   << endl;
