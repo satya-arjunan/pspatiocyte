@@ -4,8 +4,8 @@ import subprocess
 import csv
 import numpy as np
 
-Ds = [1e-12, 5e-12, 10e-12]
-iterations = 10000
+Ds = [10e-12, 5e-12, 1e-12]
+iterations = 100
 
 for D in Ds: 
   for i in range(iterations): 

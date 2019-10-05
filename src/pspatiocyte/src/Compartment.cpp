@@ -365,8 +365,11 @@ void Compartment::populate_molecules(Species& s, unsigned size,
     pe.getcart().Allreduce(MPI::IN_PLACE, &size, 1, MPI::INT, MPI::SUM);
     if (pe.getrank() == 0) {
       const int species_id(s.get_id());
+      /*
       int coord(g.linearCoordFast(nx_-20-(*adj_rand_)(), ny_-20-(*adj_rand_)(),
                                   nz_-20-(*adj_rand_)()));
+                                  */
+      int coord(g.linearCoordFast(nx_, ny_, nz_));
       int sid(g.get_voxel(coord).species_id);
       if (!((sid < out_id_ && sid != vacant_id_) ||
             (sid > out_id_ && sid%out_id_ != 0))) {

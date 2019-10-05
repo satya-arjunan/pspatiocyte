@@ -22,9 +22,8 @@ matplotlib.rcParams.update({'font.size': labelFontSize})
 
 fig,ax=plt.subplots()
 
-Ds = [10e-12]
-#Ds = [5e-12]
-iterations = 1
+Ds = [10e-12, 5e-12, 1e-12]
+iterations = 100
 
 def get_squared_displacement(track):
   size = len(track)
@@ -32,8 +31,7 @@ def get_squared_displacement(track):
   x = track[:,0]
   y = track[:,1]
   z = track[:,2]
-  sd[0] = 0;
-  for i in range(1, size):
+  for i in range(size):
     sd[i] = math.pow(x[i]-x[0],2) + math.pow(y[i]-y[0],2) + math.pow(
         z[i]-z[0],2)
   return sd
@@ -94,13 +92,14 @@ ax.set_xlabel('Time (s)', size=labelFontSize)
 ax.set_ylabel('Mean-squared displacement (\si{\micro}m$^{2}$)', size=labelFontSize)
 ax.tick_params(axis='both', which='major', labelsize=lineFontSize)
 ax.tick_params(axis='both', which='minor', labelsize=lineFontSize)
-ax.set_xlim(1e-7,1e-1)
+ax.set_xlim(1e-7,5e-2)
 ax.set_ylim(1e-5,1e+1)
 plt.xscale('log')
 plt.yscale('log')
 fig.tight_layout()
 plt.savefig('dilute_diffusion.pdf', format='pdf', dpi=600)
 plt.show()
+
 
 
 

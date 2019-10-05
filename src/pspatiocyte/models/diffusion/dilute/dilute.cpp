@@ -27,7 +27,7 @@ int main(int argc, char *argv[]) {
   const float end_log(duration);
   const unsigned nmolecules(8);
   const double numbers_log_interval(0); //don't log numbers
-  const double coords_log_interval(-1);
+  const double coords_log_interval(-1); //log after each diffusion step
 
   World world(argc, argv, nx, ny, nz, rv, numbers_log_interval, dirname, seed,
               coords_log_interval);
