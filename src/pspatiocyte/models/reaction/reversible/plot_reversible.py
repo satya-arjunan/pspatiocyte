@@ -6,16 +6,18 @@ import math
 from matplotlib import rc
 from pylab import *
 from collections import OrderedDict
-#uncomment the following to create valid eps (scribus) and svg (inkscape):
-#rc('svg', embed_char_paths=True)
-#rc('mathtext', fontset=r'stixsans')
 
-labelFontSize = 23
-legendFontSize = 18
-lineFontSize = 23
+matplotlib.rcParams["mathtext.fontset"] = "stix"
+rc('font',**{'family':'sans-serif','sans-serif':['Helvetica']})
+rc('text', usetex=True)
+matplotlib.rcParams['text.latex.preamble'] = [r'\usepackage{amsmath}',
+    r'\usepackage[helvet]{sfmath}', r'\usepackage[utf8]{inputenc}',
+    r'\usepackage{arev}', r'\usepackage{siunitx}',
+    r'\sisetup{math-micro={\usefont{T1}{phv}{m}{n}\text{µ}}}']
 
-matplotlib.rcParams.update({'font.size': labelFontSize})
-matplotlib.rcParams['figure.figsize'] = 9.1,7
+labelFontSize = 15
+legendFontSize = 13
+lineFontSize = 15
 
 path, file = os.path.split(os.path.abspath(__file__))
 path = path+os.sep
@@ -49,10 +51,8 @@ linestyles = OrderedDict(
      ('dashdotdotted',         (0, (3, 5, 1, 5, 1, 5))),
      ('densely dashdotdotted', (0, (3, 1, 1, 1, 1, 1)))])
 
-#fileNames = ['spatiocyte/output.txt', 'pspatiocyte/output.txt', 'smoldyn/output.txt', 'readdy/output.txt', 'readdy_serial/output.txt']
-#fileNames = ['spatiocyte/output.txt', 'pspatiocyte_fix/output.txt', 'smoldyn/output.txt', 'readdy/output.txt', 'readdy_serial/output.txt']
 fileNames = ['output.txt']
-legendTitles = ['Spatiocyte ($\Delta t=0.48\ \mathrm{ms}, T=166\ \mathrm{s}$)']
+legendTitles = ['pSpatiocyte (8 cores) ($\Delta t=0.5\ \mathrm{ms},\ T=11\ \mathrm{s}$)','Spatiocyte ($\Delta t=0.5\ \mathrm{ms}, T=139\ \mathrm{s}$)','Smoldyn ($\Delta t=1\ \mathrm{ms},\ T=449\ \mathrm{s}$)','Parallel ReaDDy (8 cores) ($\Delta t=1\ \mathrm{ms}, T=549\ \mathrm{s}$)','Serial ReaDDy ($\Delta t=1\ \mathrm{ms}, T=2197\ \mathrm{s}$)']
 speciesList = ['E','S','ES','P']
 lines = ['-','-','-','-','-','-','-']
 opacity = [1, 1, 1, 1, 1]
@@ -64,17 +64,17 @@ for f in range(len(fileNames)):
     colSize = len(data)-1
     for i in range(colSize):
       if (i == 0):
-        plot(data[0], data[i+1]/volume, ls=lines[f], 
+        plot(data[0], data[i+1]/volume*1e-18, ls=lines[f], 
             color=tableau20[colors[f]], label=legendTitles[0],
             linewidth=3, alpha=opacity[f])
       else:
-        plot(data[0], data[i+1]/volume, ls=lines[f],
+        plot(data[0], data[i+1]/volume*1e-18, ls=lines[f],
             color=tableau20[colors[f]], linewidth=3, alpha=opacity[f])
 
 num_B = 64000.
 num_C = 64000.
 duration = 1.01
-keff = 4e-19
+keff = 20e-19
 kr = 1.35
 
 from scipy.integrate import odeint
@@ -100,29 +100,31 @@ init_state = np.array([0, num_B, num_C]) / volume
 ode_time = np.logspace(-6, 0,10000)
 ode_result = odeint(f, y0=init_state, t=ode_time, args=(keff, kr))
 
-plot(ode_time, ode_result[:,0], "--", color="k", alpha=.5, label="ODE")
-plot(ode_time, ode_result[:,1], "--", color="k", alpha=.5)
-plot(ode_time, ode_result[:,2], "--", color="k", alpha=.5)
+plot(ode_time, ode_result[:,0]*1e-18, "--", color="k", alpha=.5, label="ODE")
+plot(ode_time, ode_result[:,1]*1e-18, "--", color="k", alpha=.5)
+plot(ode_time, ode_result[:,2]*1e-18, "--", color="k", alpha=.5)
+
 
 ax = gca()
-leg = legend(loc=(0.07,0.35), labelspacing=0.12, handlelength=1.0, handletextpad=0.3, frameon=False)
+handles, labels = ax.get_legend_handles_labels()
+leg = legend(handles[::-1], labels[::-1], loc=(0.07,0.35), labelspacing=0.3, handlelength=1.5, handletextpad=0.8, frameon=False)
 for t in leg.get_texts():
   t.set_fontsize(legendFontSize)   
+
 xticks(size=labelFontSize)
 yticks(size=labelFontSize)
 
+ax.tick_params(axis='both', which='major', direction='in',
+    labelsize=lineFontSize)
+ax.tick_params(axis='both', which='minor', direction='in',
+    labelsize=lineFontSize)
 ax.yaxis.set_ticks_position('both')
 ax.xaxis.set_ticks_position('both')
-ax.tick_params(axis='both',which='both',direction='in',length=10,width=2)
-ax.tick_params(axis='both',which='major',length=10,width=2)
-for axis in ['top','bottom','left','right']:
-     ax.spines[axis].set_linewidth(2)
-
 xlabel('Time, $t$ (s)',size=labelFontSize)
-ylabel("Concentration ($\mathrm{\mu m}^{-3}$)")
+ylabel("Concentration (\#\si{\micro}m$^{-3}$)",size=labelFontSize)
+xlim(1e-6,5e-1)
 plt.xscale('log')
-xlim(0,1)
-tight_layout(pad=0)
+savefig('reaction.pdf', format='pdf', dpi=600)#, bbox_inches='tight')
 show()
 
 
