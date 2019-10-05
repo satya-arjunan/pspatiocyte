@@ -184,6 +184,9 @@ void World::run(const double end_time, const unsigned verbose) {
   double prev_time(scheduler_.get_time());
   unsigned n(0);
   parallel_environment_.starttimer();
+  if(!parallel_environment_.getrank() && verbose) {
+    std::cout << std::endl;
+  }
   while(scheduler_.get_time() < end_time) {
     /*
     if (!parallel_environment_.getrank()) {
@@ -212,7 +215,7 @@ void World::run(const double end_time, const unsigned verbose) {
   }
   const double last_time(scheduler_.get_time());
   if(!parallel_environment_.getrank() && verbose) {
-    std::cout << "t/duration:" << last_time << "/" << end_time << std::endl;
+    std::cout << "t/duration: " << last_time << "/" << end_time << std::endl;
   }
   parallel_environment_.stoptimer();
 }
