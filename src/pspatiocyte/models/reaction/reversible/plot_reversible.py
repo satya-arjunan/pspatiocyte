@@ -31,7 +31,7 @@ for i in range(len(tableau20)):
     r, g, b = tableau20[i]    
     tableau20[i] = (r / 255., g / 255., b / 255.)  
 
-colors = [1, 0, 4, 2, 3]
+colors = [1, 2, 4, 2, 3]
 
 linestyles = OrderedDict(
     [('solid',               (0, ())),
@@ -52,29 +52,29 @@ linestyles = OrderedDict(
      ('densely dashdotdotted', (0, (3, 1, 1, 1, 1, 1)))])
 
 fileNames = ['output.txt']
-legendTitles = ['pSpatiocyte (8 cores) ($\Delta t=0.5\ \mathrm{ms},\ T=11\ \mathrm{s}$)','Spatiocyte ($\Delta t=0.5\ \mathrm{ms}, T=139\ \mathrm{s}$)','Smoldyn ($\Delta t=1\ \mathrm{ms},\ T=449\ \mathrm{s}$)','Parallel ReaDDy (8 cores) ($\Delta t=1\ \mathrm{ms}, T=549\ \mathrm{s}$)','Serial ReaDDy ($\Delta t=1\ \mathrm{ms}, T=2197\ \mathrm{s}$)']
-speciesList = ['E','S','ES','P']
-lines = ['-','-','-','-','-','-','-']
+legendTitles = ['pSpatiocyte, A', 'pSpatiocyte, B', 'pSpatiocyte, C']
+lines = ['-','-','--','-','-','-','-']
 opacity = [1, 1, 1, 1, 1]
 
-volume = 6.21701e-16
+volume = 6.21701e-16*1e+18
 for f in range(len(fileNames)):
   if (os.path.isfile(path+fileNames[f])):
     data = genfromtxt(path+fileNames[f], delimiter=',', skip_header=1).T
     colSize = len(data)-1
     for i in range(colSize):
       if (i == 0):
-        plot(data[0], data[i+1]/volume*1e-18, ls=lines[f], 
-            color=tableau20[colors[f]], label=legendTitles[0],
+        plot(data[0], data[i+1]/volume, ls=lines[f], 
+            color=tableau20[colors[i]], label=legendTitles[i],
             linewidth=3, alpha=opacity[f])
       else:
-        plot(data[0], data[i+1]/volume*1e-18, ls=lines[f],
-            color=tableau20[colors[f]], linewidth=3, alpha=opacity[f])
+        plot(data[0], data[i+1]/volume, ls=lines[i],
+            color=tableau20[colors[i]], label=legendTitles[i],
+            linewidth=3, alpha=opacity[f])
 
 num_B = 64000.
 num_C = 64000.
 duration = 1.01
-keff = 20e-19
+keff = 20e-19*1e+18
 kr = 1.35
 
 from scipy.integrate import odeint
@@ -87,36 +87,34 @@ from scipy.integrate import odeint
 # B = -keff*B*C + kr*A
 # C = -keff*B*C + kr*A
 def f(x, t0, keff, kr):
-    """
-    x: state vector with concentrations of E, S, ES, P
-    """
-    return np.array([
-        keff * x[1] * x[2] - kr*x[0],
-        -keff * x[1] * x[2] + kr*x[0],
-        -keff * x[1] * x[2] + kr*x[0]
+  return np.array([
+    keff * x[1] * x[2] - kr*x[0],
+    -keff * x[1] * x[2] + kr*x[0],
+    -keff * x[1] * x[2] + kr*x[0]
     ])
 
 init_state = np.array([0, num_B, num_C]) / volume
-ode_time = np.logspace(-6, 0,10000)
+ode_time = np.logspace(-6,0,100)
 ode_result = odeint(f, y0=init_state, t=ode_time, args=(keff, kr))
 
-plot(ode_time, ode_result[:,0]*1e-18, "--", color="k", alpha=.5, label="ODE")
-plot(ode_time, ode_result[:,1]*1e-18, "--", color="k", alpha=.5)
-plot(ode_time, ode_result[:,2]*1e-18, "--", color="k", alpha=.5)
+plot(ode_time, ode_result[:,0], "--", color="k", alpha=.5, label="ODE")
+plot(ode_time, ode_result[:,1], "--", color="k", alpha=.5)
+plot(ode_time, ode_result[:,2], "--", color="k", alpha=.5)
 
 
 ax = gca()
 handles, labels = ax.get_legend_handles_labels()
-leg = legend(handles[::-1], labels[::-1], loc=(0.07,0.35), labelspacing=0.3, handlelength=1.5, handletextpad=0.8, frameon=False)
+leg = legend(loc=(0.1,0.35), labelspacing=0.3, handlelength=2.5,
+    handletextpad=0.8, frameon=False)
 for t in leg.get_texts():
   t.set_fontsize(legendFontSize)   
 
 xticks(size=labelFontSize)
 yticks(size=labelFontSize)
 
-ax.tick_params(axis='both', which='major', direction='in',
+ax.tick_params(axis='both', which='major', direction='in', length=6, width=1,
     labelsize=lineFontSize)
-ax.tick_params(axis='both', which='minor', direction='in',
+ax.tick_params(axis='both', which='minor', direction='in', length=3, width=1,
     labelsize=lineFontSize)
 ax.yaxis.set_ticks_position('both')
 ax.xaxis.set_ticks_position('both')
@@ -124,7 +122,6 @@ xlabel('Time, $t$ (s)',size=labelFontSize)
 ylabel("Concentration (\#\si{\micro}m$^{-3}$)",size=labelFontSize)
 xlim(1e-6,5e-1)
 plt.xscale('log')
-savefig('reaction.pdf', format='pdf', dpi=600)#, bbox_inches='tight')
+savefig('reversible_reaction.pdf', format='pdf', dpi=600)#, bbox_inches='tight')
 show()
-
 
