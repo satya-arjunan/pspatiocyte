@@ -1,10 +1,10 @@
 
-set(method diffusion)
+set(method reaction)
 
 set(dest ${CMAKE_BINARY_DIR}/models/${method})
 file(MAKE_DIRECTORY ${dest})
 
 add_subdirectory(reversible)
-#add_subdirectory(forward)
+add_subdirectory(irreversible)
 
 
