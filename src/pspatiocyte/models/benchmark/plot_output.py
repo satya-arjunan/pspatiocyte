@@ -121,13 +121,17 @@ for t in leg.get_texts():
 xticks(size=labelFontSize)
 yticks(size=labelFontSize)
 
-ax.tick_params(axis='both', which='major', labelsize=lineFontSize)
-ax.tick_params(axis='both', which='minor', labelsize=lineFontSize)
+ax.tick_params(axis='both', which='major', direction='in', length=6, width=1,
+    labelsize=lineFontSize)
+ax.tick_params(axis='both', which='minor', direction='in', length=3, width=1,
+    labelsize=lineFontSize)
+ax.yaxis.set_ticks_position('both')
+ax.xaxis.set_ticks_position('both')
 xlabel('Time, $t$ (s)',size=labelFontSize)
 ylabel("Concentration (\#\si{\micro}m$^{-3}$)",size=labelFontSize)
 xlim(0,10)
 tight_layout(pad=0)
-savefig('reaction.pdf', format='pdf', dpi=600)#, bbox_inches='tight')
+savefig('benchmark_output.pdf', format='pdf', dpi=600)#, bbox_inches='tight')
 show()
 
 
