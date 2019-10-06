@@ -6,5 +6,6 @@ file(MAKE_DIRECTORY ${dest})
 
 add_subdirectory(reversible)
 add_subdirectory(irreversible)
+add_subdirectory(crowded_dissociation)
 
 

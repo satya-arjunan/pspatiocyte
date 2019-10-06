@@ -16,8 +16,8 @@ for search in searches:
           "iteration:%d/%d" %(i+1, iterations))
       fraction_str = '{:.2f}'.format(fraction)
       dirname = 'forced_'+str(search)+'__fraction_'+fraction_str+'_'+str(i)
-      result = subprocess.run(['mpirun', '-np', '8', 'dissociation', dirname,
-        str(search), str(fraction)], stdout=subprocess.PIPE)
+      result = subprocess.run(['mpirun', '-np', '8', 'crowded_dissociation',
+        dirname, str(search), str(fraction)], stdout=subprocess.PIPE)
       time = float(result.stdout.decode('utf-8').split('\n')[-2])
       print('\telapsed time:',time)
 

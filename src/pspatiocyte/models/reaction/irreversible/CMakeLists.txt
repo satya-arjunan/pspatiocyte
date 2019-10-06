@@ -2,6 +2,7 @@
 set(model_name irreversible)
 set(copy_files
   run.py
+  plot_irreversible_B_C.py
   plot_irreversible.py)
 
 set(model_src ${model_name}.cpp)
