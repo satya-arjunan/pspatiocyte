@@ -32,9 +32,8 @@ def get_squared_displacement(track):
   x = track[:,0]
   y = track[:,1]
   z = track[:,2]
-  sd[0] = 0;
-  for i in range(size-1):
-    sd[i+1] = math.pow(x[i]-x[0],2) + math.pow(y[i]-y[0],2) + math.pow(
+  for i in range(size):
+    sd[i] = math.pow(x[i]-x[0],2) + math.pow(y[i]-y[0],2) + math.pow(
         z[i]-z[0],2)
   return sd
 
@@ -75,7 +74,7 @@ for fraction in fractions:
       else:
         sd = sd + get_squared_displacement(track)
   ax.plot(times/1e-6, sd/cnt/1e-12, 
-      label=r'pSpatiocyte (%0.1f fraction, %d \si{\micro}m$^{2}$s$^{-1}$)' %(
+      label=r'pSpatiocyte ($\phi$ = %0.1f, $D$ = %d \si{\micro}m$^{2}$s$^{-1}$)' %(
         fraction, int(D/1e-12)))
   np.savetxt('fraction_'+str(fraction)+'.csv', np.transpose([times, sd/cnt]),
       delimiter=',')
@@ -87,12 +86,19 @@ leg = ax.legend(frameon=False, loc=2)
 for t in leg.get_texts():
   t.set_fontsize(legendFontSize)   
 
-ax.set_xlabel('Time, $t$ (\si{\micro}s)', size=labelFontSize)
-ax.set_ylabel('Mean-squared displacement (\si{\micro}m$^{2}$)', size=labelFontSize)
-ax.tick_params(axis='both', which='major', labelsize=lineFontSize)
-ax.tick_params(axis='both', which='minor', labelsize=lineFontSize)
+plt.xticks(size=labelFontSize)
+plt.yticks(size=labelFontSize)
+
+ax.tick_params(axis='both', which='major', direction='in', length=6, width=1,
+    labelsize=lineFontSize)
+ax.tick_params(axis='both', which='minor', direction='in', length=3, width=1,
+    labelsize=lineFontSize)
+ax.yaxis.set_ticks_position('both')
+ax.xaxis.set_ticks_position('both')
 ax.set_xlim(0,160)
 ax.set_ylim(0,0.012)
+ax.set_xlabel('Time, $t$ (\si{\micro}s)', size=labelFontSize)
+ax.set_ylabel('Mean-squared displacement (\si{\micro}m$^{2}$)', size=labelFontSize)
 fig.tight_layout()
 plt.savefig('crowded_diffusion.pdf', format='pdf', dpi=600)
 plt.show()

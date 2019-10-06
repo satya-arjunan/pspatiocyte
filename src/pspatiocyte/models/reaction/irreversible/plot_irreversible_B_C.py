@@ -44,7 +44,7 @@ for f, k in enumerate(ks):
   dirname = 'k_'+str(k)
   print(dirname)
   data = np.loadtxt(dirname+'/output.txt', delimiter=',', skiprows=1)
-  plot(data[:,0], data[:,1]/volume, label="pSpatiocyte, $k$ = %s" %k,
+  plot(data[:,0], data[:,2]/volume, label="pSpatiocyte, $k$ = %s" %k,
       color=tableau20[colors[f]], linewidth=2.5)
 
 num_A = 64000.
@@ -70,13 +70,13 @@ for i, k in enumerate(ks):
   ode_time = np.linspace(0,duration,500)
   ode_result = odeint(f, y0=init_state, t=ode_time, args=(k, 0))
   if (i == 0):
-    plot(ode_time, ode_result[:,0], "--", color="k", label="ODE")
+    plot(ode_time, ode_result[:,1], "--", color="k", label="ODE")
   else:
-    plot(ode_time, ode_result[:,0], "--", color="k")
+    plot(ode_time, ode_result[:,1], "--", color="k")
 
 ax = gca()
 handles, labels = ax.get_legend_handles_labels()
-leg = legend(loc=(0.03,0.4), labelspacing=0.3, handlelength=2.5,
+leg = legend(loc=(0.02,0.75), labelspacing=0.3, handlelength=2.5,
     handletextpad=0.8, frameon=False)
 for t in leg.get_texts():
   t.set_fontsize(legendFontSize)   

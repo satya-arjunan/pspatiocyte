@@ -73,13 +73,13 @@ for D in Ds:
       else:
         sd = sd + get_squared_displacement(track)
   ax.plot(times, sd/cnt/1e-12, 
-      label='pSpatiocyte (D = %d \si{\micro}m$^{2}$s$^{-1}$)'%(int(D/1e-12)))
+      label='pSpatiocyte ($D$ = %d \si{\micro}m$^{2}$s$^{-1}$)'%(int(D/1e-12)))
   np.savetxt('D_'+str(D)+'.csv', np.transpose([times, sd/cnt]),
       delimiter=',')
   
 for i, D in enumerate(Ds): 
   if (i == 0):
-    ax.plot(times, 6.0*D*times/1e-12, 'k--', label='6Dt')
+    ax.plot(times, 6.0*D*times/1e-12, 'k--', label='6$Dt$')
   else:
     ax.plot(times, 6.0*D*times/1e-12, 'k--')
 
@@ -88,10 +88,17 @@ leg = ax.legend(frameon=False, loc=2)
 for t in leg.get_texts():
   t.set_fontsize(legendFontSize)   
 
-ax.set_xlabel('Time (s)', size=labelFontSize)
+plt.xticks(size=labelFontSize)
+plt.yticks(size=labelFontSize)
+
+ax.tick_params(axis='both', which='major', direction='in', length=6, width=1,
+    labelsize=lineFontSize)
+ax.tick_params(axis='both', which='minor', direction='in', length=3, width=1,
+    labelsize=lineFontSize)
+ax.yaxis.set_ticks_position('both')
+ax.xaxis.set_ticks_position('both')
+ax.set_xlabel('Time, $t$ (s)', size=labelFontSize)
 ax.set_ylabel('Mean-squared displacement (\si{\micro}m$^{2}$)', size=labelFontSize)
-ax.tick_params(axis='both', which='major', labelsize=lineFontSize)
-ax.tick_params(axis='both', which='minor', labelsize=lineFontSize)
 ax.set_xlim(1e-7,4e-2)
 ax.set_ylim(1e-5,4e+0)
 plt.xscale('log')
