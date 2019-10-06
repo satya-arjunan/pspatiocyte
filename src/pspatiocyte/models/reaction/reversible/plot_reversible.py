@@ -52,7 +52,7 @@ linestyles = OrderedDict(
      ('densely dashdotdotted', (0, (3, 1, 1, 1, 1, 1)))])
 
 fileNames = ['output.txt']
-legendTitles = ['pSpatiocyte, A', 'pSpatiocyte, B', 'pSpatiocyte, C']
+legendTitles = ['pSpatiocyte, $A$', 'pSpatiocyte, $B$', 'pSpatiocyte, $C$']
 lines = ['-','-','--','-','-','-','-']
 opacity = [1, 1, 1, 1, 1]
 
@@ -122,7 +122,6 @@ xlabel('Time, $t$ (s)',size=labelFontSize)
 ylabel("Concentration (\#\si{\micro}m$^{-3}$)",size=labelFontSize)
 xlim(1e-6,5e-1)
 plt.xscale('log')
-tight_layout()
 savefig('reversible_reaction.pdf', format='pdf', dpi=600)#, bbox_inches='tight')
 show()
 

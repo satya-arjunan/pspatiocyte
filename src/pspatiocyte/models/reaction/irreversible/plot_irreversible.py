@@ -95,6 +95,6 @@ ylabel("Concentration (\#\si{\micro}m$^{-3}$)",size=labelFontSize)
 xlim(1e-2,3e+0)
 plt.xscale('log')
 tight_layout()
-savefig('reversible_reaction.pdf', format='pdf', dpi=600)#, bbox_inches='tight')
+savefig('irreversible_reaction_A.pdf', format='pdf', dpi=600)
 show()
 
