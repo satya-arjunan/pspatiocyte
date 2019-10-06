@@ -15,7 +15,7 @@ ratios = np.append(np.logspace(-1.5,1.5,12), [1])
 Ds = [0.06, 4.0]
 #Ds = [0.06]
 markers = ['o', 'o']
-labels = ['pSpatiocyte (D = 0.06 \si{\micro}m$^2$s$^{-1}$)', 'pSpatiocyte (D = 4 \si{\micro}m$^2$s$^{-1}$)', 'ODE (processive)', 'ODE (distributive)']
+labels = ['pSpatiocyte ($D$ = 0.06 \si{\micro}m$^2$s$^{-1}$)', 'pSpatiocyte ($D$ = 4 \si{\micro}m$^2$s$^{-1}$)', 'ODE (processive)', 'ODE (distributive)']
 
 fig,ax=plt.subplots()
 
@@ -58,8 +58,15 @@ for t in leg.get_texts():
 
 ax.set_xlabel('KK$_0$/PP$_0$', size=labelFontSize)
 ax.set_ylabel('Kpp/K$_0$', size=labelFontSize)
-ax.tick_params(axis='both', which='major', labelsize=lineFontSize)
-ax.tick_params(axis='both', which='minor', labelsize=lineFontSize)
+plt.xticks(size=labelFontSize)
+plt.yticks(size=labelFontSize)
+
+ax.tick_params(axis='both', which='major', direction='in', length=6, width=1,
+    labelsize=lineFontSize)
+ax.tick_params(axis='both', which='minor', direction='in', length=3, width=1,
+    labelsize=lineFontSize)
+ax.yaxis.set_ticks_position('both')
+ax.xaxis.set_ticks_position('both')
 fig.tight_layout()
-plt.savefig('dissociation.pdf', format='pdf', dpi=600)#, bbox_inches='tight')
+plt.savefig('mapk_ratio.pdf', format='pdf', dpi=600)#, bbox_inches='tight')
 plt.show()

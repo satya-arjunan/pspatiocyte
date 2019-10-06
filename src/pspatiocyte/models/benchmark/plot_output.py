@@ -52,7 +52,7 @@ linestyles = OrderedDict(
      ('densely dashdotdotted', (0, (3, 1, 1, 1, 1, 1)))])
 
 fileNames = ['pspatiocyte/output.txt', 'spatiocyte/output.txt', 'smoldyn/output.txt', 'readdy/output.txt', 'readdy_serial/output.txt']
-legendTitles = ['pSpatiocyte (8 cores) ($\Delta t=0.5\ \mathrm{ms},\ T=11\ \mathrm{s}$)','Spatiocyte ($\Delta t=0.5\ \mathrm{ms}, T=139\ \mathrm{s}$)','Smoldyn ($\Delta t=1\ \mathrm{ms},\ T=449\ \mathrm{s}$)','Parallel ReaDDy (8 cores) ($\Delta t=1\ \mathrm{ms}, T=549\ \mathrm{s}$)','Serial ReaDDy ($\Delta t=1\ \mathrm{ms}, T=2197\ \mathrm{s}$)']
+legendTitles = ['pSpatiocyte (8 cores) ($\Delta t=0.5\ \mathrm{ms},\ T=10\ \mathrm{s}$)','Spatiocyte ($\Delta t=0.5\ \mathrm{ms}, T=139\ \mathrm{s}$)','Smoldyn ($\Delta t=1\ \mathrm{ms},\ T=449\ \mathrm{s}$)','Parallel ReaDDy (8 cores) ($\Delta t=1\ \mathrm{ms}, T=549\ \mathrm{s}$)','Serial ReaDDy ($\Delta t=1\ \mathrm{ms}, T=2197\ \mathrm{s}$)']
 speciesList = ['E','S','ES','P']
 lines = ['-','-','-','-','-','-','-']
 opacity = [1, 1, 1, 1, 1]
@@ -95,10 +95,10 @@ init_state = np.array([n_particles_e, n_particles_s, 0., 0.]) / volume
 ode_time = np.linspace(0.,duration,100000)
 ode_result = odeint(f, y0=init_state, t=ode_time, args=(0.98e-2, 1., 1.))
 
-plot(ode_time, ode_result[:,0], "--", color="k", alpha=.5, label="Mass Action")
-plot(ode_time, ode_result[:,1], "--", color="k", alpha=.5)
-plot(ode_time, ode_result[:,2], "--", color="k", alpha=.5)
-plot(ode_time, ode_result[:,3], "--", color="k", alpha=.5)
+plot(ode_time, ode_result[:,0], "--", color="k", label="ODE")
+plot(ode_time, ode_result[:,1], "--", color="k")
+plot(ode_time, ode_result[:,2], "--", color="k")
+plot(ode_time, ode_result[:,3], "--", color="k")
 
 
 annotate('ES', xy=(9, 0),  xycoords='data', xytext=(-29, -10), textcoords='offset points', color='k', size=lineFontSize)
