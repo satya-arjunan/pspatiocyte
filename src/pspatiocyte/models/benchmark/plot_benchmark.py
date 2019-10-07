@@ -27,8 +27,8 @@ r = [[6,10,14,18],
      [2,8,12,16],
      [1]]
 
-labelFontSize = 14
-legendFontSize = 13
+labelFontSize = 15
+legendFontSize = 15
 lineFontSize = 12
 
 def autolabel(sim, rects, xpos='center'):
@@ -68,11 +68,20 @@ leg = ax.legend(frameon=False)
 for t in leg.get_texts():
   t.set_fontsize(legendFontSize)   
 
+
+plt.xticks(size=labelFontSize)
+plt.yticks(size=labelFontSize)
+
+ax.tick_params(axis='x', which='major', direction='in', length=8, width=1,
+    labelsize=labelFontSize)
+ax.tick_params(axis='y', which='major', length=8, width=1, labelsize=labelFontSize)
+
+ax.xaxis.set_ticks_position('both')
 # Add some text for labels, title and custom x-axis tick labels, etc.
-ax.set_xlabel('Run time, $T$ (s)', size=labelFontSize)
-ax.set_ylabel('CPU cores (threads)', size=labelFontSize)
-ax.tick_params(axis='both', which='major', labelsize=lineFontSize)
-ax.tick_params(axis='both', which='minor', labelsize=lineFontSize)
+ax.set_xlabel('Run time, $T$ (s)', size=16)
+ax.set_ylabel('CPU cores (threads)', size=16)
+ax.tick_params(axis='both', which='major', labelsize=labelFontSize)
+ax.tick_params(axis='both', which='minor', labelsize=labelFontSize)
 ax.set_yticks([3, 9, 13, 17], )
 ax.set_yticklabels(('1', '2', '4', '8'))
 ax.set_xlim(0,2200)

@@ -12,7 +12,7 @@ matplotlib.rcParams['text.latex.preamble'] = [r'\usepackage{amsmath}',
     r'\usepackage{arev}', r'\usepackage{siunitx}',
     r'\sisetup{math-micro={\usefont{T1}{phv}{m}{n}\text{µ}}}']
 
-labelFontSize = 15
+labelFontSize = 10
 legendFontSize = 13
 lineFontSize = 15
 

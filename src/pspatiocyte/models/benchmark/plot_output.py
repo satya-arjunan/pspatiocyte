@@ -15,8 +15,8 @@ matplotlib.rcParams['text.latex.preamble'] = [r'\usepackage{amsmath}',
     r'\usepackage{arev}', r'\usepackage{siunitx}',
     r'\sisetup{math-micro={\usefont{T1}{phv}{m}{n}\text{µ}}}']
 
-labelFontSize = 15
-legendFontSize = 13
+labelFontSize = 16
+legendFontSize = 14
 lineFontSize = 15
 
 path, file = os.path.split(os.path.abspath(__file__))
@@ -52,7 +52,7 @@ linestyles = OrderedDict(
      ('densely dashdotdotted', (0, (3, 1, 1, 1, 1, 1)))])
 
 fileNames = ['pspatiocyte/output.txt', 'spatiocyte/output.txt', 'smoldyn/output.txt', 'readdy/output.txt', 'readdy_serial/output.txt']
-legendTitles = ['pSpatiocyte (8 cores) ($\Delta t=0.5\ \mathrm{ms},\ T=10\ \mathrm{s}$)','Spatiocyte ($\Delta t=0.5\ \mathrm{ms}, T=139\ \mathrm{s}$)','Smoldyn ($\Delta t=1\ \mathrm{ms},\ T=449\ \mathrm{s}$)','Parallel ReaDDy (8 cores) ($\Delta t=1\ \mathrm{ms}, T=549\ \mathrm{s}$)','Serial ReaDDy ($\Delta t=1\ \mathrm{ms}, T=2197\ \mathrm{s}$)']
+legendTitles = ['pSpatiocyte (8 cores, $\Delta t=0.5\ \mathrm{ms},\ T=10\ \mathrm{s}$)','Spatiocyte ($\Delta t=0.5\ \mathrm{ms}, T=139\ \mathrm{s}$)','Smoldyn ($\Delta t=1\ \mathrm{ms},\ T=449\ \mathrm{s}$)','Parallel ReaDDy (8 cores, $\Delta t=1\ \mathrm{ms}, T=549\ \mathrm{s}$)','Serial ReaDDy ($\Delta t=1\ \mathrm{ms}, T=2197\ \mathrm{s}$)']
 speciesList = ['E','S','ES','P']
 lines = ['-','-','-','-','-','-','-']
 opacity = [1, 1, 1, 1, 1]
@@ -107,14 +107,14 @@ annotate('E', xy=(9, 5),  xycoords='data', xytext=(-27, 15), textcoords='offset 
 
 annotate('P', xy=(9, 23),  xycoords='data', xytext=(-27, 12), textcoords='offset points', color='k', size=lineFontSize)
 
-annotate('S', xy=(9, 64),  xycoords='data', xytext=(-27, 12), textcoords='offset points', color='k', size=lineFontSize)
+annotate('S', xy=(9, 64),  xycoords='data', xytext=(-27, 32), textcoords='offset points', color='k', size=lineFontSize)
 
 
 annotate(r'E + S $\overset{k_1}{\underset{k_2}\rightleftharpoons}$ ES $\overset{k_3}{\rightarrow}$ E + P', xy=(6, 85),  xycoords='data', xytext=(-29, 0), textcoords='offset points', color='k', size=lineFontSize)
 
 ax = gca()
 handles, labels = ax.get_legend_handles_labels()
-leg = legend(handles[::-1], labels[::-1], loc=(0.07,0.35), labelspacing=0.3, handlelength=1.5, handletextpad=0.8, frameon=False)
+leg = legend(handles[::-1], labels[::-1], loc=(0.02,0.34), labelspacing=0.3, handlelength=1.5, handletextpad=0.8, frameon=False)
 for t in leg.get_texts():
   t.set_fontsize(legendFontSize)   
 
@@ -130,7 +130,7 @@ ax.xaxis.set_ticks_position('both')
 xlabel('Time, $t$ (s)',size=labelFontSize)
 ylabel("Concentration (\#\si{\micro}m$^{-3}$)",size=labelFontSize)
 xlim(0,10)
-tight_layout(pad=0)
+tight_layout()
 savefig('benchmark_output.pdf', format='pdf', dpi=600)#, bbox_inches='tight')
 show()
 

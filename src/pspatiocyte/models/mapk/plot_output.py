@@ -15,8 +15,8 @@ matplotlib.rcParams['text.latex.preamble'] = [r'\usepackage{amsmath}',
     r'\usepackage{arev}', r'\usepackage{siunitx}',
     r'\sisetup{math-micro={\usefont{T1}{phv}{m}{n}\text{µ}}}']
 
-labelFontSize = 15
-legendFontSize = 13
+labelFontSize = 16
+legendFontSize = 15
 lineFontSize = 15
 
 matplotlib.rcParams.update({'font.size': labelFontSize})
@@ -162,7 +162,7 @@ for t in leg.get_texts():
 xticks(size=labelFontSize)
 yticks(size=labelFontSize)
 
-ax.tick_params(axis='both', which='major', direction='in', length=6, width=1,
+ax.tick_params(axis='both', which='major', direction='in', length=8, width=1,
     labelsize=lineFontSize)
 ax.tick_params(axis='both', which='minor', direction='in', length=3, width=1,
     labelsize=lineFontSize)
