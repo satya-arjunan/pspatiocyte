@@ -121,7 +121,7 @@ for t in leg.get_texts():
 xticks(size=labelFontSize)
 yticks(size=labelFontSize)
 
-ax.tick_params(axis='both', which='major', direction='in', length=6, width=1,
+ax.tick_params(axis='both', which='major', direction='in', length=8, width=1,
     labelsize=lineFontSize)
 ax.tick_params(axis='both', which='minor', direction='in', length=3, width=1,
     labelsize=lineFontSize)
