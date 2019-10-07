@@ -13,7 +13,7 @@ for i in range(len(tableau20)):
     r, g, b = tableau20[i]    
     tableau20[i] = (r / 255., g / 255., b / 255.)  
 
-colors = [1, 0, 8, 4, 2, 3]
+colors = [0, 1, 8, 4, 2, 3]
 skips = [1, 1, 0, 0, 1, 0]
 sims = ['pspatiocyte', 'pspatiocyte_small_dt', 'spatiocyte', 'smoldyn', 'readdy', 'readdy_serial']
 labels = ['pSpatiocyte ($\Delta t=0.5$ ms)', 'pSpatiocyte ($\Delta t=0.2$ ms)', 'Spatiocyte ($\Delta t=0.5$ ms)', 'Smoldyn ($\Delta t=1$ ms)', 'Parallel ReaDDy ($\Delta t=1$ ms)', 'Serial ReaDDy ($\Delta t=1$ ms)']

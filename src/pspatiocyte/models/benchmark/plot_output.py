@@ -31,7 +31,7 @@ for i in range(len(tableau20)):
     r, g, b = tableau20[i]    
     tableau20[i] = (r / 255., g / 255., b / 255.)  
 
-colors = [1, 0, 4, 2, 3]
+colors = [0, 8, 4, 2, 3]
 
 linestyles = OrderedDict(
     [('solid',               (0, ())),
@@ -69,10 +69,10 @@ for f in reversed(range(len(fileNames))):
       if (i == 0):
         plot(data[0], data[i+1]/volume, ls=lines[f], 
             color=tableau20[colors[f]], label=legendTitles[f],
-            linewidth=3, alpha=opacity[f])
+            linewidth=2.5, alpha=opacity[f])
       else:
         plot(data[0], data[i+1]/volume, ls=lines[f],
-            color=tableau20[colors[f]], linewidth=3, alpha=opacity[f])
+            color=tableau20[colors[f]], linewidth=2.5, alpha=opacity[f])
 
 n_particles_e = 9090
 n_particles_s = 90910
