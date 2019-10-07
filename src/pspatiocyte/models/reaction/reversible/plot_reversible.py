@@ -15,8 +15,8 @@ matplotlib.rcParams['text.latex.preamble'] = [r'\usepackage{amsmath}',
     r'\usepackage{arev}', r'\usepackage{siunitx}',
     r'\sisetup{math-micro={\usefont{T1}{phv}{m}{n}\text{µ}}}']
 
-labelFontSize = 15
-legendFontSize = 13
+labelFontSize = 16
+legendFontSize = 15
 lineFontSize = 15
 
 path, file = os.path.split(os.path.abspath(__file__))
@@ -31,7 +31,7 @@ for i in range(len(tableau20)):
     r, g, b = tableau20[i]    
     tableau20[i] = (r / 255., g / 255., b / 255.)  
 
-colors = [1, 2, 4, 2, 3]
+colors = [0, 2, 4, 2, 3]
 
 linestyles = OrderedDict(
     [('solid',               (0, ())),
@@ -65,11 +65,11 @@ for f in range(len(fileNames)):
       if (i == 0):
         plot(data[0], data[i+1]/volume, ls=lines[f], 
             color=tableau20[colors[i]], label=legendTitles[i],
-            linewidth=3, alpha=opacity[f])
+            linewidth=2.5, alpha=opacity[f])
       else:
         plot(data[0], data[i+1]/volume, ls=lines[i],
             color=tableau20[colors[i]], label=legendTitles[i],
-            linewidth=3, alpha=opacity[f])
+            linewidth=2.5, alpha=opacity[f])
 
 num_B = 64000.
 num_C = 64000.
@@ -112,7 +112,7 @@ for t in leg.get_texts():
 xticks(size=labelFontSize)
 yticks(size=labelFontSize)
 
-ax.tick_params(axis='both', which='major', direction='in', length=6, width=1,
+ax.tick_params(axis='both', which='major', direction='in', length=8, width=1,
     labelsize=lineFontSize)
 ax.tick_params(axis='both', which='minor', direction='in', length=3, width=1,
     labelsize=lineFontSize)
@@ -122,6 +122,7 @@ xlabel('Time, $t$ (s)',size=labelFontSize)
 ylabel("Concentration (\#\si{\micro}m$^{-3}$)",size=labelFontSize)
 xlim(1e-6,5e-1)
 plt.xscale('log')
+tight_layout()
 savefig('reversible_reaction.pdf', format='pdf', dpi=600)#, bbox_inches='tight')
 show()
 

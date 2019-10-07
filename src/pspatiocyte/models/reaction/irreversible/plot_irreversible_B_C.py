@@ -15,8 +15,8 @@ matplotlib.rcParams['text.latex.preamble'] = [r'\usepackage{amsmath}',
     r'\usepackage{arev}', r'\usepackage{siunitx}',
     r'\sisetup{math-micro={\usefont{T1}{phv}{m}{n}\text{µ}}}']
 
-labelFontSize = 15
-legendFontSize = 13
+labelFontSize = 16
+legendFontSize = 15
 lineFontSize = 15
 
 path, file = os.path.split(os.path.abspath(__file__))
@@ -31,7 +31,7 @@ for i in range(len(tableau20)):
     r, g, b = tableau20[i]    
     tableau20[i] = (r / 255., g / 255., b / 255.)  
 
-colors = [1, 2, 4, 2, 3]
+colors = [0, 2, 4, 2, 3]
 
 legendTitles = ['pSpatiocyte, A', 'pSpatiocyte, B', 'pSpatiocyte, C']
 lines = ['-','-','--','-','-','-','-']
@@ -44,8 +44,8 @@ for f, k in enumerate(ks):
   dirname = 'k_'+str(k)
   print(dirname)
   data = np.loadtxt(dirname+'/output.txt', delimiter=',', skiprows=1)
-  plot(data[:,0], data[:,2]/volume, label="pSpatiocyte, $k$ = %s" %k,
-      color=tableau20[colors[f]], linewidth=2.5)
+  plot(data[:,0], data[:,2]/volume, label="pSpatiocyte, $k=%s$ s$^{-1}$" %k,
+      color=tableau20[colors[f]], linewidth=2)
 
 num_A = 64000.
 duration = 3.01
@@ -76,7 +76,7 @@ for i, k in enumerate(ks):
 
 ax = gca()
 handles, labels = ax.get_legend_handles_labels()
-leg = legend(loc=(0.02,0.75), labelspacing=0.3, handlelength=2.5,
+leg = legend(loc=(0.08,0.5), labelspacing=0.3, handlelength=2.5,
     handletextpad=0.8, frameon=False)
 for t in leg.get_texts():
   t.set_fontsize(legendFontSize)   
@@ -84,7 +84,7 @@ for t in leg.get_texts():
 xticks(size=labelFontSize)
 yticks(size=labelFontSize)
 
-ax.tick_params(axis='both', which='major', direction='in', length=6, width=1,
+ax.tick_params(axis='both', which='major', direction='in', length=8, width=1,
     labelsize=lineFontSize)
 ax.tick_params(axis='both', which='minor', direction='in', length=3, width=1,
     labelsize=lineFontSize)

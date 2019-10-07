@@ -37,9 +37,9 @@ for s, search in enumerate(searches):
     data = []
     for i in range(iterations):
       if (search == 0):
-        label = "original, $\phi$ = "
+        label = "original, $\phi="
       else:
-        label = "vacated voxel, $\phi$ = "
+        label = "vacated voxel, $\phi="
       fraction_str = '{:.2f}'.format(fraction)
       dirname = 'forced_'+str(search)+'__fraction_'+fraction_str+'_'+str(i)
       print(dirname)
@@ -49,7 +49,7 @@ for s, search in enumerate(searches):
         data = data + np.loadtxt(dirname+'/output.txt', delimiter=',',
             skiprows=1)
     ax.plot(data[:,0]/iterations, data[:,1]/iterations/volume,
-        label=label+str(fraction), color=tableau20[colors[f]], ls=lines[s],
+        label=label+str(fraction)+"$", color=tableau20[colors[f]], ls=lines[s],
         linewidth=2.5)
 
 n_particles_s = 50000
@@ -58,9 +58,6 @@ duration = 12.0
 from scipy.integrate import odeint
 
 def f(x, t0, kcat, kr):
-    """
-    x: state vector with concentrations of S, P
-    """
     return np.array([
         -kcat*x[0],
         kcat*x[0]
@@ -72,19 +69,19 @@ ode_result = odeint(f, y0=init_state, t=ode_time, args=(1.0, 0))
 
 ax.plot(ode_time, ode_result[:,0], "--", color="k", label="ODE", linewidth=2.5)
 
-labelFontSize = 15
-legendFontSize = 13
+labelFontSize = 16
+legendFontSize = 15
 lineFontSize = 15
 
 handles, labels = ax.get_legend_handles_labels()
-leg = ax.legend(frameon=False, loc=(0.07,0.05), handlelength=2.5, handletextpad=0.8)
+leg = ax.legend(frameon=False, loc=(0.07,0.01), handlelength=2.5, handletextpad=0.8)
 for t in leg.get_texts():
   t.set_fontsize(legendFontSize)   
 
 plt.xticks(size=labelFontSize)
 plt.yticks(size=labelFontSize)
 
-ax.tick_params(axis='both', which='major', direction='in', length=6, width=1,
+ax.tick_params(axis='both', which='major', direction='in', length=8, width=1,
     labelsize=lineFontSize)
 ax.tick_params(axis='both', which='minor', direction='in', length=3, width=1,
     labelsize=lineFontSize)

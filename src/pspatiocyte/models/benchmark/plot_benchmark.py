@@ -16,7 +16,7 @@ for i in range(len(tableau20)):
 colors = [1, 0, 8, 4, 2, 3]
 skips = [1, 1, 0, 0, 1, 0]
 sims = ['pspatiocyte', 'pspatiocyte_small_dt', 'spatiocyte', 'smoldyn', 'readdy', 'readdy_serial']
-labels = ['pSpatiocyte (0.5 ms)', 'pSpatiocyte (0.2 ms)', 'Spatiocyte (0.5 ms)', 'Smoldyn (1 ms)', 'Parallel ReaDDy (1 ms)', 'Serial ReaDDy (1 ms)']
+labels = ['pSpatiocyte ($\Delta t=0.5$ ms)', 'pSpatiocyte ($\Delta t=0.2$ ms)', 'Spatiocyte ($\Delta t=0.5$ ms)', 'Smoldyn ($\Delta t=1$ ms)', 'Parallel ReaDDy ($\Delta t=1$ ms)', 'Serial ReaDDy ($\Delta t=1$ ms)']
 data = []
 height = 1.0  # the height of the bars
 

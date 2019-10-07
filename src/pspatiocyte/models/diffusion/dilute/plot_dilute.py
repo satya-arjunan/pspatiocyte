@@ -14,8 +14,8 @@ matplotlib.rcParams['text.latex.preamble'] = [r'\usepackage{amsmath}',
     r'\usepackage{arev}', r'\usepackage{siunitx}',
     r'\sisetup{math-micro={\usefont{T1}{phv}{m}{n}\text{µ}}}']
 
-labelFontSize = 15
-legendFontSize = 13
+labelFontSize = 16
+legendFontSize = 15
 lineFontSize = 15
 
 matplotlib.rcParams.update({'font.size': labelFontSize})
@@ -72,8 +72,8 @@ for D in Ds:
         sd = get_squared_displacement(track)
       else:
         sd = sd + get_squared_displacement(track)
-  ax.plot(times, sd/cnt/1e-12, 
-      label='pSpatiocyte ($D$ = %d \si{\micro}m$^{2}$s$^{-1}$)'%(int(D/1e-12)))
+  ax.plot(times, sd/cnt/1e-12, lw=2,
+      label='pSpatiocyte ($D=%d$ \si{\micro}m$^{2}$s$^{-1}$)'%(int(D/1e-12)))
   np.savetxt('D_'+str(D)+'.csv', np.transpose([times, sd/cnt]),
       delimiter=',')
   
@@ -84,14 +84,14 @@ for i, D in enumerate(Ds):
     ax.plot(times, 6.0*D*times/1e-12, 'k--')
 
 handles, labels = ax.get_legend_handles_labels()
-leg = ax.legend(frameon=False, loc=2)
+leg = ax.legend(frameon=False, loc=2, handletextpad=0.3, labelspacing=0.2, handlelength=1.5)
 for t in leg.get_texts():
   t.set_fontsize(legendFontSize)   
 
 plt.xticks(size=labelFontSize)
 plt.yticks(size=labelFontSize)
 
-ax.tick_params(axis='both', which='major', direction='in', length=6, width=1,
+ax.tick_params(axis='both', which='major', direction='in', length=8, width=1,
     labelsize=lineFontSize)
 ax.tick_params(axis='both', which='minor', direction='in', length=3, width=1,
     labelsize=lineFontSize)
