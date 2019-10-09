@@ -78,7 +78,7 @@ ax.tick_params(axis='y', which='major', length=8, width=1, labelsize=labelFontSi
 
 ax.xaxis.set_ticks_position('both')
 # Add some text for labels, title and custom x-axis tick labels, etc.
-ax.set_xlabel('Run time, $T$ (s)', size=16)
+ax.set_xlabel('Runtime, $T$ (s)', size=16)
 ax.set_ylabel('CPU cores (threads)', size=16)
 ax.tick_params(axis='both', which='major', labelsize=labelFontSize)
 ax.tick_params(axis='both', which='minor', labelsize=labelFontSize)
