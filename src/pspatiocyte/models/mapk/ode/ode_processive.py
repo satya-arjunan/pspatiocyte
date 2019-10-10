@@ -86,7 +86,7 @@ for i in range(len(ratios)):
 
 y = y*volume/NKT
 data = np.c_[x, y]
-np.savetxt('ode_processive.csv', data, delimiter=',')
+np.savetxt('processive.csv', data, delimiter=',')
 #fig,ax=plt.subplots(1,1,figsize=(12,8))
 #ax.semilogx(x,y)
 #plt.show()

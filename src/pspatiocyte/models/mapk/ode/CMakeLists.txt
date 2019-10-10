@@ -1,7 +1,7 @@
 set(method ode)
 set(copy_files
-  ode_distributive.csv
-  ode_processive.csv
+  distributive.csv
+  processive.csv
   ode_distributive.py
   ode_processive.py)
 

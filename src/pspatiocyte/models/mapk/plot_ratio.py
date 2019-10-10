@@ -21,11 +21,11 @@ labels = ['pSpatiocyte ($D=4$ \si{\micro}m$^2$s$^{-1}$)', 'pSpatiocyte ($D=0.06$
 fig,ax=plt.subplots()
 
 #D=4
-data = np.loadtxt('ode/ode_distributive.csv', delimiter=',')
+data = np.loadtxt('ode/distributive.csv', delimiter=',')
 ax.semilogx(data[:,0], data[:,1], '-', label=labels[2], lw=2)
 
 #D=0.06
-data = np.loadtxt('ode/ode_processive.csv', delimiter=',')
+data = np.loadtxt('ode/processive.csv', delimiter=',')
 ax.semilogx(data[:,0], data[:,1], '-', label=labels[3], lw=2)
 
 
