@@ -1,5 +1,35 @@
-#ifndef __EVENTSCHEDULER_HPP
-#define __EVENTSCHEDULER_HPP
+//::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+//
+//        This file is part of pSpatiocyte
+//
+//        Copyright (C) 2019 Satya N.V. Arjunan
+//
+//::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+//
+//
+// Motocyte is free software; you can redistribute it and/or
+// modify it under the terms of the GNU General Public
+// License as published by the Free Software Foundation; either
+// version 2 of the License, or (at your option) any later version.
+// 
+// Motocyte is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+// See the GNU General Public License for more details.
+// 
+// You should have received a copy of the GNU General Public
+// License along with Motocyte -- see the file COPYING.
+// If not, write to the Free Software Foundation, Inc.,
+// 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+// 
+//END_HEADER
+//
+// written by Satya Arjunan <satya.arjunan@gmail.com>
+// and Atsushi Miyauchi
+//
+
+#ifndef __EventScheduler_hpp
+#define __EventScheduler_hpp
 
 #include "PriorityQueue.hpp"
 #include "ParallelEnvironment.hpp"
@@ -53,24 +83,23 @@ public:
 
   void update_event_time(const unsigned index, const double next_time) {
     Event& event(events_[index]);
-    const float curr_time(event.get_time());
+    const double old_time(event.get_time());
     event.set_time(next_time);
-    if(next_time < curr_time) {
-      queue_.move_up(event.get_id());
+    if(next_time >= old_time) {
+      queue_.move_down(event.get_id());
     }
     else {
-      queue_.move_down(event.get_id());
+      queue_.move_up(event.get_id());
     }
   }
 
-  /*
   void step() {
     time_ = queue_.get_top()->get_time();
     queue_.get_top()->fire();
     queue_.move_top();
   }
-  */
 
+  /*
   Event& get_event(const EventID id) {
     return *queue_.get(id);
   } 
@@ -99,10 +128,11 @@ public:
       queue_.move_down(ID);
     }
   }
+  */
 private:
   double time_ = 0;
   EventPriorityQueue queue_;
   std::vector<Event> events_;
 };
 
-#endif /* __EVENTSCHEDULER_HPP */
+#endif /* __EventScheduler_hpp */

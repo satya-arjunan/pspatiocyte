@@ -218,15 +218,13 @@ void World::run(const double end_time, const unsigned verbose) {
   }
   while(scheduler_.get_time() < end_time) {
     /*
-    if (!parallel_environment_.getrank()) {
+    if (!parallel_environment_.getrank() && scheduler_.get_time() > 62) {
       fout << "step: time:" << scheduler_.get_time() << " top time:" <<
         scheduler_.get_top_time() << " name:" << 
         scheduler_.get_top_event().get_name() << std::endl;
     }
     */
-
-    //parallel_environment_.getcart().Barrier();
-    scheduler_.step(parallel_environment_);
+    scheduler_.step();
     if(scheduler_.get_time()-prev_time > interval) {
       prev_time = scheduler_.get_time(); 
       if(!parallel_environment_.getrank() && verbose) {

@@ -65,13 +65,13 @@ struct SpatiocyteEvent: public EventBase {
     parallel_environment_(parallel_environment),
     name_("IndependentReaction"),
     type_(INDEPENDENT_REACTION),
-    interval_(std::numeric_limits<float>::infinity()) {
+    interval_(std::numeric_limits<double>::infinity()) {
       set_time(interval_);
   }
 
   SpatiocyteEvent(Lattice& lattice, Compartment& compartment,
                   ParallelEnvironment& parallel_environment,
-                  const EVENT_TYPE type, const float interval):
+                  const EVENT_TYPE type, const double interval):
     lattice_(lattice),
     compartment_(compartment),
     parallel_environment_(parallel_environment),
@@ -98,7 +98,7 @@ struct SpatiocyteEvent: public EventBase {
     return type_;
   }
   
-  float get_interval() const {
+  double get_interval() const {
     return interval_;
   } 
   
@@ -118,7 +118,7 @@ private:
   Species* species_;
   std::string name_;
   EVENT_TYPE type_;
-  float interval_;
+  double interval_;
   std::vector<Species*> species_list_;
   int id_;
 };

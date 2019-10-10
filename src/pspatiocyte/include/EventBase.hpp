@@ -35,10 +35,10 @@
 class EventBase {
 public:
   EventBase() {}
-  const float get_time() const {
+  const double get_time() const {
     return time_;
   } 
-  void set_time(const float& time) {
+  void set_time(const double time) {
     time_ = time;
   }
   const int get_priority() const {
@@ -48,7 +48,7 @@ public:
     priority_ = priority;
   } 
 private:
-  float time_;
+  double time_;
   int priority_ = 0;
 };
 
