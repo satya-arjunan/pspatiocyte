@@ -1,3 +1,34 @@
+//::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+//
+//        This file is part of pSpatiocyte
+//
+//        Copyright (C) 2019 Satya N.V. Arjunan
+//
+//::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+//
+//
+// Motocyte is free software; you can redistribute it and/or
+// modify it under the terms of the GNU General Public
+// License as published by the Free Software Foundation; either
+// version 2 of the License, or (at your option) any later version.
+// 
+// Motocyte is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+// See the GNU General Public License for more details.
+// 
+// You should have received a copy of the GNU General Public
+// License along with Motocyte -- see the file COPYING.
+// If not, write to the Free Software Foundation, Inc.,
+// 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+// 
+//END_HEADER
+//
+// written by Satya Arjunan <satya.arjunan@gmail.com>
+// and Atsushi Miyauchi
+//
+
+
 #ifndef __WORLD_HPP
 #define __WORLD_HPP
 
@@ -10,7 +41,7 @@
 #include "Compartment.hpp"
 #include "Species.hpp"
 #include "Reaction.hpp"
-#include "Event.hpp"
+#include "SpatiocyteEvent.hpp"
 
 class World {
 public:
@@ -43,13 +74,11 @@ private:
   float output_numbers_dt_;
   float output_coords_dt_;
   Lattice lattice_;
+  EventScheduler<SpatiocyteEvent> scheduler_;
   Compartment compartment_;
   Species* out_species_;
-  EventScheduler<SpatiocyteEvent> scheduler_;
   std::vector<Reaction*> independent_reactions_;
   std::vector<Reaction*> influenced_reactions_;
-  int independent_event_index_ = -1;
-  unsigned independent_event_id_;
   std::vector<Species*> output_numbers_species_list_;
   std::vector<Species*> output_coords_species_list_;
   unsigned output_coords_n_logs_ = 0;

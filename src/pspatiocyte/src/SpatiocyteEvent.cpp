@@ -28,28 +28,26 @@
 // and Atsushi Miyauchi
 //
 
+#include "SpatiocyteEvent.hpp"
+#include "Compartment.hpp"
 
-
-#include "Species.hpp"
-#include "World.hpp"
-
-Species::Species(string n, double D,  unsigned init_size,
-                 World& world, double P):
-  name_(n),
-  D_(D),
-  P_(std::min(P, 1.0)),
-  init_size_(init_size),
-  walk_interval_(std::numeric_limits<double>::infinity()),
-  species_id_(world.add_species(this)) {}
-
-Species::Species(const Species &s) {
-  name_ = s.name_;
-  D_ = s.D_;
-  walk_interval_ = s.walk_interval_;
-  P_ = s.P_;
-  rho_ = s.rho_;
-  walk_probability_ = s.walk_probability_;
-  species_id_ = s.species_id_;
+void SpatiocyteEvent::fire() {
+  switch(type_) {
+  case DIFFUSION:
+    compartment_.walk(species_list_, lattice_, parallel_environment_,
+                      get_time());
+    set_time(get_time() + interval_);
+    return;
+  case INDEPENDENT_REACTION:
+    set_time(compartment_.react_direct_method(lattice_,
+                                        parallel_environment_, get_time()));
+    return;
+  case OUTPUT_NUMBERS:
+    interval_ = compartment_.output_numbers(get_time());
+    set_time(get_time() + interval_);
+    return;
+  case OUTPUT_COORDINATES:
+    interval_ = compartment_.output_coordinates(get_time());
+    set_time(get_time() + interval_);
+  }
 }
-
-

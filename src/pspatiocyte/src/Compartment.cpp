@@ -1,3 +1,34 @@
+//::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+//
+//        This file is part of pSpatiocyte
+//
+//        Copyright (C) 2019 Satya N.V. Arjunan
+//
+//::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+//
+//
+// Motocyte is free software; you can redistribute it and/or
+// modify it under the terms of the GNU General Public
+// License as published by the Free Software Foundation; either
+// version 2 of the License, or (at your option) any later version.
+// 
+// Motocyte is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+// See the GNU General Public License for more details.
+// 
+// You should have received a copy of the GNU General Public
+// License along with Motocyte -- see the file COPYING.
+// If not, write to the Free Software Foundation, Inc.,
+// 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+// 
+//END_HEADER
+//
+// written by Satya Arjunan <satya.arjunan@gmail.com>
+// and Atsushi Miyauchi
+//
+
+
 #include <limits>
 #include "Molecule.hpp"
 #include "Compartment.hpp"
@@ -690,8 +721,7 @@ double Compartment::get_old_total_propensity() {
 
 double Compartment::get_next_time(ParallelEnvironment &pe,
                                   double current_time) {
-  if(next_react_time_ == std::numeric_limits<double>::infinity() || 
-     next_react_time_ == current_time) {
+  if (next_react_time_ == std::numeric_limits<double>::infinity()) {
     return get_new_next_time(pe, current_time);
   }
   double dt(std::numeric_limits<double>::infinity());
@@ -759,8 +789,7 @@ double Compartment::react_direct_method(Lattice &g, ParallelEnvironment &pe,
       break;
     }
   }
-  next_react_time_ = current_time;
-  return 0;
+  return get_new_next_time(pe, current_time);
 }
 
 void Compartment::calculate_probability(Reaction &f, Lattice &g) {
@@ -801,7 +830,8 @@ void Compartment::calculate_max_probability(Species &s) {
 //+/- out_id_
 
 void Compartment::walk(std::vector<Species*>& species_list,
-                       Lattice &g, ParallelEnvironment &pe) {
+                       Lattice &g, ParallelEnvironment &pe,
+                       const float current_time) {
   //check_voxels(g, 0);
   std::vector<unsigned> ghost_species_ids;
   std::vector<unsigned> ghost_src_coords;
@@ -902,7 +932,17 @@ void Compartment::walk(std::vector<Species*>& species_list,
   }
   if (is_parallel_) {
     walk_on_ghost(ghost_species_ids, ghost_src_coords, ghost_tar_coords, g, pe);
+  } 
+  //If independent reaction event exists, update its time and reschedule
+  //it in the execution queue:
+  if (independent_event_index_ >= 0) {
+    scheduler_.update_event_time(independent_event_index_,
+                                 get_next_time(pe, current_time));
   }
+}
+
+void Compartment::set_independent_event_index(const int index) {
+  independent_event_index_ = index;
 }
 
 //combine reaction_on_out() with react(()

@@ -13,6 +13,7 @@ add_library(${PROJECT_NAME} SHARED
   src/ParallelEnvironment.cpp
   src/Reaction.cpp
   src/Species.cpp
+  src/SpatiocyteEvent.cpp
   src/World.cpp)
 
 find_package(MPI REQUIRED)

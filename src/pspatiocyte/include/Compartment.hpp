@@ -1,3 +1,34 @@
+//::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+//
+//        This file is part of pSpatiocyte
+//
+//        Copyright (C) 2019 Satya N.V. Arjunan
+//
+//::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+//
+//
+// Motocyte is free software; you can redistribute it and/or
+// modify it under the terms of the GNU General Public
+// License as published by the Free Software Foundation; either
+// version 2 of the License, or (at your option) any later version.
+// 
+// Motocyte is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+// See the GNU General Public License for more details.
+// 
+// You should have received a copy of the GNU General Public
+// License along with Motocyte -- see the file COPYING.
+// If not, write to the Free Software Foundation, Inc.,
+// 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+// 
+//END_HEADER
+//
+// written by Satya Arjunan <satya.arjunan@gmail.com>
+// and Atsushi Miyauchi
+//
+
+
 #ifndef __COMPARTMENT_HPP
 #define __COMPARTMENT_HPP
 
@@ -16,6 +47,8 @@
 #include "Reaction.hpp"
 #include "ParallelEnvironment.hpp"
 #include "Vector.hpp"
+#include "SpatiocyteEvent.hpp"
+#include "EventScheduler.hpp"
 #include <boost/random.hpp>
 #include <limits>
 #include <random>
@@ -25,7 +58,9 @@ using namespace boost;
 
 class Compartment {
 public:
-  Compartment(string name, COMPARTMENT_TYPE type, uint32_t seed,
+  Compartment(string name, COMPARTMENT_TYPE type, 
+              EventScheduler<SpatiocyteEvent>& scheduler,
+              uint32_t seed,
               const int proc_size, const int proc_id, const int invalid_id,
               const int vacant_id, const int ghost_id,
               const bool is_force_search_vacant):
@@ -43,7 +78,8 @@ public:
     next_react_time_(std::numeric_limits<double>::infinity()),
     mol_id_min_(std::numeric_limits<unsigned>::max()/proc_size*proc_id),
     mol_id_max_(mol_id_min_+std::numeric_limits<unsigned>::max()/proc_size),
-    mol_id_(mol_id_min_) {
+    mol_id_(mol_id_min_),
+    scheduler_(scheduler) {
       randdbl_ = new boost::variate_generator<
         boost::mt19937&,boost::uniform_real<>>(gen_, uniform_real<>());
       adj_rand_ = new boost::variate_generator<
@@ -105,7 +141,7 @@ public:
   double react_direct_method(Lattice &g, ParallelEnvironment &pe,
                              double current_time);
   void walk(std::vector<Species*>& species_list, Lattice &g,
-            ParallelEnvironment &pe);
+            ParallelEnvironment &pe, const float current_time);
 
   void walk_on_ghost(std::vector<unsigned>& species_ids,
                      std::vector<unsigned>& src_coords,
@@ -162,7 +198,7 @@ public:
   void spill_molecules(Lattice& g, const std::vector<SpillMolecule>& coord,
                       const Vector<unsigned>& ghost);
   void jumpin_molecules(Lattice& g, ParallelEnvironment& pe);
-
+  void set_independent_event_index(const int index);
 
 private:
   const int is_parallel_;
@@ -219,12 +255,14 @@ private:
   const unsigned mol_id_min_ = 0;
   const unsigned mol_id_max_ = UINT_MAX;
   unsigned mol_id_;
+  EventScheduler<SpatiocyteEvent>& scheduler_;
   float output_coords_dt_;
   float output_numbers_dt_;
   std::vector<float> coords_logspace_;
   std::vector<float> numbers_logspace_;
   unsigned coords_logspace_cnt_ = 0;
   unsigned numbers_logspace_cnt_ = 0;
+  int independent_event_index_ = -1;
 };
 
 #endif /* __COMPARTMENT_HPP */

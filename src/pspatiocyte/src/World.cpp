@@ -1,3 +1,33 @@
+//::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+//
+//        This file is part of pSpatiocyte
+//
+//        Copyright (C) 2019 Satya N.V. Arjunan
+//
+//::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+//
+//
+// Motocyte is free software; you can redistribute it and/or
+// modify it under the terms of the GNU General Public
+// License as published by the Free Software Foundation; either
+// version 2 of the License, or (at your option) any later version.
+// 
+// Motocyte is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+// See the GNU General Public License for more details.
+// 
+// You should have received a copy of the GNU General Public
+// License along with Motocyte -- see the file COPYING.
+// If not, write to the Free Software Foundation, Inc.,
+// 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+// 
+//END_HEADER
+//
+// written by Satya Arjunan <satya.arjunan@gmail.com>
+// and Atsushi Miyauchi
+//
+
 #include "World.hpp"
 
 // parallel file streams
@@ -19,6 +49,7 @@ World::World(int argc, char* argv[], const unsigned Nx,
   lattice_("SchisMatrix", rv, parallel_environment_, invalid_species_.get_id(),
                vacant_species_.get_id(), ghost_id_),
   compartment_("Cell", VOLUME, //rand(),
+               scheduler_,
                seed*parallel_environment_.getsize()+
                parallel_environment_.getrank(),
                parallel_environment_.getsize(), parallel_environment_.getrank(),
@@ -166,17 +197,15 @@ void World::initialize() {
   }
 
   if (independent_reactions_.size()) {
-    independent_event_index_ =
+    const int independent_event_index_(
       scheduler_.add_event(SpatiocyteEvent(lattice_, compartment_,
-                                          parallel_environment_));
+                                          parallel_environment_)));
+
+    compartment_.set_independent_event_index(independent_event_index_);
   }
   //queue events should be executed after pushing all the events in the
   //scheduler, otherwise the event pointers in queue will become invalid:
   scheduler_.queue_events();
-  if (independent_event_index_ >= 0) {
-    independent_event_id_ = 
-      scheduler_.get_events()[independent_event_index_].get_id();
-  }
 }
 
 void World::run(const double end_time, const unsigned verbose) {
@@ -190,20 +219,14 @@ void World::run(const double end_time, const unsigned verbose) {
   while(scheduler_.get_time() < end_time) {
     /*
     if (!parallel_environment_.getrank()) {
-      std::cout << "step: time:" << scheduler_.get_time() << " top time:" <<
+      fout << "step: time:" << scheduler_.get_time() << " top time:" <<
         scheduler_.get_top_time() << " name:" << 
         scheduler_.get_top_event().get_name() << std::endl;
     }
     */
-    if(independent_event_index_ >= 0 && 
-       (scheduler_.get_time() < scheduler_.get_top_time()) ||
-       (independent_event_id_ == scheduler_.get_top_id() &&
-        scheduler_.get_time() == scheduler_.get_top_time())) {
-      scheduler_.update_event_time(independent_event_index_,
-       compartment_.get_next_time(parallel_environment_,
-                                  scheduler_.get_time()));
-    }
-    scheduler_.step();
+
+    //parallel_environment_.getcart().Barrier();
+    scheduler_.step(parallel_environment_);
     if(scheduler_.get_time()-prev_time > interval) {
       prev_time = scheduler_.get_time(); 
       if(!parallel_environment_.getrank() && verbose) {

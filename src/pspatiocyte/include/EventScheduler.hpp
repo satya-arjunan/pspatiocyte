@@ -63,13 +63,14 @@ public:
     }
   }
 
+  /*
   void step() {
     time_ = queue_.get_top()->get_time();
     queue_.get_top()->fire();
     queue_.move_top();
   }
+  */
 
-  /*
   Event& get_event(const EventID id) {
     return *queue_.get(id);
   } 
@@ -84,7 +85,7 @@ public:
       idw[0] = ID;                                
       cart.Bcast( idw, 2, MPI::LONG_LONG, 0 );   
       ID = idw[0];                              
-      topEvent.fire(pe);
+      topEvent.fire();
       queue_.move_top();
     } else {
       EventID ID;
@@ -94,11 +95,10 @@ public:
       ID = idw[0];                               
       Event& event(get_event(ID));
       time_ = event.get_time();
-      event.fire(pe);
+      event.fire();
       queue_.move_down(ID);
     }
   }
-  */
 private:
   double time_ = 0;
   EventPriorityQueue queue_;
