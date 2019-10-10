@@ -32,3 +32,5 @@ foreach(copy_file ${copy_files})
     $<TARGET_FILE_DIR:${model_name}>)
 endforeach()
 
+add_subdirectory(ode)
+
