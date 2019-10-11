@@ -234,10 +234,6 @@ void World::run(const double end_time, const unsigned verbose) {
       ++n;
     }
   }
-  const double last_time(scheduler_.get_time());
-  if(!parallel_environment_.getrank() && verbose) {
-    std::cout << "t/duration: " << last_time << "/" << end_time << std::endl;
-  }
   parallel_environment_.stoptimer();
 }
 
