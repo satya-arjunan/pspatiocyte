@@ -742,7 +742,7 @@ double Compartment::get_new_next_time(ParallelEnvironment &pe,
   global_total_propensity_ = total_propensity_;
   pe.getcart().Allreduce(MPI::IN_PLACE, &global_total_propensity_, 1,
                          MPI::DOUBLE, MPI::SUM);
-  if( pe.getrank()==0 ) {
+  if(!pe.getrank()) {
     dt = -log((*randdbl_)())/global_total_propensity_;
   }
   pe.getcart().Bcast(&dt, 1 , MPI_DOUBLE, 0);
@@ -754,14 +754,10 @@ double Compartment::get_new_next_time(ParallelEnvironment &pe,
 double Compartment::react_direct_method(Lattice &g, ParallelEnvironment &pe,
                                         double current_time) {
   double propensities[pe.getsize()];
-  for (unsigned i(0); i < pe.getsize(); ++i) {
-    propensities[i] = 0;
-  }
-  propensities[pe.getrank()] = total_propensity_;
-  pe.getcart().Allreduce(MPI::IN_PLACE, &propensities, pe.getsize(),
-                         MPI::DOUBLE, MPI::MAX);
+  pe.getcart().Allgather(&total_propensity_, 1, MPI::DOUBLE, &propensities, 1,
+                         MPI::DOUBLE);
   double random(0);
-  if( pe.getrank()==0 ) {
+  if(!pe.getrank()) {
     random = (*randdbl_)();
   }
   pe.getcart().Bcast(&random, 1 , MPI_DOUBLE, 0);
