@@ -709,9 +709,9 @@ double Compartment::react_direct_method(Lattice &g, ParallelEnvironment &pe,
        local_propensities[pe.getrank()-1] < random_propensity)) {
     double accumulated_propensity(local_propensities[pe.getrank()]-
                                   local_propensity_);
-    for (unsigned j(0); j < direct_method_reactions_.size() &&
-         accumulated_propensity < random_propensity; ++j) {
-      Reaction& reaction(*direct_method_reactions_[j]);
+    for (unsigned i(0); i < direct_method_reactions_.size() &&
+         accumulated_propensity < random_propensity; ++i) {
+      Reaction& reaction(*direct_method_reactions_[i]);
       accumulated_propensity += reaction.get_propensity();
       if(accumulated_propensity >= random_propensity) {
         do_direct_method_reaction(reaction, g, pe);
