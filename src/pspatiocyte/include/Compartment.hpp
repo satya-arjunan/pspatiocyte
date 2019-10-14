@@ -73,7 +73,7 @@ public:
     type_(type),
     rng_(seed),
     gen_(seed),
-    total_propensity_(0),
+    local_propensity_(0),
     prev_react_time_(0),
     next_react_time_(std::numeric_limits<double>::infinity()),
     mol_id_min_(std::numeric_limits<unsigned>::max()/proc_size*proc_id),
@@ -235,8 +235,8 @@ private:
   double next_react_time_;
   double prev_react_time_;
 
-  double total_propensity_;
-  double global_total_propensity_;
+  double local_propensity_;
+  double global_propensity_;
 
   boost::uniform_int<> dist_ = boost::uniform_int<>(0, 11);
   boost::mt19937 gen_;
