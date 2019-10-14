@@ -146,7 +146,8 @@ public:
                      std::vector<unsigned>& src_coords,
                      std::vector<unsigned>& tar_coords,
                      Lattice& g, ParallelEnvironment& pe);
-  bool process_reaction(Reaction &r, Lattice &g, ParallelEnvironment &pe);
+  bool do_direct_method_reaction(Reaction &r, Lattice &g,
+                                      ParallelEnvironment &pe);
   bool get_vacant_neighbor(Lattice &g, const int &coord, int &center,
                            int &neighbor);
   void calculate_propensity(Reaction &r);

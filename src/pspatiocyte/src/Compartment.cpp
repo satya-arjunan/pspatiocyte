@@ -441,8 +441,8 @@ void Compartment::add_direct_method_reaction(Reaction& r) {
   direct_method_reactions_.push_back(&r);
 }
 
-bool Compartment::process_reaction(Reaction &f, Lattice &g,
-                                     ParallelEnvironment &pe) {
+bool Compartment::do_direct_method_reaction(Reaction &f, Lattice &g,
+                                                 ParallelEnvironment &pe) {
   const int r0 = f.getR0();       // moles of reactant 0
   const int r1 = f.getR1();       // moles of reactant 1
   const int r2 = f.getP2();       // moles of product  2
@@ -680,7 +680,7 @@ double Compartment::get_new_next_time(ParallelEnvironment &pe,
   global_total_propensity_ = total_propensity_;
   pe.getcart().Allreduce(MPI::IN_PLACE, &global_total_propensity_, 1,
                          MPI::DOUBLE, MPI::SUM);
-  if(!pe.getrank()) {
+  if (!pe.getrank()) {
     dt = -log((*randdbl_)())/global_total_propensity_;
   }
   pe.getcart().Bcast(&dt, 1 , MPI_DOUBLE, 0);
@@ -690,35 +690,39 @@ double Compartment::get_new_next_time(ParallelEnvironment &pe,
 
 double Compartment::react_direct_method(Lattice &g, ParallelEnvironment &pe,
                                         double current_time) {
-  double propensities[pe.getsize()];
-  pe.getcart().Allgather(&total_propensity_, 1, MPI::DOUBLE, &propensities, 1,
-                         MPI::DOUBLE);
+  double local_propensities[pe.getsize()];
+  pe.getcart().Allgather(&total_propensity_, 1, MPI::DOUBLE,
+                         &local_propensities, 1, MPI::DOUBLE);
   double random(0);
-  if(!pe.getrank()) {
+  if (!pe.getrank()) {
     random = (*randdbl_)();
   }
   pe.getcart().Bcast(&random, 1 , MPI_DOUBLE, 0);
-  double global(0);
+  global_total_propensity_ = 0;
   for (unsigned i(0); i < pe.getsize(); ++i) {
-    global += propensities[i];
+    global_total_propensity_ += local_propensities[i];
   }
-  random *= global;
-  double local(0);
-  for (unsigned i(0); i < pe.getsize() && local < random; ++i) {
-    local += propensities[i];
-    if(local >= random && i == pe.getrank()) {
-      double accumulated_propensity(0.0);
-      double random_propensity(total_propensity_*(*randdbl_)()); 
-      for (unsigned i(0); i < direct_method_reactions_.size() &&
-           accumulated_propensity < random_propensity; ++i) {
-        Reaction& reaction(*direct_method_reactions_[i]);
-        accumulated_propensity += reaction.get_propensity();
-        if(accumulated_propensity >= random_propensity) {
-          process_reaction(reaction, g, pe );
+
+  double global_accumulated_propensity(0);
+  double random_propensity(random*global_total_propensity_);
+  for (unsigned i(0); i < pe.getsize() &&
+       global_accumulated_propensity < random_propensity; ++i) {
+    global_accumulated_propensity += local_propensities[i];
+    if (global_accumulated_propensity >= random_propensity &&
+        i == pe.getrank()) {
+      double local_accumulated_propensity(global_accumulated_propensity-
+                                          total_propensity_);
+      for (unsigned j(0); j < direct_method_reactions_.size() &&
+           local_accumulated_propensity < random_propensity; ++j) {
+        Reaction& reaction(*direct_method_reactions_[j]);
+        local_accumulated_propensity += reaction.get_propensity();
+        if(local_accumulated_propensity >= random_propensity) {
+          do_direct_method_reaction(reaction, g, pe );
         }
       }
     }
   }
+
   return get_new_next_time(pe, current_time);
 }
 
