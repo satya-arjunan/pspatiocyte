@@ -141,14 +141,14 @@ void Compartment::initialize(Lattice &g, ParallelEnvironment &pe,
     n_voxels_ = voxel_coords_.size(); // = (nx_-2)*(ny_-2)*(nz_-2)
     unsigned total_voxels(n_voxels_);
     local_volume_ = n_voxels_*4.0*SQR2*rv*rv*rv;
-    volume_ = local_volume_;
+    global_volume_ = local_volume_;
     const MPI::Cartcomm cart = pe.getcart();
-    cart.Allreduce(MPI::IN_PLACE, &volume_, 1, MPI::DOUBLE, MPI::SUM);
+    cart.Allreduce(MPI::IN_PLACE, &global_volume_, 1, MPI::DOUBLE, MPI::SUM);
     cart.Allreduce(MPI::IN_PLACE, &total_voxels, 1, MPI::INT, MPI::SUM);
     if (!pe.getrank()) {
       std::cout << "voxel radius:" << rv << std::endl;
       std::cout << "total voxels:" << total_voxels << std::endl;
-      std::cout << "actual total volume:" << volume_ << std::endl;
+      std::cout << "actual total volume:" << global_volume_ << std::endl;
     }
   }
 
@@ -447,10 +447,10 @@ bool Compartment::process_reaction(Reaction &f, Lattice &g,
   const int r1 = f.getR1();       // moles of reactant 1
   const int r2 = f.getP2();       // moles of product  2
   const int r3 = f.getP3();       // moles of product  3
-  Species *s0 = f.getS0();        // species of reactant 0
-  Species *s1 = f.getS1();        // species of reactant 1
-  Species *s2 = f.getS2();        // species of product  2
-  Species *s3 = f.getS3();        // species of product  3
+  Species& s0 = f.getS0();        // species of reactant 0
+  Species& s1 = f.getS1();        // species of reactant 1
+  Species& s2 = f.getS2();        // species of product  2
+  Species& s3 = f.getS3();        // species of product  3
 
   if(r0 && r1) {
     fout << "ERROR: bimolecular independent reaction is not allowed"
@@ -464,32 +464,32 @@ bool Compartment::process_reaction(Reaction &f, Lattice &g,
   const bool binary = (r2 && r3) ? true : false; // two products
 
   if (r0) { 
-    result = remove_reactant(*s0, g, binary, center, neighbor);
+    result = remove_reactant(s0, g, binary, center, neighbor);
   }
 
   if (r1) {
-    result = remove_reactant(*s1, g, binary, center, neighbor);
+    result = remove_reactant(s1, g, binary, center, neighbor);
   }
 
   if (result) {
     if (binary) { 
       const double location = (*randdbl_)();
       if(location>0.5) { 
-        add_product(*s2, g, center);
-        add_product(*s3, g, neighbor);
+        add_product(s2, g, center);
+        add_product(s3, g, neighbor);
       }
       else {
-        add_product(*s2, g, neighbor);
-        add_product(*s3, g, center);
+        add_product(s2, g, neighbor);
+        add_product(s3, g, center);
       }
     }
     else {
       if (r2) {
-        add_product(*s2, g, center);
+        add_product(s2, g, center);
       }
       else
       if (r3) {
-        add_product(*s3, g, center);
+        add_product(s3, g, center);
       }
     }
   }
@@ -641,82 +641,20 @@ void Compartment::add_product(Species &s, Lattice &g, int coord) {
   add_molecule(s.get_id(), coord, get_new_mol_id(), voxel); 
 }
 
-void Compartment::calculate_propensity(Reaction &f) {
-  const int r0 = f.getR0();        // moles of reactant 0
-  const int r1 = f.getR1();        // moles of reactant 1
-  Species  *s0 = f.getS0();        // species of reactant 0
-  Species  *s1 = f.getS1();        // species of reactant 1
-
-  double propensity = 0.0;
-  double concentration0 = 0.0;  // number of reactant S0 / volume
-  double concentration1 = 0.0;  // number of reactant S1 / volume
-
-  if(r0) {
-    std::vector<Molecule>& molecules(species_molecules_[(*s0).get_id()]); 
-    concentration0 = molecules.size()/volume_;
-  }
-
-  if(r1) {
-    std::vector<Molecule>& molecules(species_molecules_[(*s1).get_id()]); 
-    concentration1 = molecules.size()/volume_;
-  }
-  propensity = f.getK()*pow(concentration0, r0)*pow(concentration1, r1)*volume_;
-  f.set_old_propensity(propensity);
+void Compartment::calculate_local_propensity(Reaction &reaction,
+                                             double current_time) {
+  Species& reactant(reaction.getS0());
+  std::vector<Molecule>& molecules(species_molecules_[reactant.get_id()]); 
+  reaction.set_propensity(reaction.get_k()*molecules.size());
 }
-
-void Compartment::calculate_local_propensity(Reaction &f, double current_time) {
-  const int r0 = f.getR0();        // moles of reactant 0
-  const int r1 = f.getR1();        // moles of reactant 1
-  Species  *s0 = f.getS0();        // species of reactant 0
-  Species  *s1 = f.getS1();        // species of reactant 1
-
-  double propensity = 0.0;
-  double concentration0 = 0.0;  // number of reactant S0 / local_volume
-  double concentration1 = 0.0;  // number of reactant S1 / local_volume
-
-  if(r0) { 
-    std::vector<Molecule>& molecules(species_molecules_[(*s0).get_id()]); 
-    concentration0 = molecules.size()/local_volume_;
-  }
-
-  if(r1) {
-    std::vector<Molecule>& molecules(species_molecules_[(*s1).get_id()]); 
-    concentration1 = molecules.size()/local_volume_;
-  }
-
-  propensity = f.getK()*pow( concentration0, r0)*
-    pow(concentration1, r1 )*local_volume_;
-  f.set_propensity(propensity);
-}
-
 
 double Compartment::get_new_propensity(double current_time) {
-  vector<Reaction*>::iterator p(direct_method_reactions_.begin());
-  vector<Reaction*>::iterator e(direct_method_reactions_.end());
   total_propensity_ = 0.0;
-  while(p!=e) {
-      calculate_local_propensity(*(*p), current_time);
-      total_propensity_ += (*p)->get_propensity();
-      p++;
-  }
-  vector<Reaction*>::iterator p3(direct_method_reactions_.begin());
-  vector<Reaction*>::iterator e3(direct_method_reactions_.end());
-  while(p3!=e3) {
-      calculate_propensity(*(*p3));
-      p3++;
+  for (unsigned i(0); i < direct_method_reactions_.size(); ++i) {
+    calculate_local_propensity(*direct_method_reactions_[i], current_time);
+    total_propensity_ += direct_method_reactions_[i]->get_propensity();
   }
   return total_propensity_;
-}
-
-double Compartment::get_old_total_propensity() {
-  vector<Reaction*>::iterator p(direct_method_reactions_.begin());
-  vector<Reaction*>::iterator e(direct_method_reactions_.end());
-  double total_propensity = 0.0;
-  while(p!=e) {
-    total_propensity += (*p)->get_old_propensity();
-    p++;
-  }
-  return total_propensity;
 }
 
 double Compartment::get_next_time(ParallelEnvironment &pe,
@@ -750,7 +688,6 @@ double Compartment::get_new_next_time(ParallelEnvironment &pe,
   return next_react_time_;
 }
 
-
 double Compartment::react_direct_method(Lattice &g, ParallelEnvironment &pe,
                                         double current_time) {
   double propensities[pe.getsize()];
@@ -767,22 +704,19 @@ double Compartment::react_direct_method(Lattice &g, ParallelEnvironment &pe,
   }
   random *= global;
   double local(0);
-  for (unsigned i(0); i < pe.getsize(); ++i) {
+  for (unsigned i(0); i < pe.getsize() && local < random; ++i) {
     local += propensities[i];
-    if(local >= random) {
-      if(i == pe.getrank()) {
-        double accumulated_propensity(0.0);
-        double random_propensity(total_propensity_*(*randdbl_)());
-        vector<Reaction*>::iterator p(direct_method_reactions_.begin());
-        vector<Reaction*>::iterator e(direct_method_reactions_.end());
-        while(p!=e) {
-          accumulated_propensity += (*p)->get_propensity();
-          if(accumulated_propensity >= random_propensity) break;
-          p++;
+    if(local >= random && i == pe.getrank()) {
+      double accumulated_propensity(0.0);
+      double random_propensity(total_propensity_*(*randdbl_)()); 
+      for (unsigned i(0); i < direct_method_reactions_.size() &&
+           accumulated_propensity < random_propensity; ++i) {
+        Reaction& reaction(*direct_method_reactions_[i]);
+        accumulated_propensity += reaction.get_propensity();
+        if(accumulated_propensity >= random_propensity) {
+          process_reaction(reaction, g, pe );
         }
-        process_reaction( *(*p), g, pe );
       }
-      break;
     }
   }
   return get_new_next_time(pe, current_time);
@@ -791,11 +725,11 @@ double Compartment::react_direct_method(Lattice &g, ParallelEnvironment &pe,
 void Compartment::calculate_probability(Reaction &f, Lattice &g) {
   const int r0 = f.getR0();        // moles of reactant 0
   const int r1 = f.getR1();        // moles of reactant 1
-  Species  *s0 = f.getS0();        // species of reactant 0
-  Species  *s1 = f.getS1();        // species of reactant 1
-  const double kAB = f.getK();
-  const double DA = s0->getD();
-  const double DB = s1->getD();
+  Species&  s0 = f.getS0();        // species of reactant 0
+  Species&  s1 = f.getS1();        // species of reactant 1
+  const double kAB = f.get_k();
+  const double DA = s0.getD();
+  const double DB = s1.getD();
   const double rv = g.getradius();
   const double SQR2 = 1.414213562;
   if(r0==1 && r1==1) {
@@ -809,9 +743,9 @@ void Compartment::calculate_max_probability(Species &s) {
   double maxPi = 0.0;
   for(int j=0; j<m; ++j) {
     Reaction& Rj(*influenced_reactions_[j]);
-    Species* s0 = Rj.getS0();
-    Species* s1 = Rj.getS1(); 
-    if( s==*s0 || s==*s1 ) {
+    Species& s0 = Rj.getS0();
+    Species& s1 = Rj.getS1(); 
+    if( &s==&s0 || &s==&s1 ) {
       const double Pi = Rj.get_probability();
       maxPi = ( maxPi<Pi ? Pi : maxPi );
     }
@@ -947,7 +881,7 @@ void Compartment::react(Lattice& g, Species& s, const unsigned tarID,
                         const unsigned src_coord, const unsigned tar_coord) {
   const unsigned reaction_id(influenced_reaction_ids_[s.get_id()][tarID]);
   Reaction& reaction(*influenced_reactions_[reaction_id]);
-  Species& s0(*reaction.getS0());
+  Species& s0(reaction.getS0());
   if (&s0 == &s) {
     do_reaction(g, reaction, src_voxel, tar_voxel, src_coord, tar_coord);
   }
@@ -958,11 +892,11 @@ void Compartment::react(Lattice& g, Species& s, const unsigned tarID,
 
 void Compartment::do_reaction(Lattice& g, Reaction& r, Voxel& v0, Voxel& v1,
                               const unsigned c0, const unsigned c1) {
-  Species& s0(*r.getS0());
-  Species& s1(*r.getS1());
+  Species& s0(r.getS0());
+  Species& s1(r.getS1());
   if (&s0 != &s1) {
     if (r.getP2()) {
-      Species& p0(*r.getS2());
+      Species& p0(r.getS2());
       if (&p0 != &s0 && &p0 != &s1) {
         //must remove before adding since in the removed species, the replacing
         //molecule might be the one removed and it will be occupied
@@ -975,7 +909,7 @@ void Compartment::do_reaction(Lattice& g, Reaction& r, Voxel& v0, Voxel& v1,
       remove_molecule(g, s0.get_id(), v0);
     }
     if (r.getP3()) {
-      Species& p1(*r.getS3());
+      Species& p1(r.getS3());
       if (&p1 != &s1 && &p1 != &s0) {
         //must remove before adding since in the removed species, the replacing
         //molecule might be the one removed and it will be occupied
@@ -1098,8 +1032,8 @@ void Compartment::calculate_collision_time(Species& s,
 }
 
 void Compartment::add_diffusion_influenced_reaction(Reaction& r) {
-  Species& s0(*r.getS0());
-  Species& s1(*r.getS1());
+  Species& s0(r.getS0());
+  Species& s1(r.getS1());
   const unsigned reaction_id(influenced_reactions_.size());
   influenced_reactions_.push_back(&r);
   const unsigned id0(s0.get_id());
@@ -1227,7 +1161,7 @@ void Compartment::react_on_ghost(Lattice& g, Species& s, const unsigned tarID,
                                  std::vector<SpillMolecule>& spill_coords) {
   const unsigned reaction_id(influenced_reaction_ids_[s.get_id()][tarID]);
   Reaction& reaction(*influenced_reactions_[reaction_id]);
-  Species& s0(*reaction.getS0());
+  Species& s0(reaction.getS0());
   if (&s0 == &s) {
     do_reaction_on_ghost(g, reaction, src_voxel, tar_voxel, src_coord,
                          tar_coord, spill_coords);
@@ -1243,11 +1177,11 @@ void Compartment::do_reaction_on_ghost(Lattice& g, Reaction& r, Voxel& v0,
                                        Voxel& v1, const unsigned c0,
                                        const unsigned c1,
                                      std::vector<SpillMolecule>& spill_coords) {
-  Species& s0(*r.getS0());
-  Species& s1(*r.getS1());
+  Species& s0(r.getS0());
+  Species& s1(r.getS1());
   if (&s0 != &s1) {
     if (r.getP2()) {
-      Species& p0(*r.getS2());
+      Species& p0(r.getS2());
       if (&p0 != &s0 && &p0 != &s1) {
         //must remove before adding since in the removed species, the replacing
         //molecule might be the one removed and it will be occupied
@@ -1260,7 +1194,7 @@ void Compartment::do_reaction_on_ghost(Lattice& g, Reaction& r, Voxel& v0,
       remove_molecule_on_ghost(g, s0.get_id(), c0, v0, spill_coords);
     }
     if (r.getP3()) {
-      Species& p1(*r.getS3());
+      Species& p1(r.getS3());
       if (&p1 != &s1 && &p1 != &s0) {
         //must remove before adding since in the removed species, the replacing
         //molecule might be the one removed and it will be occupied

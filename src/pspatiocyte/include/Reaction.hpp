@@ -42,17 +42,17 @@ public:
   REACTION_TYPE getType() { 
     return type_; 
   }
-  Species* getS0() {
-    return s0_;
+  Species& getS0() {
+    return *s0_;
   }
-  Species* getS1() {
-    return s1_;
+  Species& getS1() {
+    return *s1_;
   }
-  Species* getS2() {
-    return s2_;
+  Species& getS2() {
+    return *s2_;
   }
-  Species* getS3() {
-    return s3_;
+  Species& getS3() {
+    return *s3_;
   }
   int getR0() {
     return r0_;
@@ -66,7 +66,7 @@ public:
   int getP3() {
     return p3_;
   }
-  double getK() {
+  double get_k() {
     return k_;
   }
   double getDt() {

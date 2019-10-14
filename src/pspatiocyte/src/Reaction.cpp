@@ -48,14 +48,7 @@ void Reaction::diagnostics()
     if(s2_) fout          << s2_->get_name();
     if(s3_) fout << " + " << s3_->get_name();
             fout << " ] " << endl;
-/*
-    if(s0_) fout << "   s0   = " <<  s0_->get_name() << endl;
-    if(s1_) fout << "   s1   = " <<  s1_->get_name() << endl;
-    if(s2_) fout << "   s2   = " <<  s2_->get_name() << endl;
-    if(s3_) fout << "   s3   = " <<  s3_->get_name() << endl;
-*/
     fout << "   ID   = " <<  reactionID_    << endl;
-//    fout << "   dt   = " <<  dt_   << endl;
 }
 
 

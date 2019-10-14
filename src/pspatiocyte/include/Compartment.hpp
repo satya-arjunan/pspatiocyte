@@ -122,7 +122,6 @@ public:
   bool walk_molecule(Lattice& g, const int src_coord, const int curr_coord);
   void initialize(Lattice &g, ParallelEnvironment &pe,
                   std::vector<Species*>& species_list);
-  double get_old_total_propensity();
   void populate_molecules(Species& s, const unsigned size, Lattice &g,
                           ParallelEnvironment &pe);
   void populate_molecules(Species& s, const unsigned size, Lattice &g);
@@ -230,7 +229,7 @@ private:
   vector<Reaction*> direct_method_reactions_;  // list of reactions
   vector<Reaction*> influenced_reactions_;    // list of reactions
 
-  double volume_;
+  double global_volume_;
   double local_volume_;
   double next_react_time_;
   double prev_react_time_;

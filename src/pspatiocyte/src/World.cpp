@@ -128,13 +128,13 @@ void World::initialize() {
     Reaction& reaction(*influenced_reactions_[i]);
     compartment_.add_diffusion_influenced_reaction(reaction);
     compartment_.calculate_probability(reaction, lattice_);
-    if (std::find(reactants.begin(), reactants.end(), reaction.getS0()) == 
+    if (std::find(reactants.begin(), reactants.end(), &reaction.getS0()) == 
         reactants.end()) {
-      reactants.push_back(reaction.getS0());
+      reactants.push_back(&reaction.getS0());
     }
-    if (std::find(reactants.begin(), reactants.end(), reaction.getS1()) == 
+    if (std::find(reactants.begin(), reactants.end(), &reaction.getS1()) == 
         reactants.end()) {
-      reactants.push_back(reaction.getS1());
+      reactants.push_back(&reaction.getS1());
     }
   }
 
