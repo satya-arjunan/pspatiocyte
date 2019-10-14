@@ -130,7 +130,7 @@ public:
                        int &neighbor);
   void add_product(Species &s, Lattice &g, int coord);
   void calculate_propensity(Reaction &r, ParallelEnvironment &pe);
-  double get_new_propensity(double);
+  double get_local_propensity(double);
   double get_next_time(ParallelEnvironment &pe, double current_time);
   double get_new_next_time(ParallelEnvironment &pe, double current_time);
   void add_diffusion_influenced_reaction(Reaction& r);

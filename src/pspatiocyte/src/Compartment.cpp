@@ -648,9 +648,9 @@ void Compartment::calculate_local_propensity(Reaction &reaction,
   reaction.set_propensity(reaction.get_k()*molecules.size());
 }
 
-double Compartment::get_new_propensity(double current_time) {
-  local_propensity_ = 0.0;
-  for (unsigned i(0); i < direct_method_reactions_.size(); ++i) {
+double Compartment::get_local_propensity(double current_time) {
+  local_propensity_ = direct_method_reactions_[0]->get_propensity();
+  for (unsigned i(1); i < direct_method_reactions_.size(); ++i) {
     calculate_local_propensity(*direct_method_reactions_[i], current_time);
     local_propensity_ += direct_method_reactions_[i]->get_propensity();
   }
@@ -663,12 +663,11 @@ double Compartment::get_next_time(ParallelEnvironment &pe,
     return get_new_next_time(pe, current_time);
   }
   double dt(std::numeric_limits<double>::infinity());
-  get_new_propensity(current_time);
-  const double old_propensity(global_propensity_);
-  global_propensity_ = local_propensity_;
+  const double old_global_propensity(global_propensity_);
+  global_propensity_ = get_local_propensity(current_time);
   pe.getcart().Allreduce(MPI::IN_PLACE, &global_propensity_, 1,
                          MPI::DOUBLE, MPI::SUM);
-  dt = old_propensity/global_propensity_*(next_react_time_-current_time);
+  dt = old_global_propensity/global_propensity_*(next_react_time_-current_time);
   next_react_time_ = current_time + dt;
   return next_react_time_;
 }
@@ -676,8 +675,7 @@ double Compartment::get_next_time(ParallelEnvironment &pe,
 double Compartment::get_new_next_time(ParallelEnvironment &pe,
                                       double current_time) {
   double dt(std::numeric_limits<double>::infinity());
-  get_new_propensity(current_time);
-  global_propensity_ = local_propensity_;
+  global_propensity_ = get_local_propensity(current_time);
   pe.getcart().Allreduce(MPI::IN_PLACE, &global_propensity_, 1,
                          MPI::DOUBLE, MPI::SUM);
   if (!pe.getrank()) {
