@@ -129,8 +129,8 @@ public:
   bool remove_reactant(Species &s, Lattice &g, bool binary, int &center,
                        int &neighbor);
   void add_product(Species &s, Lattice &g, int coord);
-  void calculate_propensity(Reaction &r, ParallelEnvironment &pe);
-  double get_local_propensity(double);
+  double get_local_propensity();
+  double get_reaction_propensity(Reaction &r);
   double get_next_time(ParallelEnvironment &pe, double current_time);
   double get_new_next_time(ParallelEnvironment &pe, double current_time);
   void add_diffusion_influenced_reaction(Reaction& r);
@@ -150,8 +150,6 @@ public:
                                       ParallelEnvironment &pe);
   bool get_vacant_neighbor(Lattice &g, const int &coord, int &center,
                            int &neighbor);
-  void calculate_propensity(Reaction &r);
-  void calculate_local_propensity(Reaction &r, double);
   void add_coordinates_species(Species& species);
   void add_number_species(Species& species);
   void output_coordinates_header(Lattice& lattice, ParallelEnvironment &pe,
