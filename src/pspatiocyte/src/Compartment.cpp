@@ -654,25 +654,20 @@ double Compartment::get_local_propensity() {
   return local_propensity_;
 }
 
-double Compartment::get_next_time(ParallelEnvironment &pe,
-                                  double current_time) {
-  if (next_react_time_ == std::numeric_limits<double>::infinity()) {
-    return get_new_next_time(pe, current_time);
-  }
+double Compartment::get_next_interval(ParallelEnvironment &pe,
+                                      const double time_left) {
   double dt(std::numeric_limits<double>::infinity());
   const double old_propensity(global_propensity_);
   global_propensity_ = get_local_propensity();
   pe.getcart().Allreduce(MPI::IN_PLACE, &global_propensity_, 1,
                          MPI::DOUBLE, MPI::SUM);
   if (global_propensity_) {
-    dt = old_propensity/global_propensity_*(next_react_time_-current_time);
+    dt = old_propensity/global_propensity_*time_left;
   }
-  next_react_time_ = current_time + dt;
-  return next_react_time_;
+  return dt;
 }
 
-double Compartment::get_new_next_time(ParallelEnvironment &pe,
-                                      double current_time) {
+double Compartment::get_new_interval(ParallelEnvironment &pe) {
   double dt(std::numeric_limits<double>::infinity());
   global_propensity_ = get_local_propensity();
   pe.getcart().Allreduce(MPI::IN_PLACE, &global_propensity_, 1,
@@ -683,12 +678,10 @@ double Compartment::get_new_next_time(ParallelEnvironment &pe,
     }
     pe.getcart().Bcast(&dt, 1 , MPI_DOUBLE, 0);
   }
-  next_react_time_ = current_time + dt;
-  return next_react_time_;
+  return dt;
 }
 
-double Compartment::react_direct_method(Lattice &g, ParallelEnvironment &pe,
-                                        double current_time) {
+double Compartment::react_direct_method(Lattice &g, ParallelEnvironment &pe) {
   double local_propensities[pe.getsize()];
   pe.getcart().Allgather(&local_propensity_, 1, MPI::DOUBLE,
                          &local_propensities, 1, MPI::DOUBLE);
@@ -716,7 +709,7 @@ double Compartment::react_direct_method(Lattice &g, ParallelEnvironment &pe,
       }
     }
   }
-  return get_new_next_time(pe, current_time);
+  return get_new_interval(pe);
 }
 
 void Compartment::calculate_probability(Reaction &f, Lattice &g) {
@@ -757,8 +750,7 @@ void Compartment::calculate_max_probability(Species &s) {
 //+/- out_id_
 
 void Compartment::walk(std::vector<Species*>& species_list,
-                       Lattice &g, ParallelEnvironment &pe,
-                       const float current_time) {
+                       Lattice &g, ParallelEnvironment &pe) {
   //check_voxels(g, 0);
   std::vector<unsigned> ghost_species_ids;
   std::vector<unsigned> ghost_src_coords;
@@ -862,14 +854,13 @@ void Compartment::walk(std::vector<Species*>& species_list,
   } 
   //If independent reaction event exists, update its time and reschedule
   //it in the execution queue:
-  if (independent_event_index_ >= 0) {
-    scheduler_.update_event_time(independent_event_index_,
-                                 get_next_time(pe, current_time));
+  if (direct_method_event_) {
+    direct_method_event_->update_next_time();
   }
 }
 
-void Compartment::set_independent_event_index(const int index) {
-  independent_event_index_ = index;
+void Compartment::set_direct_method_event(SpatiocyteEvent& event) {
+  direct_method_event_ = &event;
 }
 
 //combine reaction_on_out() with react(()

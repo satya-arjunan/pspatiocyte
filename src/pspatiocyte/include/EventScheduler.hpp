@@ -77,6 +77,21 @@ public:
     }
   }
 
+  Event& get_event(const unsigned index) {
+    return events_[index];
+  }
+
+  void step() {
+    time_ = queue_.get_top()->get_time();
+    queue_.get_top()->fire();
+    queue_.move_top();
+  }
+
+  EventPriorityQueue& get_queue() {
+    return queue_;
+  }
+
+  /*
   const std::vector<Event>& get_events() const {
     return events_;
   }
@@ -93,13 +108,6 @@ public:
     }
   }
 
-  void step() {
-    time_ = queue_.get_top()->get_time();
-    queue_.get_top()->fire();
-    queue_.move_top();
-  }
-
-  /*
   Event& get_event(const EventID id) {
     return *queue_.get(id);
   } 

@@ -49,7 +49,6 @@ World::World(int argc, char* argv[], const unsigned Nx,
   lattice_("SchisMatrix", rv, parallel_environment_, invalid_species_.get_id(),
                vacant_species_.get_id(), ghost_id_),
   compartment_("Cell", VOLUME, //rand(),
-               scheduler_,
                seed*parallel_environment_.getsize()+
                parallel_environment_.getrank(),
                parallel_environment_.getsize(), parallel_environment_.getrank(),
@@ -164,7 +163,8 @@ void World::initialize() {
                                        output_numbers_n_logs_);
     float dt(compartment_.output_numbers(scheduler_.get_time()));
     scheduler_.add_event(SpatiocyteEvent(lattice_, compartment_,
-                                 parallel_environment_, OUTPUT_NUMBERS, dt));
+                                 parallel_environment_, scheduler_,
+                                 OUTPUT_NUMBERS, dt));
   }
 
   if (output_coords_dt_) {
@@ -185,23 +185,27 @@ void World::initialize() {
                                            output_coords_n_logs_);
     float dt(compartment_.output_coordinates(scheduler_.get_time()));
     scheduler_.add_event(SpatiocyteEvent(lattice_, compartment_,
-                               parallel_environment_, OUTPUT_COORDINATES, dt));
+                               parallel_environment_, scheduler_,
+                               OUTPUT_COORDINATES, dt));
   }
 
   for (unsigned i(0); i < species_list_.size(); ++i) {
     Species& species(*species_list_[i]);
     if (species.getD()) {
       scheduler_.add_event(SpatiocyteEvent(lattice_, compartment_,
-                                           parallel_environment_, species));
+                                           parallel_environment_, scheduler_,
+                                           species));
     }
   }
 
+  //This event should be added last since the pointer of the event will only
+  //be valid once the last event is pushed. The pointer will be used by 
+  //compartment.
   if (independent_reactions_.size()) {
-    const int independent_event_index_(
-      scheduler_.add_event(SpatiocyteEvent(lattice_, compartment_,
-                                          parallel_environment_)));
+    const unsigned event_index(scheduler_.add_event(SpatiocyteEvent(lattice_,
+                            compartment_, parallel_environment_, scheduler_)));
 
-    compartment_.set_independent_event_index(independent_event_index_);
+    compartment_.set_direct_method_event(scheduler_.get_event(event_index));
   }
   //queue events should be executed after pushing all the events in the
   //scheduler, otherwise the event pointers in queue will become invalid:

@@ -59,7 +59,6 @@ using namespace boost;
 class Compartment {
 public:
   Compartment(string name, COMPARTMENT_TYPE type, 
-              EventScheduler<SpatiocyteEvent>& scheduler,
               uint32_t seed,
               const int proc_size, const int proc_id, const int invalid_id,
               const int vacant_id, const int ghost_id,
@@ -74,12 +73,9 @@ public:
     rng_(seed),
     gen_(seed),
     local_propensity_(0),
-    prev_react_time_(0),
-    next_react_time_(std::numeric_limits<double>::infinity()),
     mol_id_min_(std::numeric_limits<unsigned>::max()/proc_size*proc_id),
     mol_id_max_(mol_id_min_+std::numeric_limits<unsigned>::max()/proc_size),
-    mol_id_(mol_id_min_),
-    scheduler_(scheduler) {
+    mol_id_(mol_id_min_) {
       randdbl_ = new boost::variate_generator<
         boost::mt19937&,boost::uniform_real<>>(gen_, uniform_real<>());
       adj_rand_ = new boost::variate_generator<
@@ -131,16 +127,16 @@ public:
   void add_product(Species &s, Lattice &g, int coord);
   double get_local_propensity();
   double get_reaction_propensity(Reaction &r);
-  double get_next_time(ParallelEnvironment &pe, double current_time);
-  double get_new_next_time(ParallelEnvironment &pe, double current_time);
+  double get_new_interval(ParallelEnvironment &pe);
+  double get_next_interval(ParallelEnvironment &pe, const double time_left);
+  double react_direct_method(Lattice &g, ParallelEnvironment &pe);
+  void set_direct_method_event(SpatiocyteEvent& event);
   void add_diffusion_influenced_reaction(Reaction& r);
   void calculate_probability(Reaction &r, Lattice &g);
   void calculate_max_probability(Species &s);
   void calculate_collision_time(Species &s, ParallelEnvironment &pe);
-  double react_direct_method(Lattice &g, ParallelEnvironment &pe,
-                             double current_time);
   void walk(std::vector<Species*>& species_list, Lattice &g,
-            ParallelEnvironment &pe, const float current_time);
+            ParallelEnvironment &pe);
 
   void walk_on_ghost(std::vector<unsigned>& species_ids,
                      std::vector<unsigned>& src_coords,
@@ -196,7 +192,6 @@ public:
   void spill_molecules(Lattice& g, const std::vector<SpillMolecule>& coord,
                       const Vector<unsigned>& ghost);
   void jumpin_molecules(Lattice& g, ParallelEnvironment& pe);
-  void set_independent_event_index(const int index);
 
 private:
   const int is_parallel_;
@@ -230,9 +225,6 @@ private:
 
   double global_volume_;
   double local_volume_;
-  double next_react_time_;
-  double prev_react_time_;
-
   double local_propensity_;
   double global_propensity_;
 
@@ -253,14 +245,13 @@ private:
   const unsigned mol_id_min_ = 0;
   const unsigned mol_id_max_ = UINT_MAX;
   unsigned mol_id_;
-  EventScheduler<SpatiocyteEvent>& scheduler_;
   float output_coords_dt_;
   float output_numbers_dt_;
   std::vector<float> coords_logspace_;
   std::vector<float> numbers_logspace_;
   unsigned coords_logspace_cnt_ = 0;
   unsigned numbers_logspace_cnt_ = 0;
-  int independent_event_index_ = -1;
+  SpatiocyteEvent* direct_method_event_ = NULL;
 };
 
 #endif /* __COMPARTMENT_HPP */

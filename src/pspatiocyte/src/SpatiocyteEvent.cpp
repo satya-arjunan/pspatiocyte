@@ -33,10 +33,12 @@
 
 SpatiocyteEvent::SpatiocyteEvent(Lattice& lattice, Compartment& compartment,
                                  ParallelEnvironment& parallel_environment,
+                                 EventScheduler<SpatiocyteEvent>& scheduler,
                                  Species& species):
   lattice_(lattice),
   compartment_(compartment),
   parallel_environment_(parallel_environment),
+  scheduler_(scheduler),
   species_(&species),
   name_(std::string("Diffusion:")+species.get_name()),
   type_(DIFFUSION),
@@ -50,22 +52,26 @@ SpatiocyteEvent::SpatiocyteEvent(Lattice& lattice, Compartment& compartment,
 }
 
 SpatiocyteEvent::SpatiocyteEvent(Lattice& lattice, Compartment& compartment,
-                                 ParallelEnvironment& parallel_environment):
+                                 ParallelEnvironment& parallel_environment,
+                                 EventScheduler<SpatiocyteEvent>& scheduler):
   lattice_(lattice),
   compartment_(compartment),
   parallel_environment_(parallel_environment),
+  scheduler_(scheduler),
   name_("IndependentReaction"),
   type_(INDEPENDENT_REACTION),
-  interval_(compartment.get_next_time(parallel_environment, 0)) {
+  interval_(compartment.get_new_interval(parallel_environment)) {
     set_time(interval_);
 }
 
 SpatiocyteEvent::SpatiocyteEvent(Lattice& lattice, Compartment& compartment,
-                                ParallelEnvironment& parallel_environment,
+                                ParallelEnvironment& parallel_environment, 
+                                EventScheduler<SpatiocyteEvent>& scheduler,
                                 const EVENT_TYPE type, const double interval):
   lattice_(lattice),
   compartment_(compartment),
   parallel_environment_(parallel_environment),
+  scheduler_(scheduler),
   name_("Logger"),
   type_(type),
   interval_(interval) {
@@ -73,23 +79,43 @@ SpatiocyteEvent::SpatiocyteEvent(Lattice& lattice, Compartment& compartment,
     set_priority(-5);
 }
 
+//for direct method event:
+void SpatiocyteEvent::update_next_time() {
+  const double current_time(scheduler_.get_time());
+  const double old_next_time(get_time());
+  double interval(0);
+  if (old_next_time < std::numeric_limits<double>::infinity()) {
+    interval = compartment_.get_next_interval(parallel_environment_,
+                                              old_next_time-current_time);
+  }
+  else {
+    interval = compartment_.get_new_interval(parallel_environment_);
+  }
+  const double next_time(current_time+interval);
+  set_time(next_time);
+  if(next_time >= old_next_time) {
+    scheduler_.get_queue().move_down(get_id());
+  }
+  else {
+    scheduler_.get_queue().move_up(get_id());
+  }
+}
+
 void SpatiocyteEvent::fire() {
+  const double time(get_time());
   switch(type_) {
   case DIFFUSION:
-    compartment_.walk(species_list_, lattice_, parallel_environment_,
-                      get_time());
-    set_time(get_time() + interval_);
+    compartment_.walk(species_list_, lattice_, parallel_environment_);
+    set_time(time + interval_);
     return;
   case INDEPENDENT_REACTION:
-    set_time(compartment_.react_direct_method(lattice_,
-                                        parallel_environment_, get_time()));
+    set_time(time + compartment_.react_direct_method(lattice_,
+                                                     parallel_environment_));
     return;
   case OUTPUT_NUMBERS:
-    interval_ = compartment_.output_numbers(get_time());
-    set_time(get_time() + interval_);
+    set_time(time + compartment_.output_numbers(time));
     return;
   case OUTPUT_COORDINATES:
-    interval_ = compartment_.output_coordinates(get_time());
-    set_time(get_time() + interval_);
+    set_time(time + compartment_.output_coordinates(time));
   }
 }

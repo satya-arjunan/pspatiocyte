@@ -42,13 +42,16 @@
 
 struct SpatiocyteEvent: public EventBase {
   SpatiocyteEvent(Lattice& lattice, Compartment& compartment,
-                  ParallelEnvironment& parallel_environment, Species& species);
-
-  SpatiocyteEvent(Lattice& lattice, Compartment& compartment,
-                  ParallelEnvironment& parallel_environment);
+                  ParallelEnvironment& parallel_environment,
+                  EventScheduler<SpatiocyteEvent>& scheduler, Species& species);
 
   SpatiocyteEvent(Lattice& lattice, Compartment& compartment,
                   ParallelEnvironment& parallel_environment,
+                  EventScheduler<SpatiocyteEvent>& scheduler);
+
+  SpatiocyteEvent(Lattice& lattice, Compartment& compartment,
+                  ParallelEnvironment& parallel_environment,
+                  EventScheduler<SpatiocyteEvent>& scheduler,
                   const EVENT_TYPE type, const double interval);
 
   int get_id() const {
@@ -78,12 +81,14 @@ struct SpatiocyteEvent: public EventBase {
   void add_species(Species& species) {
     species_list_.push_back(&species);
   }
+  void update_next_time();
   void fire();
 
 private:
   Lattice& lattice_;
   Compartment& compartment_;
   ParallelEnvironment& parallel_environment_;
+  EventScheduler<SpatiocyteEvent>& scheduler_;
   Species* species_;
   std::string name_;
   EVENT_TYPE type_;
