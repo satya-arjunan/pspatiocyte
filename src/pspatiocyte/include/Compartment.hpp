@@ -125,8 +125,9 @@ public:
   bool remove_reactant(Species &s, Lattice &g, bool binary, int &center,
                        int &neighbor);
   void add_product(Species &s, Lattice &g, int coord);
-  double get_local_propensity();
   double get_reaction_propensity(Reaction &r);
+  void update_local_propensity();
+  double get_local_propensity();
   double get_new_interval(ParallelEnvironment &pe);
   double get_next_interval(ParallelEnvironment &pe, const double time_left);
   double react_direct_method(Lattice &g, ParallelEnvironment &pe);
