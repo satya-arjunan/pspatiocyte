@@ -696,7 +696,7 @@ double Compartment::react_direct_method(Lattice &g, ParallelEnvironment &pe) {
 
   double random_propensity(random*local_propensities[pe.getsize()-1]);
   if (local_propensities[pe.getrank()] >= random_propensity && 
-      (pe.getsize() == 1 ||
+      (!pe.getrank() || 
        local_propensities[pe.getrank()-1] < random_propensity)) {
     double accumulated_propensity(local_propensities[pe.getrank()]-
                                   local_propensity_);
