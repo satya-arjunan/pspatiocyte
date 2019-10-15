@@ -81,17 +81,15 @@ SpatiocyteEvent::SpatiocyteEvent(Lattice& lattice, Compartment& compartment,
 
 //for direct method event:
 void SpatiocyteEvent::update_next_time() {
-  const double current_time(scheduler_.get_time());
+  double next_time(scheduler_.get_time());
   const double old_next_time(get_time());
-  double interval(0);
   if (old_next_time < std::numeric_limits<double>::infinity()) {
-    interval = compartment_.get_next_interval(parallel_environment_,
-                                              old_next_time-current_time);
+    next_time += compartment_.get_next_interval(parallel_environment_,
+                                              old_next_time-next_time);
   }
   else {
-    interval = compartment_.get_new_interval(parallel_environment_);
+    next_time += compartment_.get_new_interval(parallel_environment_);
   }
-  const double next_time(current_time+interval);
   set_time(next_time);
   if(next_time >= old_next_time) {
     scheduler_.get_queue().move_down(get_id());
@@ -106,6 +104,11 @@ void SpatiocyteEvent::fire() {
   switch(type_) {
   case DIFFUSION:
     compartment_.walk(species_list_, lattice_, parallel_environment_);
+    //If independent reaction event exists, update its time and reschedule
+    //it in the execution queue:
+    if (direct_method_event_) {
+      direct_method_event_->update_next_time();
+    }
     set_time(time + interval_);
     return;
   case INDEPENDENT_REACTION:

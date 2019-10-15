@@ -852,15 +852,6 @@ void Compartment::walk(std::vector<Species*>& species_list,
   if (is_parallel_) {
     walk_on_ghost(ghost_species_ids, ghost_src_coords, ghost_tar_coords, g, pe);
   } 
-  //If independent reaction event exists, update its time and reschedule
-  //it in the execution queue:
-  if (direct_method_event_) {
-    direct_method_event_->update_next_time();
-  }
-}
-
-void Compartment::set_direct_method_event(SpatiocyteEvent& event) {
-  direct_method_event_ = &event;
 }
 
 //combine reaction_on_out() with react(()

@@ -189,12 +189,13 @@ void World::initialize() {
                                OUTPUT_COORDINATES, dt));
   }
 
+  std::vector<unsigned> walk_event_indices;
   for (unsigned i(0); i < species_list_.size(); ++i) {
     Species& species(*species_list_[i]);
     if (species.getD()) {
-      scheduler_.add_event(SpatiocyteEvent(lattice_, compartment_,
-                                           parallel_environment_, scheduler_,
-                                           species));
+      const unsigned event_index(scheduler_.add_event(SpatiocyteEvent(lattice_,
+                    compartment_, parallel_environment_, scheduler_, species)));
+      walk_event_indices.push_back(event_index);
     }
   }
 
@@ -205,7 +206,10 @@ void World::initialize() {
     const unsigned event_index(scheduler_.add_event(SpatiocyteEvent(lattice_,
                             compartment_, parallel_environment_, scheduler_)));
 
-    compartment_.set_direct_method_event(scheduler_.get_event(event_index));
+    for (unsigned i(0); i < walk_event_indices.size(); ++i) { 
+      SpatiocyteEvent& walk_event(scheduler_.get_event(walk_event_indices[i]));
+      walk_event.set_direct_method_event(scheduler_.get_event(event_index));
+    }
   }
   //queue events should be executed after pushing all the events in the
   //scheduler, otherwise the event pointers in queue will become invalid:

@@ -81,7 +81,12 @@ struct SpatiocyteEvent: public EventBase {
   void add_species(Species& species) {
     species_list_.push_back(&species);
   }
-  void update_next_time();
+  void update_next_time(); 
+
+  void set_direct_method_event(SpatiocyteEvent& event) {
+    direct_method_event_ = &event;
+  }
+
   void fire();
 
 private:
@@ -95,6 +100,7 @@ private:
   double interval_;
   std::vector<Species*> species_list_;
   int id_;
+  SpatiocyteEvent* direct_method_event_ = NULL;
 };
 
 #endif /* __SpatiocyteEvent_HPP */

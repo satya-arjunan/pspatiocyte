@@ -130,7 +130,6 @@ public:
   double get_new_interval(ParallelEnvironment &pe);
   double get_next_interval(ParallelEnvironment &pe, const double time_left);
   double react_direct_method(Lattice &g, ParallelEnvironment &pe);
-  void set_direct_method_event(SpatiocyteEvent& event);
   void add_diffusion_influenced_reaction(Reaction& r);
   void calculate_probability(Reaction &r, Lattice &g);
   void calculate_max_probability(Species &s);
@@ -251,7 +250,6 @@ private:
   std::vector<float> numbers_logspace_;
   unsigned coords_logspace_cnt_ = 0;
   unsigned numbers_logspace_cnt_ = 0;
-  SpatiocyteEvent* direct_method_event_ = NULL;
 };
 
 #endif /* __COMPARTMENT_HPP */
