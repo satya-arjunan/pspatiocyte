@@ -251,6 +251,7 @@ private:
   std::vector<float> numbers_logspace_;
   unsigned coords_logspace_cnt_ = 0;
   unsigned numbers_logspace_cnt_ = 0;
+  std::vector<unsigned> order_ = {0, 1, 2, 3, 4, 5, 6, 7};
 };
 
 #endif /* __COMPARTMENT_HPP */
