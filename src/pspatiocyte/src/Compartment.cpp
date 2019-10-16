@@ -713,11 +713,13 @@ double Compartment::react_direct_method(Lattice &g, ParallelEnvironment &pe) {
   double local_propensities[pe.getsize()];
   pe.getcart().Allgather(&local_propensity_, 1, MPI::DOUBLE,
                          &local_propensities, 1, MPI::DOUBLE);
-  double random(0);
+  double random((*global_randdbl_)());
+  /*
   if (!pe.getrank()) {
     random = (*randdbl_)();
   }
   pe.getcart().Bcast(&random, 1 , MPI_DOUBLE, 0);
+  */
   for (unsigned i(1); i < pe.getsize(); ++i) {
     local_propensities[i] += local_propensities[i-1];
   }
@@ -1067,11 +1069,6 @@ void Compartment::walk_on_ghost(std::vector<unsigned>& species_ids,
                                 std::vector<unsigned>& src_coords,
                                 std::vector<unsigned>& tar_coords, Lattice& g,
                                 ParallelEnvironment& pe) { 
-  if (!pe.getrank()) {
-    std::shuffle(order_.begin(), order_.end(), rng_);
-  }
-  pe.getcart().Bcast(order_.data(), 8, MPI::INT, 0); 
-  
   //prepare sub-vector of molecules for each sub-volume 
   std::vector<unsigned> sub_indices[8];
   for (unsigned i(0); i < 8; ++i) {
@@ -1081,6 +1078,18 @@ void Compartment::walk_on_ghost(std::vector<unsigned>& species_ids,
   for (unsigned i(0); i < src_coords.size(); ++i) {
     sub_indices[coord_to_subvolume(g, src_coords[i])].push_back(i);
   } 
+  
+  std::shuffle(order_.begin(), order_.end(), global_rng_);
+  std::vector<unsigned> local_order(8);
+  if (!pe.getrank()) {
+    local_order = order_;
+  }
+  pe.getcart().Bcast(local_order.data(), 8, MPI::INT, 0); 
+  for (unsigned i(0); i < 8; ++i) {
+    if (local_order[i] != order_[i]) {
+      std::cout << "error in global seed:" << pe.getrank() << std::endl;
+    }
+  }
   
   for(unsigned sv(0); sv < 8; ++sv) {
     g.jumpincoords.clear(); 

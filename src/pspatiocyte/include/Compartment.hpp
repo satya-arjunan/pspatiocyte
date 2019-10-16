@@ -60,6 +60,7 @@ class Compartment {
 public:
   Compartment(string name, COMPARTMENT_TYPE type, 
               uint32_t seed,
+              uint32_t global_seed,
               const int proc_size, const int proc_id, const int invalid_id,
               const int vacant_id, const int ghost_id,
               const bool is_force_search_vacant):
@@ -70,7 +71,8 @@ public:
     is_force_search_vacant_(is_force_search_vacant),
     name_(name),
     type_(type),
-    rng_(seed),
+    global_rng_(global_seed),
+    global_gen_(global_seed),
     gen_(seed),
     local_propensity_(0),
     mol_id_min_(std::numeric_limits<unsigned>::max()/proc_size*proc_id),
@@ -78,12 +80,15 @@ public:
     mol_id_(mol_id_min_) {
       randdbl_ = new boost::variate_generator<
         boost::mt19937&,boost::uniform_real<>>(gen_, uniform_real<>());
+      global_randdbl_ = new boost::variate_generator<
+        boost::mt19937&,boost::uniform_real<>>(global_gen_, uniform_real<>());
       adj_rand_ = new boost::variate_generator<
         boost::mt19937&, boost::uniform_int<>>(gen_, dist_);
   }
 
   ~Compartment() {
     delete randdbl_;
+    delete global_randdbl_;
     delete adj_rand_;
   }
 
@@ -209,7 +214,7 @@ private:
   unsigned out_ghost_cnts_[10];
   int cntES = 0;
   int out_id_ = vacant_id_; //default value
-  std::mt19937 rng_;
+  std::mt19937 global_rng_;
   std::vector<Species*> species_list_;
   std::vector<OutMolecule> outmolecules_[10];
   std::vector<std::vector<Molecule>> species_molecules_;
@@ -230,8 +235,10 @@ private:
 
   boost::uniform_int<> dist_ = boost::uniform_int<>(0, 11);
   boost::mt19937 gen_;
+  boost::mt19937 global_gen_;
   boost::variate_generator<boost::mt19937&, boost::uniform_int<>>* adj_rand_;
   boost::variate_generator<boost::mt19937&, boost::uniform_real<>>* randdbl_;
+  boost::variate_generator<boost::mt19937&, boost::uniform_real<>>* global_randdbl_;
 
   void writeMolecule(vector<Molecule> &mv);
   std::vector<std::vector<unsigned>> is_reactive_;

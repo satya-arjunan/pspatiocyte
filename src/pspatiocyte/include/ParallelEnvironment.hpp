@@ -162,6 +162,11 @@ public:
     return Vector<unsigned>(ie, je, ke);
   }
 
+  unsigned get_global_seed(unsigned seed) {
+    getcart().Bcast(&seed, 1 , MPI_INT, 0);
+    return seed;
+  }
+
   int getndims()
   {
       return ndims_;

@@ -51,6 +51,7 @@ World::World(int argc, char* argv[], const unsigned Nx,
   compartment_("Cell", VOLUME, //rand(),
                seed*parallel_environment_.getsize()+
                parallel_environment_.getrank(),
+               parallel_environment_.get_global_seed(seed),
                parallel_environment_.getsize(), parallel_environment_.getrank(),
                invalid_species_.get_id(), vacant_species_.get_id(), ghost_id_,
                is_force_search_vacant) {
