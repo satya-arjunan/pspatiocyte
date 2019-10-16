@@ -370,6 +370,15 @@ void Compartment::check_voxels(Lattice& g, const double id) {
   }
 }
 
+unsigned Compartment::coord_to_subvolume(Lattice& g, const unsigned coord) {
+  int i, j, k;
+  g.coord_to_ijk(coord, i, j, k);
+  const int xbit(i > (mid_span_.x + GHOST_SIZE - 1) ? 1 : 0);
+  const int ybit(j > (mid_span_.y + GHOST_SIZE - 1) ? 1 : 0);
+  const int zbit(k > (mid_span_.z + GHOST_SIZE - 1) ? 1 : 0);
+  return xbit*4 + ybit*2 + zbit;
+}
+
 void Compartment::populate_molecules(Species& s, unsigned size,
                                      Lattice &g, ParallelEnvironment &pe) {
   double rv = g.getradius();
@@ -377,29 +386,59 @@ void Compartment::populate_molecules(Species& s, unsigned size,
     s.setVolumeDt(rv);
   }
 
-  if (!size) {
+  const Vector<float>& origin(s.get_populate_origin());
+  const Vector<float>& range(s.get_populate_range());
+  if (!size && origin.x == 0.5 && origin.y == 0.5 && origin.z == 0.5 &&
+      range.x == 1 && range.y == 1 && range.z == 1) { 
     return;
   }
 
   if (size > n_voxels_) {
-    fout << "ERROR: too many molecules to be populated:" << s.get_name() << endl;
+    std::cout << "Too many molecules to be populated, size:" << size << " "
+      << " available:" << n_voxels_ << " " << s.get_name() << std::endl;
     abort();
   }
 
-  const Vector<float>& origin(s.get_populate_origin());
-  const Vector<float>& range(s.get_populate_range());
   if (origin.x == 0.5 && origin.y == 0.5 && origin.z == 0.5 &&
       range.x == 1 && range.y == 1 && range.z == 1) { 
     populate_molecules(s, size, g);
+  }
+  //log ghost, vacant and out voxels of each subvolume in the local subdomain:
+  else if (range.x == -1) {
+    std::string rank(std::to_string(pe.getrank()));;
+    for(int i=0; i<=nx_+1; ++i) {
+      for(int j=0; j<=ny_+1; ++j) {
+        for(int k=0; k<=nz_+1; ++k) {
+          const unsigned coord(g.linearCoord(i, j, k));
+          Voxel& voxel(g.get_voxel(coord));
+          int species_id(voxel.species_id); 
+          std::string sv(std::to_string(coord_to_subvolume(g, coord)));
+          if (species_id >= out_id_ &&
+              s.get_name() == std::string("Out")+rank+sv) {
+            add_molecule(s.get_id(), coord, get_new_mol_id(), voxel); 
+          }
+          else if (species_id <= -out_id_ &&
+                   s.get_name() == std::string("OutGhost")+rank+sv) { 
+            add_molecule(s.get_id(), coord, get_new_mol_id(), voxel); 
+          }
+          else if (species_id == ghost_id_ &&
+                   s.get_name() == std::string("Ghost")+rank+sv) { 
+            add_molecule(s.get_id(), coord, get_new_mol_id(), voxel); 
+          }
+          else if (species_id == vacant_id_ &&
+                   s.get_name() == std::string("Vacant")+rank+sv) { 
+            add_molecule(s.get_id(), coord, get_new_mol_id(), voxel); 
+          }
+        }
+      }
+    }
   }
   else { 
     pe.getcart().Allreduce(MPI::IN_PLACE, &size, 1, MPI::INT, MPI::SUM);
     if (pe.getrank() == 0) {
       const int species_id(s.get_id());
-      /*
-      int coord(g.linearCoordFast(nx_-20-(*adj_rand_)(), ny_-20-(*adj_rand_)(),
-                                  nz_-20-(*adj_rand_)()));
-                                  */
+      //int coord(g.linearCoordFast(nx_-20-(*adj_rand_)(),
+      //ny_-20-(*adj_rand_)(), nz_-20-(*adj_rand_)()));
       int coord(g.linearCoordFast(nx_, ny_, nz_));
       int sid(g.get_voxel(coord).species_id);
       if (!((sid < out_id_ && sid != vacant_id_) ||
@@ -413,6 +452,7 @@ void Compartment::populate_molecules(Species& s, unsigned size,
     }
   }
 }
+
 
 void Compartment::populate_molecules(Species& s, const unsigned size,
                                      Lattice &g) {
@@ -1031,15 +1071,7 @@ void Compartment::walk_on_ghost(std::vector<unsigned>& species_ids,
   }
 
   for (unsigned i(0); i < src_coords.size(); ++i) {
-    // get linear coordinate of voxel which molecule resides
-     const int coord(src_coords[i]);
-     // identify sub-volume, GHOST_SIZE = 1
-     const int xbit(g.getXind(coord) > (mid_span_.x + GHOST_SIZE - 1) ? 1 : 0);
-     const int ybit(g.getYind(coord) > (mid_span_.y + GHOST_SIZE - 1) ? 1 : 0);
-     const int zbit(g.getZind(coord) > (mid_span_.z + GHOST_SIZE - 1) ? 1 : 0);
-     const int index(xbit*4 + ybit*2 + zbit);
-     // append molecule index to sub-vector
-     sub_indices[index].push_back(i);
+    sub_indices[coord_to_subvolume(g, src_coords[i])].push_back(i);
   } 
   
   for(unsigned sv(0); sv < 8; ++sv) {

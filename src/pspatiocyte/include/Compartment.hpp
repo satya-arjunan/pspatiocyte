@@ -115,6 +115,7 @@ public:
     return mol_id_;
   }
 
+  unsigned coord_to_subvolume(Lattice& g, const unsigned coord);
   bool walk_molecule(Lattice& g, const int src_coord, const int curr_coord);
   void initialize(Lattice &g, ParallelEnvironment &pe,
                   std::vector<Species*>& species_list);

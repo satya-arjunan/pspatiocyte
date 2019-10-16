@@ -65,6 +65,7 @@ public:
                                    const float end_time, const unsigned n_logs);
   void set_output_coords_logspace(const float start_time, const float end_time,
                                   const unsigned n_logs);
+  ParallelEnvironment& get_parallel_environment();
 private:
   ParallelEnvironment parallel_environment_;
   std::vector<Species*> species_list_;

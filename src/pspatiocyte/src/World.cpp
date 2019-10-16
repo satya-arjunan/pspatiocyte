@@ -67,6 +67,10 @@ int DistributeMolecule(int Total, int Nproc, int rank) {
   }
 }
 
+ParallelEnvironment& World::get_parallel_environment() {
+  return parallel_environment_;
+}
+
 double World::get_current_time() {
   return scheduler_.get_time();
 }
