@@ -82,20 +82,20 @@ bool ParallelEnvironment::topologycheck( void )
 //   const int NE = -2;       // neighbor not exist
    const int NE = MPI::PROC_NULL;       // neighbor not exist
 
-   int allcrd[size][3];
-   int allin [size][6];
-   int allout[size][6];
+   int allcrd[size_][3];
+   int allin [size_][6];
+   int allout[size_][6];
 
-   cart.Gather( coords, 3, MPI::INT, allcrd, 3, MPI::INT, 0 );
-   cart.Gather(  inbnd, 6, MPI::INT, allin,  6, MPI::INT, 0 );
-   cart.Gather( outbnd, 6, MPI::INT, allout, 6, MPI::INT, 0 );
+   cart.Gather(coords_, 3, MPI::INT, allcrd, 3, MPI::INT, 0);
+   cart.Gather(inbound_, 6, MPI::INT, allin,  6, MPI::INT, 0);
+   cart.Gather(outbound_, 6, MPI::INT, allout, 6, MPI::INT, 0);
 
 //   bool err = false;
    int err = -1;
 
-   if( rank==0 )
+   if (rank_== 0)
    {
-      for( int i=0; i<size; ++i )
+      for( int i=0; i<size_; ++i )
       {
          // check inbound processes
          if( testin( i, 0 ) )  { log_im( i ); err = 1; }

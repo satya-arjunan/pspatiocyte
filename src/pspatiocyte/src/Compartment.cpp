@@ -206,11 +206,6 @@ void Compartment::initialize(Lattice &g, ParallelEnvironment &pe,
     is_reactive_[i].resize(species_size, 0);
     reaction_probabilities_[i].resize(species_size, 0);
   }
-
-  /*
-  std::cout << "n_out:" << n_out_voxels_ << " n_out_ghost:" <<
-    n_out_ghost_voxels_ << " n_ghost:" << n_ghost_voxels_ << std::endl;
-    */
 }
 
 void Compartment::check_voxels(Lattice& g, const double id) {
@@ -321,12 +316,6 @@ void Compartment::check_voxels(Lattice& g, const double id) {
     abort();
   }
   for (unsigned i(0); i < 10; ++i) {
-    /*
-    std::cout << "i:" << i << " " << out_cnts[i] << " " << out_cnts_[i] <<
-      std::endl;
-    std::cout << "i:" << i << " " << out_ghost_cnts[i] << " " <<
-      out_ghost_cnts_[i] << std::endl;
-      */
     if (out_cnts[i] != out_cnts_[i]) {
       std::cout << id << " error: counted out_cnts in " << i << ", " <<
         out_cnts[i] << " not equals to init number:" << out_cnts_[i] <<
@@ -686,7 +675,7 @@ double Compartment::get_reaction_propensity(Reaction &reaction) {
   return reaction.get_k()*size;
 }
 
-//asynchronous version of direct-method
+//synchronous version of direct-method
 //---start
 double Compartment::get_local_propensity() {
   local_propensity_ = get_reaction_propensity(*direct_method_reactions_[0]);
@@ -750,53 +739,6 @@ double Compartment::react_direct_method(Lattice &g, ParallelEnvironment &pe) {
   return get_new_interval(pe);
 }
 //---end
-
-/*
-//asynchronous version of direct-method
-//---start
-double Compartment::get_local_propensity() {
-  double propensity(get_reaction_propensity(*direct_method_reactions_[0]));
-  for (unsigned i(1); i < direct_method_reactions_.size(); ++i) {
-    propensity += get_reaction_propensity(*direct_method_reactions_[i]);
-  }
-  return propensity;
-}
-
-double Compartment::get_next_interval(ParallelEnvironment &pe,
-                                      const double time_left) {
-  double dt(std::numeric_limits<double>::infinity());
-  const double old_propensity(local_propensity_);
-  local_propensity_ = get_local_propensity();
-  if (local_propensity_) {
-    dt = old_propensity/local_propensity_*time_left;
-  }
-  return dt;
-}
-
-double Compartment::get_new_interval(ParallelEnvironment &pe) {
-  double dt(std::numeric_limits<double>::infinity());
-  local_propensity_ = get_local_propensity();
-  if (local_propensity_) {
-    dt = -log((*randdbl_)())/local_propensity_;
-  }
-  return dt;
-}
-
-double Compartment::react_direct_method(Lattice &g, ParallelEnvironment &pe) {
-  double random_propensity((*randdbl_)()*local_propensity_);
-  double accumulated_propensity(0);
-  for (unsigned i(0); i < direct_method_reactions_.size() &&
-         accumulated_propensity < random_propensity; ++i) {
-    Reaction& reaction(*direct_method_reactions_[i]);
-    accumulated_propensity += get_reaction_propensity(reaction);
-    if(accumulated_propensity >= random_propensity) {
-      do_direct_method_reaction(reaction, g, pe);
-    }
-  }
-  return get_new_interval(pe);
-}
-//---end
-*/
 
 void Compartment::calculate_probability(Reaction &f, Lattice &g) {
   const int r0 = f.getR0();
@@ -1523,3 +1465,51 @@ float Compartment::output_numbers(const double current_time) {
   }
   return output_numbers_dt_;
 }
+
+/*
+//asynchronous version of direct-method
+//---start
+double Compartment::get_local_propensity() {
+  double propensity(get_reaction_propensity(*direct_method_reactions_[0]));
+  for (unsigned i(1); i < direct_method_reactions_.size(); ++i) {
+    propensity += get_reaction_propensity(*direct_method_reactions_[i]);
+  }
+  return propensity;
+}
+
+double Compartment::get_next_interval(ParallelEnvironment &pe,
+                                      const double time_left) {
+  double dt(std::numeric_limits<double>::infinity());
+  const double old_propensity(local_propensity_);
+  local_propensity_ = get_local_propensity();
+  if (local_propensity_) {
+    dt = old_propensity/local_propensity_*time_left;
+  }
+  return dt;
+}
+
+double Compartment::get_new_interval(ParallelEnvironment &pe) {
+  double dt(std::numeric_limits<double>::infinity());
+  local_propensity_ = get_local_propensity();
+  if (local_propensity_) {
+    dt = -log((*randdbl_)())/local_propensity_;
+  }
+  return dt;
+}
+
+double Compartment::react_direct_method(Lattice &g, ParallelEnvironment &pe) {
+  double random_propensity((*randdbl_)()*local_propensity_);
+  double accumulated_propensity(0);
+  for (unsigned i(0); i < direct_method_reactions_.size() &&
+         accumulated_propensity < random_propensity; ++i) {
+    Reaction& reaction(*direct_method_reactions_[i]);
+    accumulated_propensity += get_reaction_propensity(reaction);
+    if(accumulated_propensity >= random_propensity) {
+      do_direct_method_reaction(reaction, g, pe);
+    }
+  }
+  return get_new_interval(pe);
+}
+//---end
+*/
+

@@ -172,8 +172,7 @@ int Lattice::get_adjacent_coord(const int src_coord, const unsigned index) {
  *   if(zbit==0) get (0:Nx+1,0:Ny+1,  Nz) from left node
  *                as (0:Nx+1,0:Ny+1,   0) of myself
  *
- *   CAUTION: following function depend on the condition GHOST_SIZE=1 !!!
- *            setting comp_ID=-1 in clear-ghost causes semantic error !!! 
+ *   The following methods assume GHOST_SIZE=1 
  */
 
 void Lattice::clear_ghost(std::vector<SpillMolecule>& spill_coords) {
