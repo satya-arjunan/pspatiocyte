@@ -103,9 +103,7 @@ void SpatiocyteEvent::fire() {
   const double time(get_time());
   switch(type_) {
   case DIFFUSION:
-    parallel_environment_.getcart().Barrier();
     compartment_.walk(species_list_, lattice_, parallel_environment_);
-    parallel_environment_.getcart().Barrier();
     //If independent reaction event exists, update its time and reschedule
     //it in the execution queue:
     if (direct_method_event_) {
@@ -118,13 +116,9 @@ void SpatiocyteEvent::fire() {
                                                      parallel_environment_));
     return;
   case OUTPUT_NUMBERS:
-    parallel_environment_.getcart().Barrier();
     set_time(time + compartment_.output_numbers(time));
-    parallel_environment_.getcart().Barrier();
     return;
   case OUTPUT_COORDINATES:
-    parallel_environment_.getcart().Barrier();
     set_time(time + compartment_.output_coordinates(time));
-    parallel_environment_.getcart().Barrier();
   }
 }

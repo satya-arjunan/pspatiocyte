@@ -646,84 +646,8 @@ double Compartment::get_reaction_propensity(Reaction &reaction) {
   return reaction.get_k()*size;
 }
 
-/*
-//synchronous version of direct-method, doesn't require barriers in 
-//SpatiocyteEvent but slower.
-double Compartment::get_local_propensity() {
-  local_propensity_ = get_reaction_propensity(*direct_method_reactions_[0]);
-  for (unsigned i(1); i < direct_method_reactions_.size(); ++i) {
-    local_propensity_ += get_reaction_propensity(*direct_method_reactions_[i]);
-  }
-  return local_propensity_;
-}
-
-double Compartment::get_next_interval(ParallelEnvironment &pe,
-                                      const double time_left) {
-  double dt(std::numeric_limits<double>::infinity());
-  const double old_propensity(global_propensity_);
-  global_propensity_ = get_local_propensity();
-  pe.getcart().Allreduce(MPI::IN_PLACE, &global_propensity_, 1,
-                         MPI::DOUBLE, MPI::SUM);
-  if (global_propensity_) {
-    dt = old_propensity/global_propensity_*time_left;
-  }
-  return dt;
-}
-
-double Compartment::get_new_interval(ParallelEnvironment &pe) {
-  double dt(std::numeric_limits<double>::infinity());
-  global_propensity_ = get_local_propensity();
-  pe.getcart().Allreduce(MPI::IN_PLACE, &global_propensity_, 1,
-                         MPI::DOUBLE, MPI::SUM);
-  if (global_propensity_) {
-    if (!pe.getrank()) {
-      dt = -log((*randdbl_)())/global_propensity_;
-    }
-    pe.getcart().Bcast(&dt, 1 , MPI_DOUBLE, 0);
-  }
-  return dt;
-}
-
-double Compartment::react_direct_method(Lattice &g, ParallelEnvironment &pe) {
-  double local_propensities[pe.getsize()];
-  pe.getcart().Allgather(&local_propensity_, 1, MPI::DOUBLE,
-                         &local_propensities, 1, MPI::DOUBLE);
-  double random(0);
-  if (!pe.getrank()) {
-    random = (*randdbl_)();
-  }
-  pe.getcart().Bcast(&random, 1 , MPI_DOUBLE, 0);
-  for (unsigned i(1); i < pe.getsize(); ++i) {
-    local_propensities[i] += local_propensities[i-1];
-  }
-
-  double random_propensity(random*local_propensities[pe.getsize()-1]);
-  if (local_propensities[pe.getrank()] >= random_propensity && 
-      (!pe.getrank() || 
-       local_propensities[pe.getrank()-1] < random_propensity)) {
-    double accumulated_propensity(local_propensities[pe.getrank()]-
-                                  local_propensity_);
-    for (unsigned i(0); i < direct_method_reactions_.size() &&
-         accumulated_propensity < random_propensity; ++i) {
-      Reaction& reaction(*direct_method_reactions_[i]);
-      accumulated_propensity += get_reaction_propensity(reaction);
-      if(accumulated_propensity >= random_propensity) {
-        do_direct_method_reaction(reaction, g, pe);
-      }
-    }
-  }
-  return get_new_interval(pe);
-}
-*/
-
-//asynchronous version of direct-method. Requires barriers in SpatiocyteEvent.
-void Compartment::update_local_propensity() {
-  local_propensity_ = get_reaction_propensity(*direct_method_reactions_[0]);
-  for (unsigned i(1); i < direct_method_reactions_.size(); ++i) {
-    local_propensity_ += get_reaction_propensity(*direct_method_reactions_[i]);
-  }
-}
-
+//asynchronous version of direct-method
+//---start
 double Compartment::get_local_propensity() {
   double propensity(get_reaction_propensity(*direct_method_reactions_[0]));
   for (unsigned i(1); i < direct_method_reactions_.size(); ++i) {
@@ -742,7 +666,6 @@ double Compartment::get_next_interval(ParallelEnvironment &pe,
   }
   return dt;
 }
-
 
 double Compartment::get_new_interval(ParallelEnvironment &pe) {
   double dt(std::numeric_limits<double>::infinity());
@@ -766,6 +689,7 @@ double Compartment::react_direct_method(Lattice &g, ParallelEnvironment &pe) {
   }
   return get_new_interval(pe);
 }
+//---end
 
 void Compartment::calculate_probability(Reaction &f, Lattice &g) {
   const int r0 = f.getR0();
