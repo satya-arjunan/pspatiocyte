@@ -678,57 +678,52 @@ double Compartment::get_reaction_propensity(Reaction &reaction) {
 //synchronous version of direct-method
 //---start
 double Compartment::get_local_propensity() {
-  local_propensity_ = get_reaction_propensity(*direct_method_reactions_[0]);
+  double local_propensity(get_reaction_propensity(*direct_method_reactions_[0]));
   for (unsigned i(1); i < direct_method_reactions_.size(); ++i) {
-    local_propensity_ += get_reaction_propensity(*direct_method_reactions_[i]);
+    local_propensity += get_reaction_propensity(*direct_method_reactions_[i]);
   }
-  return local_propensity_;
+  return local_propensity;
 }
 double Compartment::get_next_interval(ParallelEnvironment &pe,
                                       const double time_left) {
   double dt(std::numeric_limits<double>::infinity());
-  const double old_propensity(global_propensity_);
-  global_propensity_ = get_local_propensity();
-  pe.getcart().Allreduce(MPI::IN_PLACE, &global_propensity_, 1,
-                         MPI::DOUBLE, MPI::SUM);
-  if (global_propensity_) {
-    dt = old_propensity/global_propensity_*time_left;
+  const double old_propensity(local_propensities_[pe.getsize()-1]);
+  const double local_propensity(get_local_propensity());
+  pe.getcart().Allgather(&local_propensity, 1, MPI::DOUBLE,
+                         local_propensities_.data(), 1, MPI::DOUBLE);
+  for (unsigned i(1); i < pe.getsize(); ++i) {
+    local_propensities_[i] += local_propensities_[i-1];
+  }
+  const double global_propensity(local_propensities_[pe.getsize()-1]);
+  if (global_propensity) {
+    dt = old_propensity/global_propensity*time_left;
   }
   return dt;
 }
 double Compartment::get_new_interval(ParallelEnvironment &pe) {
   double dt(std::numeric_limits<double>::infinity());
-  global_propensity_ = get_local_propensity();
-  pe.getcart().Allreduce(MPI::IN_PLACE, &global_propensity_, 1,
-                         MPI::DOUBLE, MPI::SUM);
-  if (global_propensity_) {
-    if (!pe.getrank()) {
-      dt = -log((*randdbl_)())/global_propensity_;
-    }
-    pe.getcart().Bcast(&dt, 1 , MPI_DOUBLE, 0);
+  const double local_propensity(get_local_propensity());
+  pe.getcart().Allgather(&local_propensity, 1, MPI::DOUBLE,
+                         local_propensities_.data(), 1, MPI::DOUBLE);
+  for (unsigned i(1); i < pe.getsize(); ++i) {
+    local_propensities_[i] += local_propensities_[i-1];
+  }
+  const double global_propensity(local_propensities_[pe.getsize()-1]);
+  if (global_propensity) {
+    dt = -log((*global_randdbl_)())/global_propensity;
   }
   return dt;
 }
 double Compartment::react_direct_method(Lattice &g, ParallelEnvironment &pe) {
-  double local_propensities[pe.getsize()];
-  pe.getcart().Allgather(&local_propensity_, 1, MPI::DOUBLE,
-                         &local_propensities, 1, MPI::DOUBLE);
-  double random((*global_randdbl_)());
-  /*
-  if (!pe.getrank()) {
-    random = (*randdbl_)();
-  }
-  pe.getcart().Bcast(&random, 1 , MPI_DOUBLE, 0);
-  */
-  for (unsigned i(1); i < pe.getsize(); ++i) {
-    local_propensities[i] += local_propensities[i-1];
-  }
-  double random_propensity(random*local_propensities[pe.getsize()-1]);
-  if (local_propensities[pe.getrank()] >= random_propensity && 
+  const double random_propensity((*global_randdbl_)()*
+                                 local_propensities_[pe.getsize()-1]);
+  if (local_propensities_[pe.getrank()] >= random_propensity && 
       (!pe.getrank() || 
-       local_propensities[pe.getrank()-1] < random_propensity)) {
-    double accumulated_propensity(local_propensities[pe.getrank()]-
-                                  local_propensity_);
+       local_propensities_[pe.getrank()-1] < random_propensity)) {
+    double accumulated_propensity(0);
+    if (pe.getrank()) {
+      accumulated_propensity = local_propensities_[pe.getrank()-1];
+    }
     for (unsigned i(0); i < direct_method_reactions_.size() &&
          accumulated_propensity < random_propensity; ++i) {
       Reaction& reaction(*direct_method_reactions_[i]);
@@ -1070,27 +1065,17 @@ void Compartment::walk_on_ghost(std::vector<unsigned>& species_ids,
                                 std::vector<unsigned>& tar_coords, Lattice& g,
                                 ParallelEnvironment& pe) { 
   //prepare sub-vector of molecules for each sub-volume 
-  std::vector<unsigned> sub_indices[8];
   for (unsigned i(0); i < 8; ++i) {
-    sub_indices[i].reserve(src_coords.size()/4);
+    sub_indices_[i].reserve(src_coords.size()/4);
+    sub_indices_[i].resize(0);
   }
 
   for (unsigned i(0); i < src_coords.size(); ++i) {
-    sub_indices[coord_to_subvolume(g, src_coords[i])].push_back(i);
+    sub_indices_[coord_to_subvolume(g, src_coords[i])].push_back(i);
   } 
   
+  //use global seed to get synchronized random order without using broadcast:
   std::shuffle(order_.begin(), order_.end(), global_rng_);
-  std::vector<unsigned> local_order(8);
-  if (!pe.getrank()) {
-    local_order = order_;
-  }
-  pe.getcart().Bcast(local_order.data(), 8, MPI::INT, 0); 
-  for (unsigned i(0); i < 8; ++i) {
-    if (local_order[i] != order_[i]) {
-      std::cout << "error in global seed:" << pe.getrank() << std::endl;
-    }
-  }
-  
   for(unsigned sv(0); sv < 8; ++sv) {
     g.jumpincoords.clear(); 
     std::vector<SpillMolecule> spill_coords;
@@ -1100,8 +1085,8 @@ void Compartment::walk_on_ghost(std::vector<unsigned>& species_ids,
     // by keeping a list of molecules that are in the in-compartment-ghost:
     g.load_ghost(pe, outmolecules_[N+1], outmolecules_[9], N);
     // loop over sub-moleculeVector
-    for (unsigned i(0); i < sub_indices[N].size(); ++i) {
-      const unsigned index(sub_indices[N][i]);
+    for (unsigned i(0); i < sub_indices_[N].size(); ++i) {
+      const unsigned index(sub_indices_[N][i]);
       const unsigned tar_coord(tar_coords[index]);
       const unsigned src_coord(src_coords[index]);
       Voxel& tar_voxel(g.get_voxel(tar_coord));

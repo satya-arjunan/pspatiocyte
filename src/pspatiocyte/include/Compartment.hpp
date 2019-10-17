@@ -84,6 +84,7 @@ public:
         boost::mt19937&,boost::uniform_real<>>(global_gen_, uniform_real<>());
       adj_rand_ = new boost::variate_generator<
         boost::mt19937&, boost::uniform_int<>>(gen_, dist_);
+      local_propensities_.resize(proc_size);
   }
 
   ~Compartment() {
@@ -259,6 +260,8 @@ private:
   unsigned coords_logspace_cnt_ = 0;
   unsigned numbers_logspace_cnt_ = 0;
   std::vector<unsigned> order_ = {0, 1, 2, 3, 4, 5, 6, 7};
+  std::vector<unsigned> sub_indices_[8];
+  std::vector<double> local_propensities_;
 };
 
 #endif /* __COMPARTMENT_HPP */
