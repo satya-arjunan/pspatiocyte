@@ -678,12 +678,14 @@ double Compartment::get_reaction_propensity(Reaction &reaction) {
 //synchronous version of direct-method
 //---start
 double Compartment::get_local_propensity() {
-  double local_propensity(get_reaction_propensity(*direct_method_reactions_[0]));
+  double local_propensity(get_reaction_propensity(
+                                            *direct_method_reactions_[0]));
   for (unsigned i(1); i < direct_method_reactions_.size(); ++i) {
     local_propensity += get_reaction_propensity(*direct_method_reactions_[i]);
   }
   return local_propensity;
 }
+
 double Compartment::get_next_interval(ParallelEnvironment &pe,
                                       const double time_left) {
   double dt(std::numeric_limits<double>::infinity());
@@ -700,6 +702,7 @@ double Compartment::get_next_interval(ParallelEnvironment &pe,
   }
   return dt;
 }
+
 double Compartment::get_new_interval(ParallelEnvironment &pe) {
   double dt(std::numeric_limits<double>::infinity());
   const double local_propensity(get_local_propensity());
@@ -714,6 +717,7 @@ double Compartment::get_new_interval(ParallelEnvironment &pe) {
   }
   return dt;
 }
+
 double Compartment::react_direct_method(Lattice &g, ParallelEnvironment &pe) {
   const double random_propensity((*global_randdbl_)()*
                                  local_propensities_[pe.getsize()-1]);
