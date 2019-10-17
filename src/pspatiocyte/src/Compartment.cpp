@@ -687,14 +687,14 @@ double Compartment::get_local_propensity() {
 double Compartment::get_next_interval(ParallelEnvironment &pe,
                                       const double time_left) {
   double dt(std::numeric_limits<double>::infinity());
-  const double old_propensity(local_propensities_.back());
+  const double old_propensity(local_propensities_[pe.getsize()-1]);
   const double local_propensity(get_local_propensity());
   pe.getcart().Allgather(&local_propensity, 1, MPI::DOUBLE,
-                         local_propensities_.data(), 1, MPI::DOUBLE);
+                         &local_propensities_[0], 1, MPI::DOUBLE);
   for (unsigned i(1); i < pe.getsize(); ++i) {
     local_propensities_[i] += local_propensities_[i-1];
   }
-  const double global_propensity(local_propensities_.back());
+  const double global_propensity(local_propensities_[pe.getsize()-1]);
   if (global_propensity) {
     dt = old_propensity/global_propensity*time_left;
   }
@@ -704,11 +704,11 @@ double Compartment::get_new_interval(ParallelEnvironment &pe) {
   double dt(std::numeric_limits<double>::infinity());
   const double local_propensity(get_local_propensity());
   pe.getcart().Allgather(&local_propensity, 1, MPI::DOUBLE,
-                         local_propensities_.data(), 1, MPI::DOUBLE);
+                         &local_propensities_[0], 1, MPI::DOUBLE);
   for (unsigned i(1); i < pe.getsize(); ++i) {
     local_propensities_[i] += local_propensities_[i-1];
   }
-  const double global_propensity(local_propensities_.back());
+  const double global_propensity(local_propensities_[pe.getsize()-1]);
   if (global_propensity) {
     dt = -log((*global_randdbl_)())/global_propensity;
   }
@@ -716,7 +716,7 @@ double Compartment::get_new_interval(ParallelEnvironment &pe) {
 }
 double Compartment::react_direct_method(Lattice &g, ParallelEnvironment &pe) {
   const double random_propensity((*global_randdbl_)()*
-                                 local_propensities_.back());
+                                 local_propensities_[pe.getsize()-1]);
   if (local_propensities_[pe.getrank()] >= random_propensity && 
       (!pe.getrank() || 
        local_propensities_[pe.getrank()-1] < random_propensity)) {

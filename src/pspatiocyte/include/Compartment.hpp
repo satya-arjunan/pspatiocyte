@@ -75,6 +75,7 @@ public:
     global_gen_(global_seed),
     gen_(seed),
     local_propensity_(0),
+    local_propensities_(new double[proc_size]),
     mol_id_min_(std::numeric_limits<unsigned>::max()/proc_size*proc_id),
     mol_id_max_(mol_id_min_+std::numeric_limits<unsigned>::max()/proc_size),
     mol_id_(mol_id_min_) {
@@ -84,7 +85,6 @@ public:
         boost::mt19937&,boost::uniform_real<>>(global_gen_, uniform_real<>());
       adj_rand_ = new boost::variate_generator<
         boost::mt19937&, boost::uniform_int<>>(gen_, dist_);
-      local_propensities_.resize(proc_size);
   }
 
   ~Compartment() {
@@ -233,6 +233,7 @@ private:
   double local_volume_;
   double local_propensity_;
   double global_propensity_;
+  std::unique_ptr<double[]> local_propensities_;
 
   boost::uniform_int<> dist_ = boost::uniform_int<>(0, 11);
   boost::mt19937 gen_;
@@ -261,7 +262,6 @@ private:
   unsigned numbers_logspace_cnt_ = 0;
   std::vector<unsigned> order_ = {0, 1, 2, 3, 4, 5, 6, 7};
   std::vector<unsigned> sub_indices_[8];
-  std::vector<double> local_propensities_;
 };
 
 #endif /* __COMPARTMENT_HPP */
