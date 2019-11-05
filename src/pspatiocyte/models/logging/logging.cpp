@@ -28,6 +28,10 @@ int main(int argc, char *argv[]) {
     //go through 8 subvolumes
     for (unsigned j(0); j < 8; ++j) {
       std::string sv(std::to_string(j));;
+      Species* ghost(new Species(std::string("Ghost")+rank+sv, 0, 0, world));
+      ghost->set_populate_range(range);
+      species_list.push_back(ghost);
+      /*
       Species* out(new Species(std::string("Out")+rank+sv, 0, 0, world));
       out->set_populate_range(range);
       species_list.push_back(out);
@@ -40,6 +44,7 @@ int main(int argc, char *argv[]) {
       Species* ghost(new Species(std::string("Ghost")+rank+sv, 0, 0, world));
       ghost->set_populate_range(range);
       species_list.push_back(ghost);
+      */
     }
   }
 

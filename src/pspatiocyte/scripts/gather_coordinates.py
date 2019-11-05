@@ -10,20 +10,26 @@ sqr13 = math.sqrt(1.0/3.0)
 sqr83 = math.sqrt(8.0/3.0)
 
 class RealCoord:
-  def __init__(self, nproc, radius, size, decomp, psize, nspecies, nlines):
+  def __init__(self, nproc, radius, size, dx, dy, psize, nspecies, nlines):
     self.nproc  = nproc
     self.radius = radius
     self.size   = size
-    self.decomp = decomp
+    self.dx = int(dx)
+    self.dy = int(dy)
     self.psize  = psize
     self.nspecies = nspecies
     self.nlines = nlines
 
-  def get_subvolume_origin(self, rank):
-    zmod = int(rank%self.decomp[0])
-    ymod = int(rank/self.decomp[0])%self.decomp[1]
-    xmod = int(rank/(self.decomp[0]*self.decomp[1]))
-    return [xmod*self.psize[0], ymod*self.psize[1], zmod*self.psize[2]] 
+  def get_subdomain_origin(self, rank):
+    rank = int(rank)
+    rank_z = int(rank/(self.dx*self.dy))
+    rank_y = int(rank%(self.dx*self.dy)/self.dx)
+    rank_x = int(rank%(self.dx*self.dy)%self.dx)
+    print("rank:",rank,"origin:",rank_x,rank_y,rank_z)
+    print("rank:",rank,"origin*psize:",rank_x*self.psize[0],
+        rank_y*self.psize[1],
+        rank_z*self.psize[2])
+    return [rank_x*self.psize[0], rank_y*self.psize[1], rank_z*self.psize[2]] 
 
   def get_real_coordinate(self, indexlist): 
     xind = indexlist[0]
@@ -39,9 +45,9 @@ class RealCoord:
     pxg = self.psize[0]+2
     pyg = self.psize[1]+2
     pzg = self.psize[2]+2
-    zind  = int(index%pzg)
-    yind  = int((index%(pyg*pzg))/pzg)
     xind  = int(index/(pyg*pzg))
+    yind  = int((index%(pyg*pzg))/pzg)
+    zind  = int(index%pzg)
     xind += origin[0]
     yind += origin[1]
     zind += origin[2]
@@ -55,7 +61,7 @@ class RealCoord:
       header = afile.readline().split(',')[:-1]
     header.append("voxel_radius=%e"%(self.radius))
     outfile.write(','.join(header)+os.linesep) #write header
-    origins = [self.get_subvolume_origin(x) for x in range(self.nproc)]
+    origins = [self.get_subdomain_origin(x) for x in range(self.nproc)]
     for i in range(self.nlines):
       outline = [[]]*(1+self.nspecies)
       for rank in range(self.nproc):
@@ -100,10 +106,12 @@ def main():
   dx = 2**(int(nd/3))
   dy = 2**(int((nd-(int(nd/3)))/2))
   dz = int(nproc/(dy*dx))
+  print("decomp: dx,dy,dz:",dx,dy,dz)
   decomp = (dx,dy,dz)
   # process size
   psize = (int(nx/dx), int(ny/dy), int(nz/dz))
-  obj = RealCoord(nproc, radius, size, decomp, psize, nspecies, nlines)
+  print("psize:",psize)
+  obj = RealCoord(nproc, radius, size, dx, dy, psize, nspecies, nlines)
   obj.write(outputdir)
 
 if __name__ == "__main__":

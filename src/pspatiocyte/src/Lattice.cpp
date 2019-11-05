@@ -43,6 +43,10 @@ Lattice::Lattice(string name, double r, ParallelEnvironment &pe,
       for (int j=0; j<LNy_; ++j) {
         for(int k=0; k<LNz_; ++k) {
           const int lc = linearCoord(i,j,k);
+          //Set voxels at the edge of the lattice space belonging to this
+          //process (subdomain) as ghost voxels. You will get a closed cuboid
+          //with surfaces made up of ghost voxels after this step. This step
+          //does not consider subvolumes within the cuboid subdomain.
           if ( i<GHOST_SIZE || LNx_-GHOST_SIZE<=i ||
                j<GHOST_SIZE || LNy_-GHOST_SIZE<=j ||
                k<GHOST_SIZE || LNz_-GHOST_SIZE<=k ) {

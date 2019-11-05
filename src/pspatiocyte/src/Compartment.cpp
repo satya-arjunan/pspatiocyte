@@ -63,81 +63,103 @@ void Compartment::initialize(Lattice &g, ParallelEnvironment &pe,
 
   //set all invalid ids:
   if (type_==VOLUME) {
+    //before reaching here, we have set up a cuboind enclosing the full lattice
+    //volume belonging to this process (subdomain) with surfaces made up of
+    //ghost voxels (in Lattice::Lattice()). We now need to replace these ghost
+    //voxels at surfaces not connected to subdomains of adjacent processes with
+    //invalid_id. This step is only concerned with processes that has a
+    //subdomain that is at the surface of the global lattice.
+
     // if right-boundary node
-    if(pe.getneighbor_i_plus()==NE)
-    for(int j=0; j<=ny_+1; ++j)
-    for(int k=0; k<=nz_+1; ++k)
-    {
-        const int lc0 = g.linearCoord(nx_  , j, k);
-        const int lc1 = g.linearCoord(nx_+1, j, k);
-        g.get_voxel(lc0).species_id =
-        g.get_voxel(lc1).species_id = invalid_id_;
+    if (pe.getneighbor_i_plus()==NE) {
+      fout << "right boundary" << std::endl;
+      for (int j=0; j<=ny_+1; ++j) {
+        for (int k=0; k<=nz_+1; ++k) {
+          const int lc0 = g.linearCoord(nx_  , j, k);
+          const int lc1 = g.linearCoord(nx_+1, j, k);
+          g.get_voxel(lc0).species_id = invalid_id_;
+          g.get_voxel(lc1).species_id = invalid_id_;
+        }
+      }
     }
 
     // if left-boundary node
-    if(pe.getneighbor_i_minus()==NE)
-    for(int j=0; j<=ny_+1; ++j)
-    for(int k=0; k<=nz_+1; ++k)
-    {
-        const int lc0 = g.linearCoord(0, j, k);
-        const int lc1 = g.linearCoord(1, j, k);
-        g.get_voxel(lc0).species_id =
-        g.get_voxel(lc1).species_id = invalid_id_;
-    }
-
-    // if rear-boundary node
-    if(pe.getneighbor_j_plus()==NE)
-    for(int i=0; i<=nx_+1; ++i)
-    for(int k=0; k<=nz_+1; ++k)
-    {
-        const int lc0 = g.linearCoord(i, ny_  , k);
-        const int lc1 = g.linearCoord(i, ny_+1, k);
-        g.get_voxel(lc0).species_id =
-        g.get_voxel(lc1).species_id = invalid_id_;
+    if (pe.getneighbor_i_minus()==NE) {
+      fout << "left boundary" << std::endl;
+      for(int j=0; j<=ny_+1; ++j) {
+        for(int k=0; k<=nz_+1; ++k) {
+          const int lc0 = g.linearCoord(0, j, k);
+          const int lc1 = g.linearCoord(1, j, k);
+          g.get_voxel(lc0).species_id = invalid_id_;
+          g.get_voxel(lc1).species_id = invalid_id_;
+        }
+      }
     }
 
     // if front-boundary node
-    if(pe.getneighbor_j_minus()==NE)
-    for(int i=0; i<=nx_+1; ++i)
-    for(int k=0; k<=nz_+1; ++k)
-    {
-        const int lc0 = g.linearCoord(i, 0, k);
-        const int lc1 = g.linearCoord(i, 1, k);
-        g.get_voxel(lc0).species_id =
-        g.get_voxel(lc1).species_id = invalid_id_;
+    if (pe.getneighbor_j_plus()==NE) {
+      fout << "front boundary" << std::endl;
+      for (int i=0; i<=nx_+1; ++i) {
+        for(int k=0; k<=nz_+1; ++k) {
+          const int lc0 = g.linearCoord(i, ny_  , k);
+          const int lc1 = g.linearCoord(i, ny_+1, k);
+          g.get_voxel(lc0).species_id = invalid_id_;
+          g.get_voxel(lc1).species_id = invalid_id_;
+        }
+      }
+    }
+
+    // if rear-boundary node
+    if (pe.getneighbor_j_minus()==NE) {
+      fout << "rear boundary" << std::endl;
+      for(int i=0; i<=nx_+1; ++i) {
+        for(int k=0; k<=nz_+1; ++k) {
+          const int lc0 = g.linearCoord(i, 0, k);
+          const int lc1 = g.linearCoord(i, 1, k);
+          g.get_voxel(lc0).species_id = invalid_id_;
+          g.get_voxel(lc1).species_id = invalid_id_;
+        }
+      }
     }
 
     // if top boundary node
-    if(pe.getneighbor_k_plus()==NE)
-    for(int i=0; i<=nx_+1; ++i)
-    for(int j=0; j<=ny_+1; ++j)
-    {
-        const int lc0 = g.linearCoord(i, j, nz_  );
-        const int lc1 = g.linearCoord(i, j, nz_+1);
-        g.get_voxel(lc0).species_id =
-        g.get_voxel(lc1).species_id = invalid_id_;
+    if (pe.getneighbor_k_plus()==NE) {
+      fout << "top boundary" << std::endl;
+      for(int i=0; i<=nx_+1; ++i) {
+        for(int j=0; j<=ny_+1; ++j) {
+          const int lc0 = g.linearCoord(i, j, nz_  );
+          const int lc1 = g.linearCoord(i, j, nz_+1);
+          g.get_voxel(lc0).species_id = invalid_id_;
+          g.get_voxel(lc1).species_id = invalid_id_;
+        }
+      }
     }
 
     // if bottom boundary node
-    if(pe.getneighbor_k_minus()==NE)
-    for(int i=0; i<=nx_+1; ++i)
-    for(int j=0; j<=ny_+1; ++j)
-    {
-        const int lc0 = g.linearCoord(i, j, 0);
-        const int lc1 = g.linearCoord(i, j, 1);
-        g.get_voxel(lc0).species_id =
-        g.get_voxel(lc1).species_id = invalid_id_;
+    if (pe.getneighbor_k_minus()==NE) {
+      fout << "bottom boundary" << std::endl;
+      for(int i=0; i<=nx_+1; ++i) {
+        for(int j=0; j<=ny_+1; ++j) {
+          const int lc0 = g.linearCoord(i, j, 0);
+          const int lc1 = g.linearCoord(i, j, 1);
+          g.get_voxel(lc0).species_id = invalid_id_;
+          g.get_voxel(lc1).species_id = invalid_id_;
+        }
+      }
     }
 
     // append inner voxels
-    for(int i=1; i<=nx_; ++i)
-    for(int j=1; j<=ny_; ++j)
-    for(int k=1; k<=nz_; ++k)
-    {
-        const int lc = g.linearCoord(i, j, k);
-        if(g.get_voxel(lc).species_id == vacant_id_)
+    for (int i=1; i<=nx_; ++i) {
+      for (int j=1; j<=ny_; ++j) {
+        for (int k=1; k<=nz_; ++k) {
+          const int lc = g.linearCoord(i, j, k);
+          if(g.get_voxel(lc).species_id == vacant_id_) {
             voxel_coords_.push_back(lc);
+          }
+        }
+      }
     }
+
     n_voxels_ = voxel_coords_.size(); // = (nx_-2)*(ny_-2)*(nz_-2)
     unsigned total_voxels(n_voxels_);
     local_volume_ = n_voxels_*4.0*SQR2*rv*rv*rv;
@@ -170,7 +192,7 @@ void Compartment::initialize(Lattice &g, ParallelEnvironment &pe,
     ghosts_[N].z = (bit_[N].z==0 ? begin_[N].z-1 : end_[N].z+1);
   }
   g.set_out_properties(begin_, end_, bit_);
-  g.set_out_voxels();
+  //g.set_out_voxels();
 
   for (unsigned i(0); i < 10; ++i) {
     out_cnts_[i] = 0;

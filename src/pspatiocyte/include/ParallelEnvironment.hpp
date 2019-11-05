@@ -41,7 +41,7 @@ class ParallelEnvironment {
 public:
   ParallelEnvironment(int argc, char* argv[], const int &GNx, const int &GNy,
                       const int &GNz, const std::string dirname) {
-    GNx_ = GNx;
+    GNx_ = GNx; //global lattice Nx,Ny,Nz dimensions given by user
     GNy_ = GNy;
     GNz_ = GNz;
     comm = MPI::COMM_WORLD;   // initially allocated processes
@@ -51,8 +51,8 @@ public:
     // 3D cartesian decomposition
     size_ = comm.Get_size();
     ndims_ = 3;                // 3 dimensional decomposition
-    dims_[2] =
-    dims_[1] =
+    dims_[2] = 0;
+    dims_[1] = 0;
     dims_[0] = 0;              // corrupt without initialization
     MPI::Compute_dims(size_, ndims_, dims_);
     // 3D cartesian communicator
@@ -66,12 +66,9 @@ public:
     // 3D process coordinates
     cart.Get_coords(rank_, ndims_, coords_);
     // identify neighbor processes
-    cart.Shift( 2, -1, inbound_[5], outbound_[5] );  // i<<
-    cart.Shift( 2,  1, inbound_[4], outbound_[4] );  // i>>
-    cart.Shift( 1, -1, inbound_[3], outbound_[3] );  // j<<
-    cart.Shift( 1,  1, inbound_[2], outbound_[2] );  // j>>
-    cart.Shift( 0, -1, inbound_[1], outbound_[1] );  // k<<
-    cart.Shift( 0,  1, inbound_[0], outbound_[0] );  // k>>
+    cart.Shift( 2,  1, inbound_[2], outbound_[2] );  // (left rank, right rank)
+    cart.Shift( 1,  1, inbound_[1], outbound_[1] );  // (rear rank, front rank) 
+    cart.Shift( 0,  1, inbound_[0], outbound_[0] );  // (bottom rank, top rank) 
 
     // prepare parallel files
     char fname[80], fname2[80], fname3[80];
@@ -98,23 +95,18 @@ public:
       fout << "decomposition = (" << dims_[2] << ","
         << dims_[1] << "," << dims_[0] << ")" << endl << endl;
     } 
-    fout << "  rank_ = " << rank_ << ": cart = ("
-      << coords_[2] << "," << coords_[1] << "," << coords_[0] << ") :" << endl
-      << "  i+ = " << inbound_[4] << ">" << rank_ << ">" << outbound_[4]
-      << "  j+ = " << inbound_[2] << ">" << rank_ << ">" << outbound_[2]
-      << "  k+ = " << inbound_[0] << ">" << rank_ << ">" << outbound_[0]
-      << endl
-      << "  i- = " << outbound_[5] << "<" << rank_ << "<" << inbound_[5]
-      << "  j- = " << outbound_[3] << "<" << rank_ << "<" << inbound_[3]
-      << "  k- = " << outbound_[1] << "<" << rank_ << "<" << inbound_[1]
-      << endl << endl;
+    fout << "  my rank:" << rank_ << ", my coord = ("
+      << coords_[2] << "," << coords_[1] << "," << coords_[0] << ")" << endl
+      << "  my neighbours:" << std::endl
+      << "  i = left rank:" << inbound_[2] << ", right rank:" << outbound_[2] <<
+      std::endl 
+      << "  j = rear rank:" << inbound_[1] << ", front rank:" << outbound_[1]
+      << std::endl
+      << "  k = bottom rank:" << inbound_[0] << ", top rank:" << outbound_[0] <<
+      std::endl;
    fout.flush();
    cart.Barrier();
 
-   if(!topologycheck()) {
-     cart.Abort( -1 );
-   } 
-   
    // lattice decomposition
    ibegin_ = new int[dims_[2]];   iend_ = new int[dims_[2]];
    jbegin_ = new int[dims_[1]];   jend_ = new int[dims_[1]];
@@ -214,32 +206,32 @@ public:
 
   int getneighbor_i_plus()
   {
-      return outbound_[0];
+      return outbound_[2];
   }
 
   int getneighbor_i_minus()
   {
-      return inbound_[0];
+      return inbound_[2];
   }
 
   int getneighbor_j_plus()
   {
-      return outbound_[2];
+      return outbound_[1];
   }
 
   int getneighbor_j_minus()
   {
-      return inbound_[2];
+      return inbound_[1];
   }
 
   int getneighbor_k_plus()
   {
-      return outbound_[4];
+      return outbound_[0];
   }
 
   int getneighbor_k_minus()
   {
-      return inbound_[4];
+      return inbound_[0];
   }
 
   int getispan()
@@ -540,8 +532,8 @@ private:
     int      rank_;   // rank_ of cartesian communicator
     int   dims_[3];   // expansion in each axis
     int coords_[3];   // process coordinates
-    int  inbound_[6];   // inbound processes
-    int outbound_[6];   // outbound processes
+    int  inbound_[3];   // inbound processes
+    int outbound_[3];   // outbound processes
     unsigned GNx_;
     unsigned GNy_;
     unsigned GNz_;
@@ -565,7 +557,6 @@ private:
                     int bgnitem[], int enditem[],
                     const int &rank, const bool &verbose);
 
-    bool topologycheck( void );
 };
 
 #endif /* __PARAENV_HPP */
