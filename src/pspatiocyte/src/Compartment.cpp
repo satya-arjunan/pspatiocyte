@@ -192,7 +192,7 @@ void Compartment::initialize(Lattice &g, ParallelEnvironment &pe,
     ghosts_[N].z = (bit_[N].z==0 ? begin_[N].z-1 : end_[N].z+1);
   }
   g.set_out_properties(begin_, end_, bit_);
-  //g.set_out_voxels();
+  g.set_out_voxels();
 
   for (unsigned i(0); i < 10; ++i) {
     out_cnts_[i] = 0;

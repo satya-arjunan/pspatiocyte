@@ -25,10 +25,6 @@ class RealCoord:
     rank_z = int(rank/(self.dx*self.dy))
     rank_y = int(rank%(self.dx*self.dy)/self.dx)
     rank_x = int(rank%(self.dx*self.dy)%self.dx)
-    print("rank:",rank,"origin:",rank_x,rank_y,rank_z)
-    print("rank:",rank,"origin*psize:",rank_x*self.psize[0],
-        rank_y*self.psize[1],
-        rank_z*self.psize[2])
     return [rank_x*self.psize[0], rank_y*self.psize[1], rank_z*self.psize[2]] 
 
   def get_real_coordinate(self, indexlist): 
@@ -106,11 +102,9 @@ def main():
   dx = 2**(int(nd/3))
   dy = 2**(int((nd-(int(nd/3)))/2))
   dz = int(nproc/(dy*dx))
-  print("decomp: dx,dy,dz:",dx,dy,dz)
   decomp = (dx,dy,dz)
   # process size
   psize = (int(nx/dx), int(ny/dy), int(nz/dz))
-  print("psize:",psize)
   obj = RealCoord(nproc, radius, size, dx, dy, psize, nspecies, nlines)
   obj.write(outputdir)
 
