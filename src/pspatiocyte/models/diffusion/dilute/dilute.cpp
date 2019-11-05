@@ -25,7 +25,7 @@ int main(int argc, char *argv[]) {
   const double rv(2.5e-9);
   const unsigned nlogs(2000);
   const float end_log(duration);
-  const unsigned nmolecules(8);
+  const unsigned nmolecules(1);
   const double numbers_log_interval(0); //don't log numbers
   const double coords_log_interval(-1); //log after each diffusion step
 
@@ -34,7 +34,7 @@ int main(int argc, char *argv[]) {
 
   Species A("A", D, nmolecules, world);
 
-  Vector<float> range(0.05, 0.05, 0.05);
+  Vector<float> range(0.005, 0.005, 0.005);
   A.set_populate_range(range);
 
   world.initialize();

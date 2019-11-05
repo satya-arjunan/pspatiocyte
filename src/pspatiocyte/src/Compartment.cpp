@@ -404,6 +404,13 @@ void Compartment::populate_molecules(Species& s, unsigned size,
     return;
   }
 
+  /*
+  //if only want to populate in the root process subdomain:
+  if (pe.getrank()) {
+    return;
+  }
+  */
+
   if (size > n_voxels_) {
     std::cout << "Too many molecules to be populated, size:" << size << " "
       << " available:" << n_voxels_ << " " << s.get_name() << std::endl;
@@ -445,20 +452,62 @@ void Compartment::populate_molecules(Species& s, unsigned size,
     }
   }
   else { 
-    pe.getcart().Allreduce(MPI::IN_PLACE, &size, 1, MPI::INT, MPI::SUM);
-    if (pe.getrank() == 0) {
-      const int species_id(s.get_id());
-      //int coord(g.linearCoordFast(nx_-20-(*adj_rand_)(),
-      //ny_-20-(*adj_rand_)(), nz_-20-(*adj_rand_)()));
-      int coord(g.linearCoordFast(nx_, ny_, nz_));
-      int sid(g.get_voxel(coord).species_id);
-      if (!((sid < out_id_ && sid != vacant_id_) ||
-            (sid > out_id_ && sid%out_id_ != 0))) {
-        add_molecule(species_id, coord, get_new_mol_id(), g.get_voxel(coord)); 
+    Vector<unsigned> dims(pe.get_global_dimensions());
+    Vector<unsigned> o(dims.x*origin.x, dims.y*origin.y, dims.z*origin.z);
+    Vector<unsigned> r(dims.x*range.x, dims.y*range.y, dims.z*range.z);
+    //global coordinates:
+    Vector<unsigned> gmin(std::max(unsigned(0), o.x-r.x/2),
+                          std::max(unsigned(0), o.y-r.y/2),
+                          std::max(unsigned(0), o.z-r.z/2));
+    Vector<unsigned> gmax(std::min(dims.x, o.x+r.x/2),
+                          std::min(dims.y, o.y+r.y/2),
+                          std::min(dims.z, o.z+r.z/2));
+    //local coordinates:
+    Vector<unsigned> lmin(pe.get_local_min());
+    Vector<unsigned> lmax(pe.get_local_max());
+    //intersecting coordinates:
+    Vector<unsigned> imin(std::max(lmin.x, gmin.x),
+                          std::max(lmin.y, gmin.y),
+                          std::max(lmin.z, gmin.z));
+    Vector<unsigned> imax(std::min(lmax.x, gmax.x),
+                          std::min(lmax.y, gmax.y),
+                          std::min(lmax.z, gmax.z));
+    //if intersecting:
+    if (imin.x < imax.x && imin.y < imax.y && imin.z < imax.z) {
+      //local normalized coordinates:
+      Vector<unsigned> nmin(imin.x-lmin.x, imin.y-lmin.y, imin.z-lmin.z);
+      Vector<unsigned> nmax(imax.x-lmin.x, imax.y-lmin.y, imax.z-lmin.z);
+      Vector<unsigned> ldims(nmax.x-nmin.x+1, nmax.y-nmin.y+1, nmax.z-nmin.z+1);
+      unsigned available(ldims.x*ldims.y*ldims.z);
+      if (available < size) {
+        std::cout << "Unable to populate " << size << " molecules within" <<
+          " the specified range in space. Only " << available << " vacant" <<
+          " voxels available:" << s.get_name() << std::endl;
+        abort();
       }
       else {
-        std::cout << "Unable to populate ranged" << s.get_name() << std::endl;
-        abort();
+        const int species_id(s.get_id());
+        for (unsigned i(0); i < size; ++i) {
+          unsigned trial(0);
+          unsigned index;
+          unsigned coord;
+          int sid;
+          do {
+            if(trial++ > available) {
+              fout << "ABORT: unable to find a vacant voxel to populate in " <<
+                "range! (" << s.get_name() << ")" << endl;
+              abort();
+            }
+            index = (int)(available*(*randdbl_)());
+            Vector<unsigned> ijk(index/(ldims.z*ldims.y)+nmin.x+1,
+                                 (index%(ldims.z*ldims.y))/ldims.z+nmin.y+1,
+                                 index%ldims.z+nmin.z+1); 
+            coord = g.linearCoordFast(ijk.x, ijk.y, ijk.z);
+            sid = g.get_voxel(coord).species_id;
+          } while((sid < out_id_ && sid != vacant_id_) ||
+                  (sid > out_id_ && sid%out_id_ != 0));
+          add_molecule(species_id, coord, get_new_mol_id(), g.get_voxel(coord)); 
+        }
       }
     }
   }

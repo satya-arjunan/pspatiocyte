@@ -22,7 +22,7 @@ set_target_properties(${model_name}
   PROPERTIES
   ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib"
   LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib"
-  RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/models/${model_name}")
+  RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/models/diffusion/${model_name}")
 
 foreach(copy_file ${copy_files})
   add_custom_command(

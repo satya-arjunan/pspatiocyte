@@ -64,7 +64,6 @@ endforeach()
 
 add_subdirectory(models/benchmark)
 add_subdirectory(models/mapk)
-add_subdirectory(models/trajectory)
 add_subdirectory(models/diffusion)
 add_subdirectory(models/reaction)
 add_subdirectory(models/logging)
