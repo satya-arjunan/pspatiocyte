@@ -155,18 +155,18 @@ public:
                         const int &zbit, ParallelEnvironment &pe,
                         const int sub);
 
-    void load_ghost(ParallelEnvironment &pe,
+    void update_ghost_voxels(ParallelEnvironment &pe,
                     const std::vector<OutMolecule>& outmolecules,
                     const std::vector<OutMolecule>& outmolecules_shared,
                     const int sub);
 
-    void feedGhost(const int &xbegin, const int &xend, 
+    void update_out_voxels(const int &xbegin, const int &xend, 
                    const int &ybegin, const int &yend, 
                    const int &zbegin, const int &zend, 
                    const int &xbit,   const int &ybit,   const int &zbit,
                    ParallelEnvironment &pe);
     int check_outmolecules(const std::vector<OutMolecule> outmolecules[],
-                            const int sub);
+                           const int sub);
 
     vector<SpillMolecule> jumpincoords;
 

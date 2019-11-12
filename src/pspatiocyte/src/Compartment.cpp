@@ -452,6 +452,24 @@ void Compartment::populate_molecules(Species& s, unsigned size,
     }
   }
   else { 
+    /*
+    pe.getcart().Allreduce(MPI::IN_PLACE, &size, 1, MPI::INT, MPI::SUM);
+    if (pe.getrank() == 0) {
+      const int species_id(s.get_id());
+      //int coord(g.linearCoordFast(nx_-20-(*adj_rand_)(),
+      //ny_-20-(*adj_rand_)(), nz_-20-(*adj_rand_)()));
+      int coord(g.linearCoordFast(nx_, ny_, nz_));
+      int sid(g.get_voxel(coord).species_id);
+      if (!((sid < out_id_ && sid != vacant_id_) ||
+            (sid > out_id_ && sid%out_id_ != 0))) {
+        add_molecule(species_id, coord, get_new_mol_id(), g.get_voxel(coord)); 
+      }
+      else {
+        std::cout << "Unable to populate ranged" << s.get_name() << std::endl;
+        abort();
+      }
+    }
+    */
     Vector<unsigned> dims(pe.get_global_dimensions());
     Vector<unsigned> o(dims.x*origin.x, dims.y*origin.y, dims.z*origin.z);
     Vector<unsigned> r(dims.x*range.x, dims.y*range.y, dims.z*range.z);
@@ -1155,10 +1173,10 @@ void Compartment::walk_on_ghost(std::vector<unsigned>& species_ids,
     g.jumpincoords.clear(); 
     std::vector<SpillMolecule> spill_coords;
     const unsigned N(order_[sv]);
-    // load ghost cells from adjacent process using MPI 
-    // this is the costliest operation, need to further optimize
+    // update ghost voxels with the state from out voxels of adjacent process
+    // using MPI. This is the costliest operation, need to further optimize
     // by keeping a list of molecules that are in the in-compartment-ghost:
-    g.load_ghost(pe, outmolecules_[N+1], outmolecules_[9], N);
+    g.update_ghost_voxels(pe, outmolecules_[N+1], outmolecules_[9], N);
     // loop over sub-moleculeVector
     for (unsigned i(0); i < sub_indices_[N].size(); ++i) {
       const unsigned index(sub_indices_[N][i]);
@@ -1206,17 +1224,18 @@ void Compartment::walk_on_ghost(std::vector<unsigned>& species_ids,
         }
       }
     }
-    //changed state of voxels in ghost (molecule added or removed,
-    //or changed species):
+    //To update the state of out voxels of adjacent processes, we store
+    //the changes to local ghost voxels (molecule added or removed,
+    //or changed species) in spill_coords before transfering the information
+    //using MPI (in update_out_voxels).
     //There could be duplicates in the spill_coords but it is ok.
-    //It is only an indicator that the voxel in the local compartment
-    //should be updated according to the species_id when reading jumpin 
-    //molecules:
+    //It is only an indicator that the out voxels in the local domain should be
+    //updated according to the species_id when reading jumpin molecules:
     spill_molecules(g, spill_coords, ghosts_[N]);
     g.clear_ghost(spill_coords);
-    g.feedGhost(begin_[N].x, end_[N].x, begin_[N].y, end_[N].y,
-                begin_[N].z, end_[N].z, bit_[N].x, bit_[N].y, bit_[N].z,
-                pe);
+    g.update_out_voxels(begin_[N].x, end_[N].x, begin_[N].y, end_[N].y,
+                        begin_[N].z, end_[N].z, bit_[N].x, bit_[N].y, bit_[N].z,
+                        pe);
     jumpin_molecules(g, pe);
   }
 }

@@ -2,7 +2,8 @@
 set(model_name logging)
 
 set(copy_files
-  run.py)
+  run.py
+  log_hostfile)
 
 set(model_src ${model_name}.cpp)
 add_executable(${model_name} ${model_src})

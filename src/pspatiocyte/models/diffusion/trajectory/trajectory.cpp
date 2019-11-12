@@ -15,9 +15,9 @@ int main( int argc, char *argv[] ) {
                       sqrt(8.0/3.0));
   const bool verbose(true);
   const double duration(10); // s
-  const int NKT(100); // total K
-  const int NPP(500);
-  const int NKK(100);
+  const int NKT(1);
+  const int NPP(3);
+  const int NKK(1);
   const int nlogs(1000);
   const unsigned seed(time(NULL));
   const double numbers_log_interval(0); //don't log numbers
@@ -30,9 +30,6 @@ int main( int argc, char *argv[] ) {
   Species KK("KK", D, NKK, world);
   Species PP("PP", D, NPP, world);
   Species K("K", D, NKT, world);
-
-  Vector<float> range(0.05, 0.05, 0.05);
-  PP.set_populate_range(range);
 
   world.initialize();
   world.run(duration, verbose);

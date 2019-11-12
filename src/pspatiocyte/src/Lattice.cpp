@@ -493,10 +493,10 @@ void Lattice::set_out_voxels() {
 
 //all inbounds are confirmed not invalid_id_ and
 //are all ghost voxels (species_id < 0)
-void Lattice::load_ghost(ParallelEnvironment &pe,
-                         const std::vector<OutMolecule>& outmolecules,
-                         const std::vector<OutMolecule>& outmolecules_shared,
-                         const int sub) { 
+void Lattice::update_ghost_voxels(ParallelEnvironment &pe,
+                          const std::vector<OutMolecule>& outmolecules,
+                          const std::vector<OutMolecule>& outmolecules_shared,
+                          const int sub) { 
   occupied_ghosts_.clear();
   out_ghost_molecules_.clear();
   Boundary& b(boundary_[sub]);
@@ -667,7 +667,7 @@ void Lattice::load_ghost(ParallelEnvironment &pe,
   }
 }
 
-void Lattice::feedGhost(const int &xbegin, const int &xend,
+void Lattice::update_out_voxels(const int &xbegin, const int &xend,
                         const int &ybegin, const int &yend,
                         const int &zbegin, const int &zend,
                         const int &xbit,
