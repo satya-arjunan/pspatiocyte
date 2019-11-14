@@ -25,7 +25,7 @@ int main(int argc, char *argv[]) {
   const double duration(161e-6); // s
   const double rv(2.5e-9);
   const unsigned nlogs(1000);
-  const unsigned nmolecules(8);
+  const unsigned nmolecules(1);
   const double numbers_log_interval(0); //don't log numbers
   const double coords_log_interval(duration/nlogs);
   const unsigned ncrowders((nx-2)*(ny-2)*(nz-2)*fraction);

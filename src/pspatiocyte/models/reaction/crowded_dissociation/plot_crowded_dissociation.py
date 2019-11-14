@@ -41,7 +41,7 @@ for s, search in enumerate(searches):
       else:
         label = "vacated voxel, $\phi="
       fraction_str = '{:.2f}'.format(fraction)
-      dirname = 'forced_'+str(search)+'__fraction_'+fraction_str+'_'+str(i)
+      dirname = 'vacated_'+str(search)+'__fraction_'+fraction_str+'_'+str(i)
       print(dirname)
       if (i == 0):
         data = np.loadtxt(dirname+'/output.txt', delimiter=',', skiprows=1)

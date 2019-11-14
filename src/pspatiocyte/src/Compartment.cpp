@@ -677,6 +677,9 @@ bool Compartment::walk_molecule(Lattice& g, const int src_coord,
     return false;
   }
   const int species_id(src_voxel_species_id%out_id_);
+  if (!species_list_[species_id]->getD()) { //immobile species
+    return false;
+  }
   std::vector<Molecule>& molecules(species_molecules_[species_id]);
 
   unsigned adj_index((*adj_rand_)());

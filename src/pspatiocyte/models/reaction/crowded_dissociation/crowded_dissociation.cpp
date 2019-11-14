@@ -6,8 +6,9 @@ int main(int argc, char *argv[]) {
   //for unforced search up to 75% crowding is ok 
   //for forced search up to 95% crowding is good
   std::string output_dirname("output");
-  bool force_search_vacant(false);
-  float crowd_fraction(0.75);
+  bool force_search_vacant(true);
+  unsigned seed(5);
+  float crowd_fraction(0.95);
   if (argc >= 2) {
     output_dirname = argv[1];
   }
@@ -16,6 +17,9 @@ int main(int argc, char *argv[]) {
   }
   if (argc >= 4) {
     crowd_fraction = atof(argv[3]);
+  }
+  if (argc >= 5) {
+    seed = atoi(argv[4]);
   }
 
   const int nx(64); // lattice dimensions
@@ -33,7 +37,7 @@ int main(int argc, char *argv[]) {
   const int nlogs(20000);
   const double log_interval(duration/nlogs);
   const bool log_coordinates(false);
-  World world(argc, argv, nx, ny, nz, rv, log_interval, output_dirname,
+  World world(argc, argv, nx, ny, nz, rv, log_interval, output_dirname, seed,
               0, force_search_vacant);
   Species A("A", D, num_A, world);
   Species B("B", D, 0, world);
