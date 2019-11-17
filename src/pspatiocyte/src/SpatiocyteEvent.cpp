@@ -44,8 +44,13 @@ SpatiocyteEvent::SpatiocyteEvent(Lattice& lattice, Compartment& compartment,
   type_(DIFFUSION),
   interval_(species.get_walk_interval()) {
     if (!parallel_environment_.getrank()) { 
-      std::cout << "Species " << species.get_name() << 
-        " walk interval:" << species.get_walk_interval() << std::endl;
+      std::cout << "Species " << species.get_name() << std::endl;
+      std::cout << "\tdiffusion interval:" << 
+        species.get_walk_interval()/species.get_walk_probability() << std::endl;
+      std::cout << "\twalk probability:" << species.get_walk_probability() <<
+        std::endl;
+      std::cout << "\twalk event interval:" << species.get_walk_interval() <<
+        std::endl;
     }
     species_list_.push_back(&species);
     set_time(interval_);

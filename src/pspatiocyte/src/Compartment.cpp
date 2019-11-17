@@ -1122,10 +1122,6 @@ void Compartment::calculate_collision_time(Species& s,
         std::cout << "reaction:" << reaction.get_name() << std::endl;
         std::cout << "\tspecies:" << s.get_name() << std::endl;
         std::cout << "\tp:" << probability << std::endl;
-        std::cout << "\twalk probability:" << s.get_walk_probability() <<
-          std::endl;
-        std::cout << "\twalk interval:" << s.get_walk_interval() <<
-          std::endl;
       }
     }
   }

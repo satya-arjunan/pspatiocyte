@@ -4,7 +4,7 @@
 
 int main( int argc, char *argv[] ) {
   std::string dirname("output");
-  double D(0.06);
+  double D(4);
   double ratio(1);
 
   if (argc >= 2) {
@@ -40,7 +40,7 @@ int main( int argc, char *argv[] ) {
   const double dt(rv*rv*2/(D*3)); // s (diffusion interval)
   const int nlogs(duration*2);
   const double log_interval(duration/nlogs);
-  std::cout << "NKT:" << NKT << " NP:" << NP << " NKK:" << NKK << std::endl;
+  //std::cout << "NKT:" << NKT << " NP:" << NP << " NKK:" << NKK << std::endl;
 
   World world(argc, argv, nx, ny, nz, rv, log_interval, dirname);
 
