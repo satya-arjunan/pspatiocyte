@@ -58,7 +58,7 @@ leg = ax.legend(handles[::-1], labels[::-1], loc=(0.03,0.67), frameon=False)
 for t in leg.get_texts():
   t.set_fontsize(legendFontSize)   
 
-ax.set_xlabel('KK$_0$/PP$_0$', size=labelFontSize)
+ax.set_xlabel('KK$_0$/P$_0$', size=labelFontSize)
 ax.set_ylabel('Kpp/K$_0$', size=labelFontSize)
 plt.xticks(size=labelFontSize)
 plt.yticks(size=labelFontSize)

@@ -5,7 +5,7 @@
 int main( int argc, char *argv[] ) {
   std::string dirname("output");
   double D(0.06);
-  double ratio(0.11103363181676379); //ratios[2]
+  double ratio(1);
 
   if (argc >= 2) {
     dirname = argv[1];
@@ -35,25 +35,26 @@ int main( int argc, char *argv[] ) {
   const double trel(1e-6);
   const double k7(log(2.)/trel);
   const int NKT(120*volume); // total K
-  const int NPP(rint(60*volume/(ratio+1)));
-  const int NKK(60*volume-NPP);
+  const int NP(rint(60*volume/(ratio+1)));
+  const int NKK(60*volume-NP);
   const double dt(rv*rv*2/(D*3)); // s (diffusion interval)
   const int nlogs(duration*2);
   const double log_interval(duration/nlogs);
+  std::cout << "NKT:" << NKT << " NP:" << NP << " NKK:" << NKK << std::endl;
 
   World world(argc, argv, nx, ny, nz, rv, log_interval, dirname);
 
   Species KK("KK", D, NKK, world);
   Species Kpp("Kpp", D, 0, world);
-  Species PP("PP", D, NPP, world);
+  Species P("P", D, NP, world);
   Species K("K", D, NKT, world);
   Species Kp("Kp", D, 0, world);
   Species K_KK("K_KK", D, 0, world); //KK-K in Takahashi et al. PNAS 2010
   Species Kp_KK("Kp_KK", D, 0, world); //KK-Kp
-  Species Kpp_PP("Kpp_PP", D, 0, world); //P-Kpp
-  Species Kp_PP("Kp_PP", D, 0, world); //P-Kp
+  Species Kpp_P("Kpp_P", D, 0, world); //P-Kpp
+  Species Kp_P("Kp_P", D, 0, world); //P-Kp
   Species KKa("KKa", D, 0, world);
-  Species PPa("PPa", D, 0, world);
+  Species Pa("Pa", D, 0, world);
 
   Reaction r1("K + KK -> K_KK", K, KK, ka1, K_KK, world);
   Reaction r2("K_KK -> K + KK", K_KK, kd1, K, KK, world);
@@ -65,15 +66,15 @@ int main( int argc, char *argv[] ) {
 
   Reaction r7("KKa -> KK", KKa, k7, KK, world);
 
-  Reaction r8("Kpp + PP -> Kpp_PP", Kpp, PP, ka1, Kpp_PP, world);
-  Reaction r9("Kpp_PP -> Kpp + PP", Kpp_PP, kd1, Kpp, PP, world);
-  Reaction r10("Kpp_PP -> Kp + PPa", Kpp_PP, kcat1, Kp, PPa, world);
+  Reaction r8("Kpp + P -> Kpp_P", Kpp, P, ka1, Kpp_P, world);
+  Reaction r9("Kpp_P -> Kpp + P", Kpp_P, kd1, Kpp, P, world);
+  Reaction r10("Kpp_P -> Kp + Pa", Kpp_P, kcat1, Kp, Pa, world);
 
-  Reaction r11("Kp + PP -> Kp_PP", Kp, PP, ka2, Kp_PP, world);
-  Reaction r12("Kp_PP -> Kp + PP", Kp_PP, kd2, Kp, PP, world);
-  Reaction r13("Kp_PP -> K + PPa", Kp_PP, kcat2, K, PPa, world);
+  Reaction r11("Kp + P -> Kp_P", Kp, P, ka2, Kp_P, world);
+  Reaction r12("Kp_P -> Kp + P", Kp_P, kd2, Kp, P, world);
+  Reaction r13("Kp_P -> K + Pa", Kp_P, kcat2, K, Pa, world);
 
-  Reaction r14("PPa -> PP", PPa, k7, PP, world);
+  Reaction r14("Pa -> P", Pa, k7, P, world);
 
   world.initialize();
   world.run(duration, verbose);
