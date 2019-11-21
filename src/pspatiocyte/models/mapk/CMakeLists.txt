@@ -4,7 +4,8 @@ set(model_name mapk)
 set(copy_files
   plot_ratio.py
   plot_output.py
-  run.py)
+  run.py
+  run_scalability.py)
 
 set(model_src ${model_name}.cpp)
 add_executable(${model_name} ${model_src})

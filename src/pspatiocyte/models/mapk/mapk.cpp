@@ -25,7 +25,7 @@ int main( int argc, char *argv[] ) {
   const double volume(rv*rv*rv*(nx-2)*(ny-2)*(nz-2)*2.0*sqrt(3.0)*
                       sqrt(8.0/3.0));
   const bool verbose(true);
-  const double duration(300); // s
+  const double duration(10); // s
   const double ka1(0.04483455086786913);
   const double kd1(1.35);
   const double kcat1(1.5);
