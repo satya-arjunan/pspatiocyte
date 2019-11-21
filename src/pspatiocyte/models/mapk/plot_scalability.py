@@ -20,7 +20,7 @@ for i in range(len(tableau20)):
     r, g, b = tableau20[i]    
     tableau20[i] = (r / 255., g / 255., b / 255.)  
 
-colors = [0, 2, 8, 4, 1, 3]
+colors = [4, 2, 8, 4, 1, 3]
 sims = ['elapsed_time_scalability.txt']
 labels = ['pSpatiocyte ($D=0.06$ \si{\micro}m$^{2}$s$^{-1}$)', 'pSpatiocyte ($D=4$ \si{\micro}m$^{2}$s$^{-1}$)']
 data = []
